@@ -16,12 +16,11 @@ RUN apt-get update && apt-get install -y \
     fonts-noto-core \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir .
-
-# Copy application code
+# Copy application code FIRST so pyproject.toml can find the source files and README
 COPY . .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir .
 
 # Create non-root user and storage directory
 RUN useradd -m -u 1000 appuser \
