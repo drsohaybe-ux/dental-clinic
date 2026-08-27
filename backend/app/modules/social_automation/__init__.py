@@ -27,11 +27,10 @@ class SocialAutomationModule(BaseModule):
         "frontend": {
             "navigation": [
                 {
-                    "label": "social.title",
+                    "label": "nav.social",
                     "icon": "i-lucide-share-2",
                     "to": "/social/posts",
-                    "permission": "social_automation.read",
-                    "order": 95,
+                    "order": 850,
                 },
             ],
         },
