@@ -27,7 +27,19 @@ const HOST_NAV: NavigationItem[] = [
     label: 'nav.social',
     icon: 'i-lucide-share-2',
     to: '/social/posts',
-    order: 25
+    order: 5
+  },
+  {
+    label: 'nav.messages',
+    icon: 'i-lucide-messages-square',
+    to: '/messages',
+    order: 6
+  },
+  {
+    label: 'nav.prospects',
+    icon: 'i-lucide-user-plus',
+    to: '/prospects',
+    order: 7
   },
   {
     label: 'nav.settings',

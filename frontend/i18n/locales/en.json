@@ -39,7 +39,9 @@
   },
   "nav": {
     "dashboard": "Home",
-    "social": "Validation de Contenu (IA)",
+    "social": "Content validation",
+    "messages": "Messaging",
+    "prospects": "Prospects",
     "journal": "Activity log",
     "staffTasks": "Staff tasks",
     "patients": "Patients",
