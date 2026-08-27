@@ -43,18 +43,29 @@ const { data: patient, status, refresh } = await useAsyncData(
   `patient:${patientId}`,
   async () => {
     try {
+      let resolvedId = patientId
+      const isPhoneLookup = /^\+?\d{6,15}$/.test(patientId)
+      if (isPhoneLookup) {
+        try {
+          const searchResp = await api.get<ApiResponse<any>>(`/api/v1/patients?search=${encodeURIComponent(patientId)}`)
+          if (searchResp.data?.items?.length > 0) {
+            resolvedId = searchResp.data.items[0].id
+          }
+        } catch {}
+      }
+
       const [identity, emergency, guardian, alertsResp] = await Promise.all([
         api.get<ApiResponse<PatientExtended>>(
-          `/api/v1/patients/${patientId}/extended`
+          `/api/v1/patients/${resolvedId}/extended`
         ),
         api.get<ApiResponse<PatientExtended['emergency_contact']>>(
-          `/api/v1/patients_clinical/patients/${patientId}/emergency-contact`
+          `/api/v1/patients_clinical/patients/${resolvedId}/emergency-contact`
         ).catch(() => ({ data: null })),
         api.get<ApiResponse<PatientExtended['legal_guardian']>>(
-          `/api/v1/patients_clinical/patients/${patientId}/legal-guardian`
+          `/api/v1/patients_clinical/patients/${resolvedId}/legal-guardian`
         ).catch(() => ({ data: null })),
         api.get<ApiResponse<{ alerts: PatientExtended['active_alerts'] }>>(
-          `/api/v1/patients_clinical/patients/${patientId}/alerts`
+          `/api/v1/patients_clinical/patients/${resolvedId}/alerts`
         ).catch(() => ({ data: { alerts: [] } }))
       ])
 
@@ -140,6 +151,13 @@ const tabs = computed(() => {
       slot: 'gallery'
     })
   }
+
+  items.push({
+    value: 'ai_dossier',
+    label: 'Radios & IA Dossier',
+    icon: 'i-lucide-scan',
+    slot: 'ai_dossier'
+  })
 
   items.push({
     value: 'timeline',
@@ -464,6 +482,16 @@ function collect() {
             <UCard class="mt-4">
               <PhotoGallery :patient-id="patientId" />
             </UCard>
+          </template>
+
+          <!-- Radios & AI Clinical Dossier Tab -->
+          <template #ai_dossier>
+            <div class="mt-4">
+              <PatientAiDossierTab
+                :patient-id="patientId"
+                :patient-phone="patient?.phone"
+              />
+            </div>
           </template>
 
           <!-- Timeline tab content -->
