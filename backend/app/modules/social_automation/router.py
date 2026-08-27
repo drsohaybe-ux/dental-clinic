@@ -10,7 +10,7 @@ from app.core.auth.dependencies import get_clinic_context, ClinicContext
 from .models import SocialPost, PostStatus
 from .schemas import SocialPostResponse, SocialPostUpdate, N8nIncomingDraft
 
-router = APIRouter(prefix="/social-automation", tags=["social_automation"])
+router = APIRouter(tags=["social_automation"])
 
 @router.post("/webhook/incoming", response_model=SocialPostResponse, summary="Receive draft from n8n")
 async def receive_n8n_draft(
