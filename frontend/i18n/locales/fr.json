@@ -1,4 +1,29 @@
 {
+  "social": {
+    "title": "Validation de Contenu (Studio IA)",
+    "tabs": {
+      "all": "Toutes",
+      "waiting": "En attente",
+      "approved": "Validées",
+      "published": "Publiées"
+    },
+    "card": {
+      "approve_btn": "Approuver & Publier",
+      "edit_btn": "Modifier",
+      "delete_btn": "Supprimer"
+    },
+    "toast": {
+      "approved_title": "Publication Transmise à n8n ! 🚀",
+      "approved_desc": "Le post '{title}' a été approuvé et envoyé.",
+      "updated_title": "Texte mis à jour",
+      "rejected": "Publication rejetée",
+      "config_saved": "Configuration n8n Enregistrée ! ⚡",
+      "webhook_failed": "Échec de connexion avec n8n"
+    },
+    "decision": {
+      "approve_publish": "Approuver & Publier sur les 4 Réseaux"
+    }
+  },
   "app": {
     "name": "DentalPin",
     "tagline": "Gestion de clinique dentaire"

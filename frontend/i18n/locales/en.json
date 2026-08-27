@@ -1,4 +1,29 @@
 {
+  "social": {
+    "title": "Content Validation (AI Studio)",
+    "tabs": {
+      "all": "All",
+      "waiting": "Pending",
+      "approved": "Approved",
+      "published": "Published"
+    },
+    "card": {
+      "approve_btn": "Approve & Publish",
+      "edit_btn": "Edit",
+      "delete_btn": "Delete"
+    },
+    "toast": {
+      "approved_title": "Sent to n8n! 🚀",
+      "approved_desc": "Post '{title}' approved and published.",
+      "updated_title": "Text updated",
+      "rejected": "Post rejected",
+      "config_saved": "n8n Configuration Saved! ⚡",
+      "webhook_failed": "Failed to connect to n8n"
+    },
+    "decision": {
+      "approve_publish": "Approve & Publish to all networks"
+    }
+  },
   "app": {
     "name": "DentalPin",
     "tagline": "Dental clinic management"
