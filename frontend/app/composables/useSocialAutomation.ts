@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
 export interface SocialPost {
   id: string
@@ -15,14 +15,22 @@ export interface SocialPost {
   created_at: string
 }
 
-export const useSocialAutomation = defineStore('socialAutomation', () => {
-  const posts = ref<SocialPost[]>([])
-  const n8nApproveUrl = useLocalStorage('n8n_approve_url', '')
-  const n8nCreateUrl = useLocalStorage('n8n_create_url', '')
+export function useSocialAutomation() {
+  const posts = useState<SocialPost[]>('social_posts', () => [])
+  
+  // Use Nuxt's useCookie or native localStorage if client-side
+  const n8nApproveUrl = useState<string>('n8n_approve_url', () => {
+    if (import.meta.client) return localStorage.getItem('n8n_approve_url') || ''
+    return ''
+  })
+  const n8nCreateUrl = useState<string>('n8n_create_url', () => {
+    if (import.meta.client) return localStorage.getItem('n8n_create_url') || ''
+    return ''
+  })
 
   const toast = useToast()
   const { t } = useI18n()
-  const api = useApi() // Assuming Nuxt app has a useApi composable, otherwise use $fetch
+  const api = useApi() 
 
   async function fetchPosts() {
     try {
@@ -39,13 +47,11 @@ export const useSocialAutomation = defineStore('socialAutomation', () => {
     if (!post) return
 
     try {
-      // 1. Mark as approved in our Database via our API
-      const updatedPost = await api.patch(`/api/social-automation/posts/${postId}`, {
+      await api.patch(`/api/social-automation/posts/${postId}`, {
         status: 'approved'
       })
       post.status = 'approved'
 
-      // 2. Trigger n8n actual publishing webhook
       const targetWebhook = post.approval_webhook_url || n8nApproveUrl.value
       if (targetWebhook) {
         await $fetch(targetWebhook, {
@@ -114,6 +120,10 @@ export const useSocialAutomation = defineStore('socialAutomation', () => {
   function setN8nUrls(approveUrl: string, createUrl: string) {
     n8nApproveUrl.value = approveUrl.trim()
     n8nCreateUrl.value = createUrl.trim()
+    if (import.meta.client) {
+      localStorage.setItem('n8n_approve_url', approveUrl.trim())
+      localStorage.setItem('n8n_create_url', createUrl.trim())
+    }
     toast.add({
       title: t('social.toast.config_saved'),
       color: 'green'
@@ -130,4 +140,4 @@ export const useSocialAutomation = defineStore('socialAutomation', () => {
     rejectPost,
     setN8nUrls
   }
-})
+}
