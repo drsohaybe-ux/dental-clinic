@@ -266,268 +266,284 @@
     </div>
 
     <!-- MODAL 1: Modifier / Révision Clinique avec l'IA -->
-    <UModal v-model="isEditModalOpen" :ui="{ width: 'sm:max-w-2xl' }">
-      <div class="p-6 space-y-5">
-        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
-          <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
-            <UIcon name="i-lucide-sparkles" class="text-[#0084ff] w-5 h-5" />
-            Modifier & Révision Clinique
-          </h3>
-          <button class="text-gray-400 hover:text-gray-600" @click="isEditModalOpen = false">
-            <UIcon name="i-lucide-x" class="w-5 h-5" />
-          </button>
-        </div>
+    <UModal v-model:open="isEditModalOpen">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
+                <UIcon name="i-lucide-sparkles" class="text-[#0084ff] w-5 h-5" />
+                Modifier & Révision Clinique
+              </h3>
+              <UButton color="gray" variant="ghost" icon="i-lucide-x" size="xs" @click="isEditModalOpen = false" />
+            </div>
+          </template>
 
-        <!-- Quick 1-Click Prompt Chips -->
-        <div>
-          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">
-            Recommandations rapides en 1 clic :
-          </label>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="chip in quickChips"
-              :key="chip"
-              type="button"
-              class="text-xs font-medium px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-[#e0f2fe] hover:text-[#0084ff] text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors"
-              @click="applyQuickChip(chip)"
-            >
-              {{ chip }}
-            </button>
+          <div class="space-y-4">
+            <!-- Quick 1-Click Prompt Chips -->
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">
+                Recommandations rapides en 1 clic :
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="chip in quickChips"
+                  :key="chip"
+                  type="button"
+                  class="text-xs font-medium px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-[#e0f2fe] hover:text-[#0084ff] text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors"
+                  @click="applyQuickChip(chip)"
+                >
+                  {{ chip }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Instruction input -->
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                Instructions pour Dr. Mokhtar AI :
+              </label>
+              <input
+                v-model="editForm.feedback"
+                type="text"
+                placeholder="e.g. Mettre en avant nos devis transparents en DZD et notre bilan sans douleur..."
+                class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff] focus:outline-hidden"
+              />
+            </div>
+
+            <!-- Textarea -->
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                Texte de la publication (modifiable en direct) :
+              </label>
+              <textarea
+                v-model="editForm.caption"
+                rows="6"
+                class="w-full text-xs font-sans bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff] focus:outline-hidden"
+              ></textarea>
+            </div>
           </div>
-        </div>
 
-        <!-- Instruction input -->
-        <div>
-          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-            Instructions pour Dr. Mokhtar AI :
-          </label>
-          <input
-            v-model="editForm.feedback"
-            type="text"
-            placeholder="e.g. Mettre en avant nos devis transparents en DZD et notre bilan sans douleur..."
-            class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff] focus:outline-hidden"
-          />
-        </div>
-
-        <!-- Textarea -->
-        <div>
-          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-            Texte de la publication (modifiable en direct) :
-          </label>
-          <textarea
-            v-model="editForm.caption"
-            rows="6"
-            class="w-full text-xs font-sans bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff] focus:outline-hidden"
-          ></textarea>
-        </div>
-
-        <div class="flex justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-          <button
-            type="button"
-            class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg"
-            @click="isEditModalOpen = false"
-          >
-            Annuler
-          </button>
-          <button
-            type="button"
-            class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-xs"
-            @click="saveEdit"
-          >
-            Appliquer les Modifications
-          </button>
-        </div>
-      </div>
+          <template #footer>
+            <div class="flex justify-end gap-3">
+              <UButton
+                color="gray"
+                variant="ghost"
+                @click="isEditModalOpen = false"
+              >
+                Annuler
+              </UButton>
+              <button
+                type="button"
+                class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-xs"
+                @click="saveEdit"
+              >
+                Appliquer les Modifications
+              </button>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
 
     <!-- MODAL 2: Créer une Publication (Auto ou Custom) -->
-    <UModal v-model="isCreateModalOpen" :ui="{ width: 'sm:max-w-xl' }">
-      <div class="p-6 space-y-5">
-        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
-          <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
-            <UIcon name="i-lucide-zap" class="text-[#0084ff] w-5 h-5" />
-            Créer une Publication (IA / Manuel)
-          </h3>
-          <button class="text-gray-400 hover:text-gray-600" @click="isCreateModalOpen = false">
-            <UIcon name="i-lucide-x" class="w-5 h-5" />
-          </button>
-        </div>
+    <UModal v-model:open="isCreateModalOpen">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
+                <UIcon name="i-lucide-zap" class="text-[#0084ff] w-5 h-5" />
+                Créer une Publication (IA / Manuel)
+              </h3>
+              <UButton color="gray" variant="ghost" icon="i-lucide-x" size="xs" @click="isCreateModalOpen = false" />
+            </div>
+          </template>
 
-        <!-- Mode Toggle -->
-        <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
-          <button
-            type="button"
-            :class="[
-              'flex-1 py-1.5 text-xs font-bold rounded-md transition-all',
-              createMode === 'auto' ? 'bg-white dark:bg-gray-900 text-[#0084ff] shadow-xs' : 'text-gray-500'
-            ]"
-            @click="createMode = 'auto'"
-          >
-            ⚡ Mode 100% Automatique (IA)
-          </button>
-          <button
-            type="button"
-            :class="[
-              'flex-1 py-1.5 text-xs font-bold rounded-md transition-all',
-              createMode === 'custom' ? 'bg-white dark:bg-gray-900 text-[#0084ff] shadow-xs' : 'text-gray-500'
-            ]"
-            @click="createMode = 'custom'"
-          >
-            ✍️ Mode Personnalisé
-          </button>
-        </div>
+          <div class="space-y-4">
+            <!-- Mode Toggle -->
+            <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
+              <button
+                type="button"
+                :class="[
+                  'flex-1 py-1.5 text-xs font-bold rounded-md transition-all',
+                  createMode === 'auto' ? 'bg-white dark:bg-gray-900 text-[#0084ff] shadow-xs' : 'text-gray-500'
+                ]"
+                @click="createMode = 'auto'"
+              >
+                ⚡ Mode 100% Automatique (IA)
+              </button>
+              <button
+                type="button"
+                :class="[
+                  'flex-1 py-1.5 text-xs font-bold rounded-md transition-all',
+                  createMode === 'custom' ? 'bg-white dark:bg-gray-900 text-[#0084ff] shadow-xs' : 'text-gray-500'
+                ]"
+                @click="createMode = 'custom'"
+              >
+                ✍️ Mode Personnalisé
+              </button>
+            </div>
 
-        <!-- Auto Mode Fields -->
-        <div v-if="createMode === 'auto'" class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-              Pilier / Thématique Clinique :
-            </label>
-            <select
-              v-model="newPostForm.pillar"
-              class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
-            >
-              <option value="Esthétique Dentaire & Blanchiment">✨ Esthétique Dentaire & Blanchiment</option>
-              <option value="Orthodontie Invisible & Aligners">🦷 Orthodontie Invisible & Aligners</option>
-              <option value="Implants & Chirurgie Guidée">🔩 Implants & Chirurgie Guidée</option>
-              <option value="Soins Préventifs & Pédodontie">🛡️ Soins Préventifs & Pédodontie</option>
-            </select>
+            <!-- Auto Mode Fields -->
+            <div v-if="createMode === 'auto'" class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                  Pilier / Thématique Clinique :
+                </label>
+                <select
+                  v-model="newPostForm.pillar"
+                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
+                >
+                  <option value="Esthétique Dentaire & Blanchiment">✨ Esthétique Dentaire & Blanchiment</option>
+                  <option value="Orthodontie Invisible & Aligners">🦷 Orthodontie Invisible & Aligners</option>
+                  <option value="Implants & Chirurgie Guidée">🔩 Implants & Chirurgie Guidée</option>
+                  <option value="Soins Préventifs & Pédodontie">🛡️ Soins Préventifs & Pédodontie</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                  Plateforme Cible :
+                </label>
+                <select
+                  v-model="newPostForm.platform"
+                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
+                >
+                  <option value="instagram">Instagram</option>
+                  <option value="facebook">Facebook</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Custom Mode Fields -->
+            <div v-else class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">Titre du soin :</label>
+                <input
+                  v-model="newPostForm.title"
+                  type="text"
+                  placeholder="e.g. Facettes Dentaires en Céramique"
+                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">Texte / Légende :</label>
+                <textarea
+                  v-model="newPostForm.caption"
+                  rows="4"
+                  placeholder="Texte détaillé avec tarifs DZD et appel à l'action WhatsApp..."
+                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
+                ></textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">URL de l'image (optionnel) :</label>
+                <input
+                  v-model="newPostForm.imageUrl"
+                  type="text"
+                  placeholder="https://images.unsplash.com/..."
+                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
+                />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-              Plateforme Cible :
-            </label>
-            <select
-              v-model="newPostForm.platform"
-              class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
-            >
-              <option value="instagram">Instagram</option>
-              <option value="facebook">Facebook</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Custom Mode Fields -->
-        <div v-else class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">Titre du soin :</label>
-            <input
-              v-model="newPostForm.title"
-              type="text"
-              placeholder="e.g. Facettes Dentaires en Céramique"
-              class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">Texte / Légende :</label>
-            <textarea
-              v-model="newPostForm.caption"
-              rows="4"
-              placeholder="Texte détaillé avec tarifs DZD et appel à l'action WhatsApp..."
-              class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
-            ></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">URL de l'image (optionnel) :</label>
-            <input
-              v-model="newPostForm.imageUrl"
-              type="text"
-              placeholder="https://images.unsplash.com/..."
-              class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
-            />
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-          <button
-            type="button"
-            class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg"
-            @click="isCreateModalOpen = false"
-          >
-            Annuler
-          </button>
-          <button
-            type="button"
-            class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-xs"
-            @click="submitNewPost"
-          >
-            Générer / Enregistrer
-          </button>
-        </div>
-      </div>
+          <template #footer>
+            <div class="flex justify-end gap-3">
+              <UButton
+                color="gray"
+                variant="ghost"
+                @click="isCreateModalOpen = false"
+              >
+                Annuler
+              </UButton>
+              <button
+                type="button"
+                class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-xs"
+                @click="submitNewPost"
+              >
+                Générer / Enregistrer
+              </button>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
 
     <!-- MODAL 3: Configuration n8n -->
-    <UModal v-model="isConfigModalOpen" :ui="{ width: 'sm:max-w-xl' }">
-      <div class="p-6 space-y-5">
-        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
-          <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
-            <UIcon name="i-lucide-settings" class="text-[#0084ff] w-5 h-5" />
-            Configuration des Webhooks n8n
-          </h3>
-          <button class="text-gray-400 hover:text-gray-600" @click="isConfigModalOpen = false">
-            <UIcon name="i-lucide-x" class="w-5 h-5" />
-          </button>
-        </div>
+    <UModal v-model:open="isConfigModalOpen">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
+                <UIcon name="i-lucide-settings" class="text-[#0084ff] w-5 h-5" />
+                Configuration des Webhooks n8n
+              </h3>
+              <UButton color="gray" variant="ghost" icon="i-lucide-x" size="xs" @click="isConfigModalOpen = false" />
+            </div>
+          </template>
 
-        <p class="text-xs text-gray-600 dark:text-gray-400">
-          Vos webhooks n8n permettent d'envoyer les publications directement sur Instagram, Facebook et TikTok une fois approuvées par le Dr. Mokhtar.
-        </p>
-
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-              Webhook d'Approbation n8n (POST) :
-            </label>
-            <input
-              v-model="configForm.approveUrl"
-              type="text"
-              placeholder="https://n8n.your-instance.com/webhook/dental-approve"
-              class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white font-mono"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-              Webhook de Création / Révision n8n (POST) :
-            </label>
-            <input
-              v-model="configForm.createUrl"
-              type="text"
-              placeholder="https://n8n.your-instance.com/webhook/dental-create"
-              class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white font-mono"
-            />
-          </div>
-
-          <div class="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 rounded-xl text-xs text-blue-800 dark:text-blue-300">
-            <p class="font-bold flex items-center gap-1.5 mb-1">
-              <UIcon name="i-lucide-shield-check" class="w-4 h-4 text-[#0084ff]" />
-              Inbound Secret Token
+          <div class="space-y-4">
+            <p class="text-xs text-gray-600 dark:text-gray-400">
+              Vos webhooks n8n permettent d'envoyer les publications directement sur Instagram, Facebook et TikTok une fois approuvées par le Dr. Mokhtar.
             </p>
-            <p>Configuré dans vos variables Render : <code class="font-bold">DENTALPIN_N8N_SECRET=your_random_password_here</code></p>
-          </div>
-        </div>
 
-        <div class="flex justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-          <button
-            type="button"
-            class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg"
-            @click="isConfigModalOpen = false"
-          >
-            Fermer
-          </button>
-          <button
-            type="button"
-            class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-xs"
-            @click="saveConfig"
-          >
-            Enregistrer la Configuration
-          </button>
-        </div>
-      </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                Webhook d'Approbation n8n (POST) :
+              </label>
+              <input
+                v-model="configForm.approveUrl"
+                type="text"
+                placeholder="https://n8n.your-instance.com/webhook/dental-approve"
+                class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white font-mono"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                Webhook de Création / Révision n8n (POST) :
+              </label>
+              <input
+                v-model="configForm.createUrl"
+                type="text"
+                placeholder="https://n8n.your-instance.com/webhook/dental-create"
+                class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white font-mono"
+              />
+            </div>
+
+            <div class="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 rounded-xl text-xs text-blue-800 dark:text-blue-300">
+              <p class="font-bold flex items-center gap-1.5 mb-1">
+                <UIcon name="i-lucide-shield-check" class="w-4 h-4 text-[#0084ff]" />
+                Inbound Secret Token
+              </p>
+              <p>Configuré dans vos variables Render : <code class="font-bold">DENTALPIN_N8N_SECRET=your_random_password_here</code></p>
+            </div>
+          </div>
+
+          <template #footer>
+            <div class="flex justify-end gap-3">
+              <UButton
+                color="gray"
+                variant="ghost"
+                @click="isConfigModalOpen = false"
+              >
+                Fermer
+              </UButton>
+              <button
+                type="button"
+                class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-xs"
+                @click="saveConfig"
+              >
+                Enregistrer la Configuration
+              </button>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
   </div>
 </template>
