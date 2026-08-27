@@ -551,16 +551,16 @@ const platformFilter = ref<'all' | 'instagram' | 'facebook'>('all')
 // Tab Counts
 const counts = computed(() => {
   return {
-    all: socialStore.posts.length,
-    waiting: socialStore.posts.filter(p => p.status === 'waiting_approval').length,
-    approved: socialStore.posts.filter(p => p.status === 'approved').length,
-    published: socialStore.posts.filter(p => p.status === 'published').length
+    all: socialStore.posts.value.length,
+    waiting: socialStore.posts.value.filter(p => p.status === 'waiting_approval').length,
+    approved: socialStore.posts.value.filter(p => p.status === 'approved').length,
+    published: socialStore.posts.value.filter(p => p.status === 'published').length
   }
 })
 
 // Filtered posts logic
 const filteredPosts = computed(() => {
-  let list = socialStore.posts
+  let list = socialStore.posts.value
   if (activeTab.value !== 'all') {
     list = list.filter(p => p.status === activeTab.value)
   }
@@ -655,8 +655,8 @@ function submitNewPost() {
 // Config Modal State
 const isConfigModalOpen = ref(false)
 const configForm = ref({
-  approveUrl: socialStore.n8nApproveUrl,
-  createUrl: socialStore.n8nCreateUrl
+  approveUrl: socialStore.n8nApproveUrl.value,
+  createUrl: socialStore.n8nCreateUrl.value
 })
 
 function saveConfig() {
