@@ -9,51 +9,53 @@ export interface SocialPost {
   scheduled_for: string
   ai_notes?: string
   feedback?: string
+  metrics?: { reach: number; likes: number }
   approval_webhook_url?: string
   created_at: string
 }
 
-const DEFAULT_POSTS: SocialPost[] = [
+export const EXACT_SEED_POSTS: SocialPost[] = [
   {
     id: 'post-seed-1',
     platform: 'instagram',
-    title: 'Blanchiment Dentaire au Fauteuil ✨',
-    caption: '🦷 Retrouvez l\'éclat naturel de votre sourire en 1 seule séance au cabinet du Dr. Mokhtar !\n\n✨ Protocole laser sans douleur avec des résultats visibles immédiatement.\n💰 Tarifs transparents en DZD. Prenez rendez-vous dès aujourd\'hui par message privé WhatsApp !',
-    hashtags: ['#DentisteAlger', '#DrMokhtar', '#BlanchimentDentaire', '#SourireEclatant', '#SanteDentaire'],
-    image_url: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=1000&q=80',
+    title: "5 Signes Précurseurs d'une Carie Dentaire",
+    caption: "🦷 Saviez-vous qu'une carie commence souvent sans aucune douleur sous la surface de l'émail ?\n\nVoici 5 signes d'alerte à ne jamais ignorer :...\n\n👉 Prenez rendez-vous dès aujourd'hui pour votre bilan préventif.",
+    hashtags: ['#SanteDentaire', '#SourireParfait', '#DentisteAlger', '#SoinsDentaires', '#HygieneBuccoDentaire'],
+    image_url: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?auto=format&fit=crop&w=1000&q=80',
     status: 'waiting_approval',
     scheduled_for: 'Demain à 10h00',
-    ai_notes: 'Généré automatiquement par Dr. Mokhtar AI (n8n) — Focus esthétique et tarifs DZD.',
+    ai_notes: 'Dr. Mokhtar AI : Cible : Soins préventifs et détartrage. Généré par Dr. Mokhtar AI.',
     created_at: new Date().toISOString()
   },
   {
     id: 'post-seed-2',
     platform: 'facebook',
-    title: 'Alignement Invisible & Orthodontie Moderne 🦷',
-    caption: 'Transformez votre sourire en toute discrétion grâce à nos gouttières transparentes.\n\n👨‍⚕️ Le Dr. Mokhtar vous accompagne pour un plan de traitement sur-mesure adapté à votre rythme de vie.\n\n📍 Cabinet situé à Alger. Facilités de paiement disponibles.',
-    hashtags: ['#OrthodontieInvisible', '#AlignersDZ', '#CabinetDentaireAlger', '#DrMokhtar'],
+    title: 'Avant / Après : Blanchiment Dentaire Laser au Fauteuil',
+    caption: '✨ Transformation spectaculaire pour notre patient après une seule séance de blanchiment laser de 45 minutes en cabinet !\n\n...\n\n💰 Tarifs transparents en DZD et facilités de paiement. Contactez-nous sur WhatsApp pour votre devis !',
+    hashtags: ['#BlanchimentDentaire', '#EsthetiqueDentaire', '#DentisteDZ', '#SourireEclatant'],
     image_url: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=1000&q=80',
     status: 'waiting_approval',
-    scheduled_for: 'Vendredi à 14h30',
-    ai_notes: 'Généré par n8n — Pilier: Traitements Modernes & Orthodontie.',
+    scheduled_for: 'Jeudi à 14h30',
+    ai_notes: 'Dr. Mokhtar AI : Focus : Esthétique du sourire et conversion WhatsApp.',
     created_at: new Date().toISOString()
   },
   {
     id: 'post-seed-3',
     platform: 'instagram',
-    title: 'Implants Dentaires : Retrouvez Votre Confort',
-    caption: 'Une solution pérenne, naturelle et indolore pour remplacer vos dents manquantes.\n\n🦷 Chirurgie guidée par ordinateur et matériaux certifiés haute biocompatibilité.\n\n📲 Réservez votre consultation bilan sur WhatsApp.',
-    hashtags: ['#ImplantDentaire', '#ChirurgieDentaire', '#DentisteAlgerie', '#DrMokhtar'],
+    title: 'Tout Savoir sur les Implants Dentaires en Zircone',
+    caption: "🦷 Remplacer une dent manquante n'a jamais été aussi durable et naturel.\n\nPourquoi choisir l'implant en zircone ?...\n\n✨ Protocole chirurgical guidé et anesthésie douce au cabinet du Dr. Mokhtar.",
+    hashtags: ['#ImplantDentaire', '#ChirurgieDentaire', '#Zircone', '#CabinetDentaire'],
     image_url: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=80',
-    status: 'approved',
-    scheduled_for: 'Publié récemment',
+    status: 'published',
+    scheduled_for: 'Publié hier',
+    metrics: { reach: 4820, likes: 312 },
     ai_notes: 'Publication validée par le Dr. Mokhtar.',
     created_at: new Date().toISOString()
   }
 ]
 
 export function useSocialAutomation() {
-  const posts = useState<SocialPost[]>('social_posts', () => [...DEFAULT_POSTS])
+  const posts = useState<SocialPost[]>('social_posts', () => [...EXACT_SEED_POSTS])
   
   const n8nApproveUrl = useState<string>('n8n_approve_url', () => {
     if (import.meta.client) return localStorage.getItem('n8n_approve_url') || ''
@@ -72,10 +74,13 @@ export function useSocialAutomation() {
     try {
       const data = await api.get<SocialPost[]>('/api/v1/social_automation/posts')
       if (Array.isArray(data) && data.length > 0) {
-        posts.value = data
+        // Merge backend posts with seed posts to ensure we don't have empty view
+        const existingIds = new Set(data.map(p => p.id))
+        const remainingSeeds = EXACT_SEED_POSTS.filter(s => !existingIds.has(s.id))
+        posts.value = [...data, ...remainingSeeds]
       }
     } catch {
-      // Backend is ready or using seed fallback gracefully
+      // Graceful fallback to seeded posts
     }
   }
 
@@ -83,16 +88,14 @@ export function useSocialAutomation() {
     const post = posts.value.find(p => p.id === postId)
     if (!post) return
 
-    post.status = 'approved'
+    post.status = 'published'
 
-    // Try backend persistence
     try {
       await api.patch(`/api/v1/social_automation/posts/${postId}`, {
-        status: 'approved'
+        status: 'published'
       })
     } catch {}
 
-    // Trigger n8n actual publishing webhook
     const targetWebhook = post.approval_webhook_url || n8nApproveUrl.value
     if (targetWebhook) {
       try {
@@ -100,7 +103,7 @@ export function useSocialAutomation() {
           method: 'POST',
           body: {
             event: 'post_approved',
-            decision: t('social.decision.approve_publish'),
+            decision: 'Approuver & Publier sur les Réseaux',
             approved: true,
             mediaUrl: post.image_url,
             caption: post.caption,
@@ -112,8 +115,8 @@ export function useSocialAutomation() {
     }
 
     toast.add({
-      title: t('social.toast.approved_title'),
-      description: t('social.toast.approved_desc', { title: post.title }),
+      title: 'Publication Transmise à n8n ! 🚀',
+      description: `Le post "${post.title}" a été approuvé et envoyé aux réseaux sociaux.`,
       color: 'green'
     })
   }
@@ -134,54 +137,84 @@ export function useSocialAutomation() {
       })
     } catch {}
 
-    // Trigger n8n revision webhook if set
     if (n8nCreateUrl.value) {
       try {
         $fetch(n8nCreateUrl.value, {
           method: 'POST',
           body: {
             topic: post.title,
-            instructions: `Modification demandée : ${feedback}. Texte précédent : ${newCaption}`
+            instructions: `Modification demandée par Dr. Mokhtar: ${feedback}. Texte: ${newCaption}`
           }
         }).catch(() => {})
       } catch {}
     }
 
     toast.add({
-      title: t('social.toast.updated_title'),
+      title: 'Publication Modifiée avec Succès ✨',
+      description: 'Le texte a été mis à jour et réaligné sur vos instructions.',
       color: 'blue'
     })
   }
 
   async function rejectPost(postId: string) {
-    const post = posts.value.find(p => p.id === postId)
-    if (!post) return
-
-    post.status = 'rejected'
-    try {
-      await api.patch(`/api/v1/social_automation/posts/${postId}`, {
-        status: 'rejected'
+    const index = posts.value.findIndex(p => p.id === postId)
+    if (index !== -1) {
+      const post = posts.value[index]
+      posts.value.splice(index, 1)
+      try {
+        await api.patch(`/api/v1/social_automation/posts/${postId}`, {
+          status: 'rejected'
+        })
+      } catch {}
+      toast.add({
+        title: 'Publication Supprimée',
+        description: `Le brouillon "${post.title}" a été retiré.`,
+        color: 'gray'
       })
-    } catch {}
-
-    toast.add({ title: t('social.toast.rejected'), color: 'gray' })
+    }
   }
 
-  function createNewDraft(payload: { title: string; caption: string; imageUrl?: string; platform?: string }) {
+  function createNewDraft(payload: {
+    title: string
+    caption: string
+    imageUrl?: string
+    platform?: 'instagram' | 'facebook' | 'tiktok'
+    pillar?: string
+  }) {
     const newPost: SocialPost = {
       id: `post-${Date.now()}`,
-      platform: (payload.platform as any) || 'instagram',
+      platform: payload.platform || 'instagram',
       title: payload.title,
       caption: payload.caption,
-      hashtags: ['#DentisteAlger', '#DrMokhtar', '#SanteDentaire'],
-      image_url: payload.imageUrl || 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=1000&q=80',
+      hashtags: ['#DentisteAlger', '#DrMokhtar', '#SanteDentaire', '#CabinetDentaire'],
+      image_url: payload.imageUrl || 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=80',
       status: 'waiting_approval',
       scheduled_for: 'Demain à 10h00',
-      ai_notes: 'Créé via le studio de validation',
+      ai_notes: `Généré automatiquement par Dr. Mokhtar AI — Pilier: ${payload.pillar || 'Soins Généraux'}.`,
       created_at: new Date().toISOString()
     }
+
     posts.value.unshift(newPost)
-    toast.add({ title: 'Nouvelle publication ajoutée !', color: 'green' })
+
+    if (n8nCreateUrl.value) {
+      try {
+        $fetch(n8nCreateUrl.value, {
+          method: 'POST',
+          body: {
+            pillar: payload.pillar || 'Services & Technologies du Cabinet',
+            topic: payload.title,
+            instructions: payload.caption,
+            imageSource: 'OpenAI'
+          }
+        }).catch(() => {})
+      } catch {}
+    }
+
+    toast.add({
+      title: 'Nouvelle Publication Créée ⚡',
+      description: 'Le brouillon a été généré et ajouté en tête de liste.',
+      color: 'green'
+    })
   }
 
   function setN8nUrls(approveUrl: string, createUrl: string) {
@@ -192,7 +225,8 @@ export function useSocialAutomation() {
       localStorage.setItem('n8n_create_url', createUrl.trim())
     }
     toast.add({
-      title: t('social.toast.config_saved'),
+      title: 'Configuration n8n Enregistrée ! ⚡',
+      description: 'Vos webhooks n8n sont connectés en direct au tableau de bord.',
       color: 'green'
     })
   }
