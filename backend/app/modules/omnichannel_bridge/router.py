@@ -132,6 +132,20 @@ async def log_inbound_message(
             )
             db.add(new_lead)
 
+    # Auto-stage urgency if flagged
+    if payload.is_urgent:
+        clean_id = normalize_phone(identifier)
+        state_stmt = select(ChatSessionState).where(
+            or_(ChatSessionState.phone == identifier, ChatSessionState.phone == clean_id)
+        )
+        state_res = await db.execute(state_stmt)
+        state = state_res.scalars().first()
+        if not state:
+            state = ChatSessionState(phone=identifier, is_urgent=True)
+            db.add(state)
+        else:
+            state.is_urgent = True
+
     msg = ChatMessage(
         phone=identifier,
         sender="patient",
@@ -180,6 +194,20 @@ async def log_outbound_message(
                 stage="new",
             )
             db.add(new_lead)
+
+    # Auto-stage urgency if flagged
+    if payload.is_urgent:
+        clean_id = normalize_phone(identifier)
+        state_stmt = select(ChatSessionState).where(
+            or_(ChatSessionState.phone == identifier, ChatSessionState.phone == clean_id)
+        )
+        state_res = await db.execute(state_stmt)
+        state = state_res.scalars().first()
+        if not state:
+            state = ChatSessionState(phone=identifier, is_urgent=True)
+            db.add(state)
+        else:
+            state.is_urgent = True
 
     msg = ChatMessage(
         phone=identifier,
@@ -383,6 +411,38 @@ async def toggle_human_takeover(
     return GenericSuccessResponse(success=True, message=status_text)
 
 
+# --- 8b. POST /chats/urgency (Toggle Emergency State & De-escalate) ---
+@router.post("/chats/urgency", response_model=GenericSuccessResponse)
+async def toggle_chat_urgency(
+    phone: str = Query(...),
+    active: bool = Query(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """Sets or de-escalates emergency status for a conversation."""
+    clean = normalize_phone(phone)
+    stmt = select(ChatSessionState).where(
+        or_(
+            ChatSessionState.phone == phone,
+            ChatSessionState.phone == clean,
+        )
+    )
+    res = await db.execute(stmt)
+    state = res.scalars().first()
+
+    if not state:
+        state = ChatSessionState(
+            phone=phone,
+            is_urgent=active,
+        )
+        db.add(state)
+    else:
+        state.is_urgent = active
+
+    await db.commit()
+    msg = "Statut Urgence activé 🚨" if active else "Statut Urgence retiré avec succès ✅"
+    return GenericSuccessResponse(success=True, message=msg)
+
+
 # --- 9. GET /conversations (Aggregated Live Threads for Dashboard) ---
 @router.get("/conversations")
 async def get_live_conversations(
@@ -445,7 +505,7 @@ async def get_live_conversations(
             if lead:
                 thread["name"] = lead.name
 
-        # Lookup takeover state
+        # Lookup takeover state & override urgency
         state_stmt = select(ChatSessionState).where(
             or_(ChatSessionState.phone == phone_key, ChatSessionState.phone == clean)
         )
@@ -453,6 +513,8 @@ async def get_live_conversations(
         state = state_res.scalars().first()
         if state:
             thread["is_human_active"] = state.is_human_active
+            if state.is_urgent is not None:
+                thread["is_urgent"] = state.is_urgent
 
         # Check if patient has radios
         if thread.get("patient_id"):

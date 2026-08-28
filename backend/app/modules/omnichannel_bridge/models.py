@@ -59,7 +59,7 @@ class PatientDossierFile(Base, TimestampMixin):
 
 
 class ChatSessionState(Base, TimestampMixin):
-    """Tracks whether a human doctor has taken over a conversation."""
+    """Tracks whether a human doctor has taken over a conversation or flagged it urgent."""
 
     __tablename__ = "chat_session_states"
 
@@ -67,4 +67,5 @@ class ChatSessionState(Base, TimestampMixin):
     clinic_id: Mapped[UUID | None] = mapped_column(ForeignKey("clinics.id"), index=True, nullable=True)
     phone: Mapped[str] = mapped_column(String(50), unique=True, index=True)
     is_human_active: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_urgent: Mapped[bool | None] = mapped_column(Boolean, default=None, nullable=True)
     last_takeover_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

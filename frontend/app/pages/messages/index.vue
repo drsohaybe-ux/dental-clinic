@@ -29,6 +29,46 @@
       </div>
     </div>
 
+    <!-- Top Emergency Alert Banner -->
+    <div
+      v-if="activeUrgentThread && !isUrgentBannerDismissed"
+      class="bg-gradient-to-r from-rose-600 via-rose-500 to-red-600 rounded-2xl p-4 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-rose-400/40"
+    >
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg shrink-0 animate-bounce">
+          🚨
+        </div>
+        <div>
+          <h3 class="font-bold text-xs sm:text-sm flex items-center gap-2">
+            Alerte Urgence Dentaire en cours
+            <span class="text-[10px] bg-white text-rose-700 px-2 py-0.5 rounded-full font-extrabold uppercase">Prioritaire</span>
+          </h3>
+          <p class="text-xs text-rose-100 mt-0.5">
+            <strong>{{ activeUrgentThread.name }}</strong> ({{ activeUrgentThread.phone }}) : {{ activeUrgentThread.lastMessage || 'Signale une douleur aiguë / urgence' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          class="px-3 py-1.5 bg-white text-rose-700 hover:bg-rose-50 font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+          @click="selectThread(activeUrgentThread)"
+        >
+          <UIcon name="i-lucide-message-circle" class="w-4 h-4" />
+          <span>Ouvrir la conversation</span>
+        </button>
+        <button
+          type="button"
+          class="p-1.5 hover:bg-white/20 text-white rounded-lg transition-colors"
+          title="Masquer le bandeau d'alerte"
+          @click="isUrgentBannerDismissed = true"
+        >
+          <UIcon name="i-lucide-x" class="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+
     <!-- Main Chat Workspace: 2-Column Split -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[700px]">
       <!-- Left Column: Conversations List (4 cols) -->
@@ -207,6 +247,22 @@
             >
               Dossier
             </UButton>
+
+            <!-- Emergency Toggle (De-escalate / Escalate) -->
+            <button
+              type="button"
+              :class="[
+                'inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-colors',
+                selectedThread.isUrgent
+                  ? 'bg-rose-100 dark:bg-rose-950/60 hover:bg-rose-200 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
+                  : 'bg-gray-100 dark:bg-gray-800 hover:bg-rose-50 hover:text-rose-600 text-gray-600 dark:text-gray-300'
+              ]"
+              :title="selectedThread.isUrgent ? 'Déclasser : retirer le statut urgence pour cette conversation' : 'Marquer cette conversation comme urgence prioritaire'"
+              @click="toggleUrgency"
+            >
+              <UIcon :name="selectedThread.isUrgent ? 'i-lucide-shield-check' : 'i-lucide-alert-triangle'" class="w-3.5 h-3.5" />
+              <span>{{ selectedThread.isUrgent ? 'Retirer Urgence' : 'Marquer Urgence' }}</span>
+            </button>
 
             <!-- Hide / Unhide Chat Button -->
             <button
@@ -834,6 +890,30 @@ function getFilterLabel(filter: string) {
     case 'archived': return '📁 Masquées'
     default: return filter
   }
+}
+
+const isUrgentBannerDismissed = ref(false)
+
+const activeUrgentThread = computed(() => {
+  return threads.value.find(t => t.isUrgent && !hiddenThreads.value.has(t.id))
+})
+
+async function toggleUrgency() {
+  if (!selectedThread.value) return
+  const newUrgent = !selectedThread.value.isUrgent
+  selectedThread.value.isUrgent = newUrgent
+
+  toast.add({
+    title: newUrgent ? 'Statut Urgence Activé 🚨' : 'Statut Urgence Retiré ✅',
+    description: newUrgent
+      ? `La conversation avec ${selectedThread.value.name} est classée en priorité rouge.`
+      : `La conversation avec ${selectedThread.value.name} a été déclassée en statut normal.`,
+    color: newUrgent ? 'rose' : 'green'
+  })
+
+  try {
+    await api.post(`/api/v1/omnichannel_bridge/chats/urgency?phone=${encodeURIComponent(selectedThread.value.phone)}&active=${newUrgent}`)
+  } catch {}
 }
 
 function toggleTakeover() {

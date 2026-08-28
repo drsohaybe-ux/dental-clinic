@@ -24,6 +24,7 @@ class InboundMessagePayload(BaseModel):
     full_name: Optional[str] = Field(default=None, alias="full name")
     content: str
     platform: Optional[str] = "telegram"
+    is_urgent: Optional[bool] = False
     timestamp: Optional[str] = None
 
     class Config:
@@ -49,6 +50,7 @@ class OutboundMessagePayload(BaseModel):
     full_name: Optional[str] = Field(default=None, alias="full name")
     content: str
     sender: Optional[str] = "ai_bot"
+    is_urgent: Optional[bool] = False
     timestamp: Optional[str] = None
 
     class Config:

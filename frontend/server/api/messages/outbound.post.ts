@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
     chat_id: String(rawBody['chat id'] || rawBody.chat_id || rawBody.chatId || rawBody.phone || ''),
     content: rawBody.content || '',
     sender: rawBody.sender || 'ai_bot',
+    is_urgent: Boolean(rawBody.is_urgent || rawBody['is_urgent'] || rawBody['is urgent'] || false),
     name: rawBody.name || rawBody['full name'] || rawBody.full_name || '',
     timestamp: rawBody.timestamp || new Date().toISOString()
   }
