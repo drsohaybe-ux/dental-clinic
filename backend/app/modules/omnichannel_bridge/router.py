@@ -379,3 +379,30 @@ async def get_live_conversations(
                 thread["has_radio"] = True
 
     return list(threads_map.values())
+
+
+# --- 10. GET /leads (Fetch Staged Prospects from DB) ---
+@router.get("/leads")
+async def get_all_leads(
+    db: AsyncSession = Depends(get_db),
+):
+    """Returns all leads staged in the database."""
+    stmt = select(PatientLead).order_by(desc(PatientLead.created_at)).limit(100)
+    res = await db.execute(stmt)
+    leads = res.scalars().all()
+
+    result = []
+    for l in leads:
+        patient = await find_patient_by_phone(db, l.phone)
+        result.append({
+            "id": str(l.id),
+            "name": l.name,
+            "phone": l.phone,
+            "source": l.source,
+            "stage": "converted" if patient else l.stage,
+            "notes": l.notes,
+            "patient_id": str(patient.id) if patient else None,
+            "created_at": l.created_at.strftime("%d/%m/%Y %H:%M") if l.created_at else "Récemment",
+        })
+    return result
+

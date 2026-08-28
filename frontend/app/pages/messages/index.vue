@@ -435,14 +435,17 @@ const searchQuery = ref('')
 const activeFilter = ref('all')
 const replyText = ref('')
 
+const api = useApi()
+
 let syncTimer: any = null
 
 async function syncLiveThreads() {
   try {
-    const liveThreads = await $fetch<any[]>('/api/messages/threads')
+    const liveThreads = await api.get<any[]>('/api/v1/omnichannel_bridge/conversations')
     if (Array.isArray(liveThreads) && liveThreads.length > 0) {
       liveThreads.forEach(live => {
-        const existingIdx = threads.value.findIndex(t => t.phone.replace(/\D/g, '') === live.phone.replace(/\D/g, ''))
+        const cleanLive = (live.phone || '').replace(/\D/g, '')
+        const existingIdx = threads.value.findIndex(t => (t.phone || '').replace(/\D/g, '') === cleanLive)
         const mapped: ChatThread = {
           id: live.id || `thread-${live.phone}`,
           name: live.name || live.phone,
@@ -450,7 +453,7 @@ async function syncLiveThreads() {
           platform: live.platform || 'telegram',
           patientId: live.patient_id || undefined,
           lastMessage: live.last_message || '',
-          lastTime: live.last_time ? new Date(live.last_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'À l\'instant',
+          lastTime: live.last_time ? (live.last_time.length < 8 ? live.last_time : new Date(live.last_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })) : 'À l\'instant',
           isHumanActive: live.is_human_active || false,
           isUrgent: live.is_urgent || false,
           hasRadio: live.has_radio || false,
@@ -459,7 +462,7 @@ async function syncLiveThreads() {
 
         if (existingIdx >= 0) {
           threads.value[existingIdx] = mapped
-          if (selectedThread.value?.id === mapped.id) {
+          if (selectedThread.value?.id === mapped.id || selectedThread.value?.phone === mapped.phone) {
             selectedThread.value = mapped
           }
         } else {
@@ -550,9 +553,7 @@ function toggleTakeover() {
   })
 
   try {
-    $fetch(`/api/chats/takeover?phone=${encodeURIComponent(selectedThread.value.phone)}&active=${active}`, {
-      method: 'POST'
-    }).catch(() => {})
+    api.post(`/api/v1/omnichannel_bridge/chats/takeover?phone=${encodeURIComponent(selectedThread.value.phone)}&active=${active}`).catch(() => {})
   } catch {}
 }
 
@@ -569,16 +570,17 @@ function sendReply() {
   selectedThread.value.lastTime = 'À l\'instant'
 
   try {
-    $fetch('/api/messages/outbound', {
-      method: 'POST',
-      body: {
-        phone: selectedThread.value.phone,
-        content: text,
-        sender: 'doctor',
-        timestamp: new Date().toISOString()
-      }
+    api.post('/api/v1/omnichannel_bridge/messages/outbound', {
+      phone: selectedThread.value.phone,
+      content: text,
+      sender: 'doctor',
+      timestamp: new Date().toISOString()
     }).catch(() => {})
   } catch {}
+
+  replyText.value = ''
+  toast.add({ title: 'Message envoyé au patient 🚀', color: 'green' })
+}
 
   replyText.value = ''
   toast.add({ title: 'Message envoyé au patient 🚀', color: 'green' })

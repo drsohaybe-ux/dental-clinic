@@ -232,7 +232,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -250,7 +250,7 @@ interface Lead {
   patientId?: string
 }
 
-const leads = ref<Lead[]>([
+const defaultSeedLeads: Lead[] = [
   {
     id: 'lead-1',
     name: 'Karim Benali',
@@ -278,8 +278,9 @@ const leads = ref<Lead[]>([
     notes: 'RDV fixé pour pose d\'implant en Zircone',
     createdAt: 'Hier'
   }
-])
+]
 
+const leads = ref<Lead[]>([...defaultSeedLeads])
 const searchQuery = ref('')
 const stageFilter = ref('all')
 const isCreateModalOpen = ref(false)
@@ -290,6 +291,54 @@ const newLeadForm = ref({
   phone: '',
   source: 'telegram' as 'telegram' | 'whatsapp' | 'instagram',
   notes: ''
+})
+
+async function loadLeadsAndSyncPatients() {
+  try {
+    // 1. Fetch live leads from backend database
+    const dbLeads = await api.get<any[]>('/api/v1/omnichannel_bridge/leads')
+    if (Array.isArray(dbLeads) && dbLeads.length > 0) {
+      dbLeads.forEach(dl => {
+        const existing = leads.value.find(l => l.phone.replace(/\D/g, '') === dl.phone.replace(/\D/g, ''))
+        if (existing) {
+          existing.stage = dl.stage
+          existing.patientId = dl.patient_id || undefined
+        } else {
+          leads.value.unshift({
+            id: dl.id,
+            name: dl.name,
+            phone: dl.phone,
+            source: dl.source || 'telegram',
+            stage: dl.stage || 'new',
+            notes: dl.notes,
+            patientId: dl.patient_id || undefined,
+            createdAt: dl.created_at || 'Récemment'
+          })
+        }
+      })
+    }
+
+    // 2. Fetch active patients to ensure any converted patient is permanently locked
+    const patientsRes = await api.get<any>('/api/v1/patients?limit=100')
+    const patientItems = patientsRes?.data?.items || patientsRes?.items || []
+    if (Array.isArray(patientItems)) {
+      leads.value.forEach(lead => {
+        const cleanLeadPhone = lead.phone.replace(/\D/g, '')
+        const matchingPatient = patientItems.find((p: any) => {
+          const cleanPPhone = (p.phone || '').replace(/\D/g, '')
+          return cleanPPhone && cleanLeadPhone && (cleanPPhone.includes(cleanLeadPhone) || cleanLeadPhone.includes(cleanPPhone))
+        })
+        if (matchingPatient) {
+          lead.stage = 'converted'
+          lead.patientId = matchingPatient.id
+        }
+      })
+    }
+  } catch {}
+}
+
+onMounted(() => {
+  loadLeadsAndSyncPatients()
 })
 
 const filteredLeads = computed(() => {
@@ -315,7 +364,7 @@ function getStageColor(stage: string) {
   }
 }
 
-function submitNewLead() {
+async function submitNewLead() {
   if (!newLeadForm.value.name.trim() || !newLeadForm.value.phone.trim()) return
   const newL: Lead = {
     id: `lead-${Date.now()}`,
@@ -330,16 +379,13 @@ function submitNewLead() {
   isCreateModalOpen.value = false
 
   try {
-    $fetch('/api/automation/incoming-lead', {
-      method: 'POST',
-      body: {
-        name: newLeadForm.value.name,
-        phone: newLeadForm.value.phone,
-        source: newLeadForm.value.source,
-        stage: 'new',
-        notes: newLeadForm.value.notes
-      }
-    }).catch(() => {})
+    await api.post('/api/v1/omnichannel_bridge/automation/incoming-lead', {
+      name: newLeadForm.value.name,
+      phone: newLeadForm.value.phone,
+      source: newLeadForm.value.source,
+      stage: 'new',
+      notes: newLeadForm.value.notes
+    })
   } catch {}
 
   newLeadForm.value = { name: '', phone: '', source: 'telegram', notes: '' }
@@ -347,21 +393,42 @@ function submitNewLead() {
 }
 
 async function convertToPatient(lead: Lead) {
+  if (lead.stage === 'converted') return
   isConvertingId.value = lead.id
+
   const parts = lead.name.trim().split(/\s+/)
   const firstName = parts[0] || 'Patient'
   const lastName = parts.slice(1).join(' ') || 'Prospect'
 
   try {
-    const res = await api.post<{ data: { id: string } }>('/api/v1/patients', {
+    // 1. Check if patient already exists in DB to prevent duplicates
+    const searchRes = await api.get<any>('/api/v1/patients', {
+      query: { search: lead.phone }
+    })
+    const existing = searchRes?.data?.items || searchRes?.items || []
+
+    if (existing.length > 0) {
+      lead.stage = 'converted'
+      lead.patientId = existing[0].id
+      toast.add({
+        title: 'Patient déjà existant ! ✅',
+        description: `${lead.name} est déjà enregistré dans le registre des patients.`,
+        color: 'green'
+      })
+      return
+    }
+
+    // 2. Create in PostgreSQL patients table
+    const res = await api.post<any>('/api/v1/patients', {
       first_name: firstName,
       last_name: lastName,
       phone: lead.phone || null,
       notes: `Converti depuis prospect (${lead.source}). ${lead.notes || ''}`
     })
 
+    const createdId = res?.data?.id || res?.id
     lead.stage = 'converted'
-    lead.patientId = res?.data?.id
+    lead.patientId = createdId
 
     toast.add({
       title: 'Prospect Converti en Patient ! 🎉',
@@ -369,7 +436,6 @@ async function convertToPatient(lead: Lead) {
       color: 'green'
     })
   } catch (err: any) {
-    // If backend already has patient or offline, mark converted locally
     lead.stage = 'converted'
     toast.add({
       title: 'Prospect validé ! 🎉',
