@@ -111,6 +111,26 @@ async def log_inbound_message(
     identifier = payload.get_identifier()
     patient = await find_patient_by_phone(db, identifier)
 
+    # Auto-stage lead if name is provided
+    sender_name = payload.name or payload.full_name
+    if sender_name:
+        clean_id = normalize_phone(identifier)
+        lead_stmt = select(PatientLead).where(
+            or_(PatientLead.phone == identifier, PatientLead.phone == clean_id)
+        )
+        lead_res = await db.execute(lead_stmt)
+        existing_lead = lead_res.scalars().first()
+        if existing_lead:
+            existing_lead.name = sender_name
+        else:
+            new_lead = PatientLead(
+                name=sender_name,
+                phone=identifier,
+                source=payload.platform or "telegram",
+                stage="new",
+            )
+            db.add(new_lead)
+
     msg = ChatMessage(
         phone=identifier,
         sender="patient",
@@ -139,6 +159,26 @@ async def log_outbound_message(
     """Logs outgoing AI or doctor replies to the patient."""
     identifier = payload.get_identifier()
     patient = await find_patient_by_phone(db, identifier)
+
+    # Auto-stage lead if name is provided
+    sender_name = payload.name or payload.full_name
+    if sender_name:
+        clean_id = normalize_phone(identifier)
+        lead_stmt = select(PatientLead).where(
+            or_(PatientLead.phone == identifier, PatientLead.phone == clean_id)
+        )
+        lead_res = await db.execute(lead_stmt)
+        existing_lead = lead_res.scalars().first()
+        if existing_lead:
+            existing_lead.name = sender_name
+        else:
+            new_lead = PatientLead(
+                name=sender_name,
+                phone=identifier,
+                source="telegram",
+                stage="new",
+            )
+            db.add(new_lead)
 
     msg = ChatMessage(
         phone=identifier,

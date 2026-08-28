@@ -209,6 +209,11 @@ from app.core.agents.router import router as agents_router  # noqa: E402
 
 app.include_router(agents_router, prefix="/api/v1")
 
+# Mount omnichannel bridge router (n8n Webhook Ingestion & Telegram/WhatsApp Bridge)
+from app.modules.omnichannel_bridge.router import router as omnichannel_bridge_router  # noqa: E402
+
+app.include_router(omnichannel_bridge_router, prefix="/api/v1")
+
 
 @app.get("/health")
 async def health_check() -> JSONResponse:
