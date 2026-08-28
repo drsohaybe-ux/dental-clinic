@@ -18,6 +18,8 @@ class ChatStatusResponse(BaseModel):
 # --- 2. Inbound Message ---
 class InboundMessagePayload(BaseModel):
     phone: str
+    chat_id: Optional[str] = None
+    chatId: Optional[str] = None
     name: Optional[str] = None
     content: str
     platform: Optional[str] = "telegram"
@@ -27,9 +29,27 @@ class InboundMessagePayload(BaseModel):
 # --- 3. Outbound Message ---
 class OutboundMessagePayload(BaseModel):
     phone: str
+    chat_id: Optional[str] = None
+    chatId: Optional[str] = None
     content: str
     sender: Optional[str] = "ai_bot"
     timestamp: Optional[str] = None
+
+
+# --- 3b. Batch Messages (Initial History Sync) ---
+class BatchMessageItem(BaseModel):
+    phone: str
+    chat_id: Optional[str] = None
+    content: str
+    sender: str = "patient" # 'patient' | 'ai_bot' | 'doctor'
+    platform: Optional[str] = "telegram"
+    timestamp: Optional[str] = None
+
+
+class BatchMessagesPayload(BaseModel):
+    phone: str
+    chat_id: Optional[str] = None
+    messages: list[BatchMessageItem]
 
 
 # --- 4. Incoming Lead ---

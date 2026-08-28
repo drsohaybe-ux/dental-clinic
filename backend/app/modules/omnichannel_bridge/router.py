@@ -156,6 +156,45 @@ async def log_outbound_message(
     )
 
 
+# --- 3b. POST /messages/batch (Initial 10-Message History Ingestion) ---
+@router.post("/messages/batch", response_model=GenericSuccessResponse)
+async def log_batch_messages(
+    payload: BatchMessagesPayload,
+    authorization: Optional[str] = Header(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Saves initial past history batch (e.g. 10 messages) to PostgreSQL."""
+    patient = await find_patient_by_phone(db, payload.phone)
+    inserted_count = 0
+
+    for item in payload.messages:
+        # Check duplicate
+        existing = await db.execute(
+            select(ChatMessage).where(
+                ChatMessage.phone == payload.phone,
+                ChatMessage.content == item.content,
+                ChatMessage.sender == item.sender,
+            )
+        )
+        if not existing.scalars().first():
+            msg = ChatMessage(
+                phone=payload.phone,
+                sender=item.sender,
+                content=item.content,
+                platform=item.platform or "telegram",
+                patient_id=patient.id if patient else None,
+                sent_at=datetime.utcnow(),
+            )
+            db.add(msg)
+            inserted_count += 1
+
+    await db.commit()
+    return GenericSuccessResponse(
+        success=True,
+        message=f"{inserted_count} past messages saved to PostgreSQL history",
+    )
+
+
 # --- 4. POST /automation/incoming-lead ---
 @router.post("/automation/incoming-lead", response_model=GenericSuccessResponse)
 async def register_incoming_lead(

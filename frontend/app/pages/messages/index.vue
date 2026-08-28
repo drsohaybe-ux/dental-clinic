@@ -13,6 +13,15 @@
       </div>
 
       <div class="flex items-center gap-3">
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-semibold shadow-2xs transition-colors"
+          @click="openNewChatModal"
+        >
+          <UIcon name="i-lucide-plus" class="w-4 h-4" />
+          <span>Nouvelle Conversation</span>
+        </button>
+
         <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-300">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>Synchronisation live n8n active</span>
@@ -24,7 +33,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[700px]">
       <!-- Left Column: Conversations List (4 cols) -->
       <div class="lg:col-span-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-2xs flex flex-col space-y-4">
-        <!-- Search & Filter -->
+        <!-- New Chat Trigger + Search & Filter -->
         <div class="space-y-3">
           <div class="relative">
             <UIcon name="i-lucide-search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
@@ -193,12 +202,23 @@
               variant="outline"
               size="xs"
             >
-              Dossier Patient
+              Dossier
             </UButton>
+
+            <!-- Hide / Archive Chat Button -->
+            <button
+              type="button"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-rose-50 hover:text-rose-600 text-gray-600 dark:text-gray-300 transition-colors"
+              title="Masquer la conversation du tableau de bord (données conservées en base)"
+              @click="archiveConversation"
+            >
+              <UIcon name="i-lucide-archive" class="w-3.5 h-3.5" />
+              <span>Masquer</span>
+            </button>
           </div>
         </div>
 
-        <!-- Chat Stream -->
+        <!-- Chat Stream (10 Initial Preview Messages + Live Appended Stream) -->
         <div class="flex-grow p-6 overflow-y-auto space-y-4 max-h-[500px]">
           <div
             v-for="msg in selectedThread.messages"
@@ -213,7 +233,7 @@
                 'rounded-2xl p-4 text-xs leading-relaxed space-y-2',
                 msg.sender === 'patient'
                   ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-xs'
-                  : 'bg-primary-600 text-white rounded-br-xs'
+                  : (msg.sender === 'doctor' ? 'bg-primary-700 text-white rounded-br-xs' : 'bg-primary-600 text-white rounded-br-xs')
               ]"
             >
               <div class="flex items-center justify-between gap-3 text-[10px] opacity-75 font-semibold">
@@ -279,6 +299,91 @@
       </div>
     </div>
 
+    <!-- New Conversation Modal (Nuxt UI v3 syntax) -->
+    <UModal v-model:open="isNewChatModalOpen">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
+                <UIcon name="i-lucide-message-circle-plus" class="text-primary-500 w-5 h-5" />
+                Nouvelle Conversation Patient
+              </h3>
+              <UButton color="gray" variant="ghost" icon="i-lucide-x" size="xs" @click="isNewChatModalOpen = false" />
+            </div>
+          </template>
+
+          <div class="space-y-4 text-xs">
+            <!-- Patient Selector Dropdown -->
+            <div>
+              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Choisir un patient existant :</label>
+              <select
+                v-model="newChatForm.selectedPatientId"
+                class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
+                @change="onSelectExistingPatient"
+              >
+                <option value="">-- Saisie manuelle ou choisir un patient --</option>
+                <option v-for="p in patientList" :key="p.id" :value="p.id">
+                  {{ p.first_name }} {{ p.last_name }} ({{ p.phone || 'Sans numéro' }})
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Nom du contact :</label>
+              <input
+                v-model="newChatForm.name"
+                type="text"
+                placeholder="e.g. Karim Benali"
+                class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Téléphone / Chat ID :</label>
+                <input
+                  v-model="newChatForm.phone"
+                  type="text"
+                  placeholder="e.g. 0555123456 ou -1003937847791"
+                  class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Canal :</label>
+                <select
+                  v-model="newChatForm.platform"
+                  class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
+                >
+                  <option value="telegram">Telegram</option>
+                  <option value="whatsapp">WhatsApp</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Premier message :</label>
+              <textarea
+                v-model="newChatForm.initialMessage"
+                rows="3"
+                placeholder="Bonjour Karim, le Dr. Mokhtar vous contacte concernant votre consultation..."
+                class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
+              ></textarea>
+            </div>
+          </div>
+
+          <template #footer>
+            <div class="flex justify-end gap-2">
+              <UButton color="gray" variant="ghost" @click="isNewChatModalOpen = false">Annuler</UButton>
+              <UButton color="primary" :disabled="!newChatForm.name || !newChatForm.phone" @click="submitNewChat">
+                Démarrer la conversation
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
+    </UModal>
+
     <!-- Lightbox Modal (Nuxt UI v3 syntax) -->
     <UModal v-model:open="isLightboxOpen">
       <template #content>
@@ -305,11 +410,13 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 definePageMeta({ middleware: 'auth' })
 
 const toast = useToast()
+const api = useApi()
 
 interface ChatThread {
   id: string
   name: string
   phone: string
+  chatId?: string
   platform: 'telegram' | 'whatsapp'
   patientId?: string
   lastMessage: string
@@ -331,6 +438,7 @@ const defaultSeedThreads: ChatThread[] = [
     id: 'thread-1',
     name: 'Karim Benali',
     phone: '+213 555 12 34 56',
+    chatId: '-1003937847791',
     platform: 'telegram',
     lastMessage: 'Voici ma panoramique faite la semaine dernière.',
     lastTime: '14:32',
@@ -435,7 +543,134 @@ const searchQuery = ref('')
 const activeFilter = ref('all')
 const replyText = ref('')
 
-const api = useApi()
+// Hidden / Archived threads cache
+const hiddenThreads = ref<Set<string>>(new Set())
+
+function loadHiddenThreads() {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = localStorage.getItem('dental_hidden_threads')
+    if (raw) hiddenThreads.value = new Set(JSON.parse(raw))
+  } catch {}
+}
+
+function saveHiddenThreads() {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem('dental_hidden_threads', JSON.stringify(Array.from(hiddenThreads.value)))
+  } catch {}
+}
+
+// New Conversation Modal State
+const isNewChatModalOpen = ref(false)
+const patientList = ref<any[]>([])
+const newChatForm = ref({
+  selectedPatientId: '',
+  name: '',
+  phone: '',
+  platform: 'telegram' as 'telegram' | 'whatsapp',
+  initialMessage: ''
+})
+
+async function openNewChatModal() {
+  isNewChatModalOpen.value = true
+  try {
+    const res = await api.get<any>('/api/v1/patients?limit=100')
+    patientList.value = res?.data?.items || res?.data || res?.items || []
+  } catch {}
+}
+
+function onSelectExistingPatient() {
+  const p = patientList.value.find(item => item.id === newChatForm.value.selectedPatientId)
+  if (p) {
+    newChatForm.value.name = `${p.first_name} ${p.last_name}`
+    newChatForm.value.phone = p.phone || ''
+  }
+}
+
+async function submitNewChat() {
+  const phone = newChatForm.value.phone.trim()
+  const name = newChatForm.value.name.trim()
+  if (!phone || !name) return
+
+  const cleanPhone = phone.replace(/\D/g, '')
+
+  // Unhide if was hidden
+  hiddenThreads.value.delete(`thread-${phone}`)
+  hiddenThreads.value.delete(`thread-${cleanPhone}`)
+  saveHiddenThreads()
+
+  let thread = threads.value.find(t => t.phone.replace(/\D/g, '') === cleanPhone)
+  if (!thread) {
+    thread = {
+      id: `thread-${phone}`,
+      name,
+      phone,
+      platform: newChatForm.value.platform,
+      patientId: newChatForm.value.selectedPatientId || undefined,
+      lastMessage: newChatForm.value.initialMessage || 'Nouvelle conversation démarrée',
+      lastTime: 'À l\'instant',
+      isHumanActive: true,
+      hasRadio: false,
+      messages: []
+    }
+    threads.value.unshift(thread)
+  }
+
+  selectedThread.value = thread
+
+  if (newChatForm.value.initialMessage.trim()) {
+    const initialText = newChatForm.value.initialMessage.trim()
+    const msgObj = {
+      id: `m-${Date.now()}`,
+      sender: 'doctor' as const,
+      content: initialText,
+      time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    }
+    thread.messages.push(msgObj)
+    thread.lastMessage = initialText
+    thread.lastTime = 'À l\'instant'
+
+    const payload = {
+      chatId: thread.chatId || thread.phone,
+      chat_id: thread.chatId || thread.phone,
+      'chat id': thread.chatId || thread.phone,
+      phone: thread.phone,
+      content: initialText,
+      sender: 'doctor',
+      platform: thread.platform,
+      timestamp: new Date().toISOString()
+    }
+
+    api.post('/api/v1/omnichannel_bridge/messages/outbound', payload).catch(() => {})
+
+    $fetch('https://sohaybe2004.app.n8n.cloud/webhook-test/doctor-reply', {
+      method: 'POST',
+      body: payload
+    }).catch(() => {})
+  }
+
+  isNewChatModalOpen.value = false
+  newChatForm.value = { selectedPatientId: '', name: '', phone: '', platform: 'telegram', initialMessage: '' }
+  toast.add({ title: 'Conversation ouverte avec succès 🚀', color: 'green' })
+}
+
+function archiveConversation() {
+  if (!selectedThread.value) return
+  const id = selectedThread.value.id
+  const name = selectedThread.value.name
+  hiddenThreads.value.add(id)
+  saveHiddenThreads()
+
+  const remaining = filteredThreads.value.filter(t => t.id !== id)
+  selectedThread.value = remaining[0] || null
+
+  toast.add({
+    title: 'Conversation masquée du tableau de bord 📁',
+    description: `La conversation avec ${name} est archivée. Toutes les données restent conservées en base PostgreSQL.`,
+    color: 'gray'
+  })
+}
 
 let syncTimer: any = null
 
@@ -450,6 +685,7 @@ async function syncLiveThreads() {
           id: live.id || `thread-${live.phone}`,
           name: live.name || live.phone,
           phone: live.phone,
+          chatId: live.chat_id || live.chatId || live.phone,
           platform: live.platform || 'telegram',
           patientId: live.patient_id || undefined,
           lastMessage: live.last_message || '',
@@ -469,6 +705,7 @@ async function syncLiveThreads() {
           target.isUrgent = mapped.isUrgent
           target.hasRadio = mapped.hasRadio
           if (mapped.patientId) target.patientId = mapped.patientId
+          if (mapped.chatId) target.chatId = mapped.chatId
 
           // Merge / append new messages
           mapped.messages.forEach(newMsg => {
@@ -492,6 +729,7 @@ async function syncLiveThreads() {
 }
 
 onMounted(() => {
+  loadHiddenThreads()
   syncLiveThreads()
   syncTimer = setInterval(syncLiveThreads, 3000) // 3-second live sync loop
 })
@@ -522,11 +760,12 @@ function insertChip(chip: string) {
 }
 
 const countUrgent = computed(() => {
-  return threads.value.filter(t => t.isUrgent).length
+  return threads.value.filter(t => t.isUrgent && !hiddenThreads.value.has(t.id)).length
 })
 
 const filteredThreads = computed(() => {
   return threads.value.filter(t => {
+    if (hiddenThreads.value.has(t.id)) return false
     const matchSearch = t.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || t.phone.includes(searchQuery.value)
     if (!matchSearch) return false
     if (activeFilter.value === 'unread') return t.id === 'thread-1'
@@ -578,23 +817,40 @@ function toggleTakeover() {
 function sendReply() {
   if (!selectedThread.value || !replyText.value.trim()) return
   const text = replyText.value.trim()
-  selectedThread.value.messages.push({
+  const thread = selectedThread.value
+
+  const msgObj = {
     id: `m-${Date.now()}`,
-    sender: 'doctor',
+    sender: 'doctor' as const,
     content: text,
     time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-  })
-  selectedThread.value.lastMessage = text
-  selectedThread.value.lastTime = 'À l\'instant'
+  }
 
-  try {
-    api.post('/api/v1/omnichannel_bridge/messages/outbound', {
-      phone: selectedThread.value.phone,
-      content: text,
-      sender: 'doctor',
-      timestamp: new Date().toISOString()
-    }).catch(() => {})
-  } catch {}
+  thread.messages.push(msgObj)
+  thread.lastMessage = text
+  thread.lastTime = 'À l\'instant'
+
+  const payload = {
+    chatId: thread.chatId || thread.phone,
+    chat_id: thread.chatId || thread.phone,
+    'chat id': thread.chatId || thread.phone,
+    phone: thread.phone,
+    content: text,
+    sender: 'doctor',
+    platform: thread.platform || 'telegram',
+    timestamp: new Date().toISOString()
+  }
+
+  // 1. Write to PostgreSQL database
+  api.post('/api/v1/omnichannel_bridge/messages/outbound', payload).catch(() => {})
+
+  // 2. Trigger n8n Doctor Reply Webhook for Telegram
+  $fetch('https://sohaybe2004.app.n8n.cloud/webhook-test/doctor-reply', {
+    method: 'POST',
+    body: payload
+  }).catch((err) => {
+    console.warn('Doctor reply webhook notice:', err)
+  })
 
   replyText.value = ''
   toast.add({ title: 'Message envoyé au patient 🚀', color: 'green' })
