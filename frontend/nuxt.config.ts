@@ -99,6 +99,7 @@ export default defineNuxtConfig({
     }
   },
   srcDir: 'app',
+  serverDir: 'server',
 
   // Restart dev server when the backend rewrites `modules.json` on
   // module install/uninstall. `extends` is evaluated once at config
