@@ -108,10 +108,11 @@ async def log_inbound_message(
     db: AsyncSession = Depends(get_db),
 ):
     """Logs incoming messages from patients (Telegram, WhatsApp)."""
-    patient = await find_patient_by_phone(db, payload.phone)
+    identifier = payload.get_identifier()
+    patient = await find_patient_by_phone(db, identifier)
 
     msg = ChatMessage(
-        phone=payload.phone,
+        phone=identifier,
         sender="patient",
         content=payload.content,
         platform=payload.platform or "telegram",
@@ -136,10 +137,11 @@ async def log_outbound_message(
     db: AsyncSession = Depends(get_db),
 ):
     """Logs outgoing AI or doctor replies to the patient."""
-    patient = await find_patient_by_phone(db, payload.phone)
+    identifier = payload.get_identifier()
+    patient = await find_patient_by_phone(db, identifier)
 
     msg = ChatMessage(
-        phone=payload.phone,
+        phone=identifier,
         sender=payload.sender or "ai_bot",
         content=payload.content,
         platform="telegram",

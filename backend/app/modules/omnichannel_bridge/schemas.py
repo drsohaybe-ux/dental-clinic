@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union, Any
 from uuid import UUID
 from pydantic import BaseModel, Field
 
@@ -17,23 +17,52 @@ class ChatStatusResponse(BaseModel):
 
 # --- 2. Inbound Message ---
 class InboundMessagePayload(BaseModel):
-    phone: str
-    chat_id: Optional[str] = None
-    chatId: Optional[str] = None
+    phone: Optional[str] = None
+    chat_id: Optional[Union[str, int]] = Field(default=None, alias="chat id")
+    chatId: Optional[Union[str, int]] = None
     name: Optional[str] = None
+    full_name: Optional[str] = Field(default=None, alias="full name")
     content: str
     platform: Optional[str] = "telegram"
     timestamp: Optional[str] = None
 
+    class Config:
+        populate_by_name = True
+        extra = "allow"
+
+    def get_identifier(self) -> str:
+        if self.phone:
+            return str(self.phone)
+        if self.chat_id is not None:
+            return str(self.chat_id)
+        if self.chatId is not None:
+            return str(self.chatId)
+        return "unknown"
+
 
 # --- 3. Outbound Message ---
 class OutboundMessagePayload(BaseModel):
-    phone: str
-    chat_id: Optional[str] = None
-    chatId: Optional[str] = None
+    phone: Optional[str] = None
+    chat_id: Optional[Union[str, int]] = Field(default=None, alias="chat id")
+    chatId: Optional[Union[str, int]] = None
+    name: Optional[str] = None
+    full_name: Optional[str] = Field(default=None, alias="full name")
     content: str
     sender: Optional[str] = "ai_bot"
     timestamp: Optional[str] = None
+
+    class Config:
+        populate_by_name = True
+        extra = "allow"
+
+    def get_identifier(self) -> str:
+        if self.phone:
+            return str(self.phone)
+        if self.chat_id is not None:
+            return str(self.chat_id)
+        if self.chatId is not None:
+            return str(self.chatId)
+        return "unknown"
 
 
 # --- 3b. Batch Messages (Initial History Sync) ---

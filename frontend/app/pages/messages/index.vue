@@ -48,13 +48,13 @@
           <!-- Filter Badges -->
           <div class="flex gap-1.5 overflow-x-auto pb-1">
             <button
-              v-for="filter in ['all', 'unread', 'urgent', 'human', 'ai']"
+              v-for="filter in ['all', 'unread', 'urgent', 'human', 'ai', 'archived']"
               :key="filter"
               type="button"
               :class="[
                 'px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1',
                 activeFilter === filter
-                  ? (filter === 'urgent' ? 'bg-rose-600 text-white' : 'bg-primary-600 text-white')
+                  ? (filter === 'urgent' ? 'bg-rose-600 text-white' : (filter === 'archived' ? 'bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900' : 'bg-primary-600 text-white'))
                   : (filter === 'urgent' ? 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200')
               ]"
               @click="activeFilter = filter"
@@ -62,6 +62,9 @@
               <span>{{ getFilterLabel(filter) }}</span>
               <span v-if="filter === 'urgent' && countUrgent > 0" class="px-1.5 py-0.2 bg-rose-500 text-white text-[10px] rounded-full font-bold">
                 {{ countUrgent }}
+              </span>
+              <span v-if="filter === 'archived' && countArchived > 0" class="px-1.5 py-0.2 bg-gray-500 text-white text-[10px] rounded-full font-bold">
+                {{ countArchived }}
               </span>
             </button>
           </div>
@@ -205,8 +208,9 @@
               Dossier
             </UButton>
 
-            <!-- Hide / Archive Chat Button -->
+            <!-- Hide / Unhide Chat Button -->
             <button
+              v-if="!hiddenThreads.has(selectedThread.id)"
               type="button"
               class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-rose-50 hover:text-rose-600 text-gray-600 dark:text-gray-300 transition-colors"
               title="Masquer la conversation du tableau de bord (données conservées en base)"
@@ -214,6 +218,16 @@
             >
               <UIcon name="i-lucide-archive" class="w-3.5 h-3.5" />
               <span>Masquer</span>
+            </button>
+            <button
+              v-else
+              type="button"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors"
+              title="Restaurer la conversation dans la boîte de réception principale"
+              @click="unarchiveConversation(selectedThread)"
+            >
+              <UIcon name="i-lucide-eye" class="w-3.5 h-3.5" />
+              <span>Démasquer / Restaurer</span>
             </button>
           </div>
         </div>
@@ -763,8 +777,15 @@ const countUrgent = computed(() => {
   return threads.value.filter(t => t.isUrgent && !hiddenThreads.value.has(t.id)).length
 })
 
+const countArchived = computed(() => {
+  return threads.value.filter(t => hiddenThreads.value.has(t.id)).length
+})
+
 const filteredThreads = computed(() => {
   return threads.value.filter(t => {
+    if (activeFilter.value === 'archived') {
+      return hiddenThreads.value.has(t.id)
+    }
     if (hiddenThreads.value.has(t.id)) return false
     const matchSearch = t.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || t.phone.includes(searchQuery.value)
     if (!matchSearch) return false
@@ -779,6 +800,21 @@ const filteredThreads = computed(() => {
     return 0
   })
 })
+
+function unarchiveConversation(thread?: ChatThread | null) {
+  const target = thread || selectedThread.value
+  if (!target) return
+  hiddenThreads.value.delete(target.id)
+  saveHiddenThreads()
+  toast.add({
+    title: 'Conversation restaurée ! 🎉',
+    description: `La conversation avec ${target.name} est à nouveau visible dans votre boîte de réception.`,
+    color: 'green'
+  })
+  if (activeFilter.value === 'archived') {
+    activeFilter.value = 'all'
+  }
+}
 
 function selectThread(thread: ChatThread) {
   selectedThread.value = thread
@@ -795,6 +831,7 @@ function getFilterLabel(filter: string) {
     case 'urgent': return '🚨 Urgences'
     case 'human': return 'Prise en main'
     case 'ai': return 'IA Active'
+    case 'archived': return '📁 Masquées'
     default: return filter
   }
 }
