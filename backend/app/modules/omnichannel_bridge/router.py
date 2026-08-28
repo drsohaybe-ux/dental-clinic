@@ -453,17 +453,18 @@ async def get_live_conversations(
     res = await db.execute(stmt)
     all_msgs = res.scalars().all()
 
-    # Group by phone
+    # Group by normalized phone so -1003937847791 and 1003937847791 merge into ONE thread
     threads_map: dict[str, dict] = {}
     for m in all_msgs:
-        phone_key = m.phone.strip()
+        raw_phone = m.phone.strip()
+        phone_key = normalize_phone(raw_phone) or raw_phone
         if phone_key not in threads_map:
             threads_map[phone_key] = {
                 "id": f"thread-{phone_key}",
-                "phone": phone_key,
+                "phone": raw_phone,
                 "platform": m.platform or "telegram",
                 "patient_id": str(m.patient_id) if m.patient_id else None,
-                "name": phone_key,
+                "name": raw_phone,
                 "last_message": m.content,
                 "last_time": m.sent_at.isoformat(),
                 "is_human_active": False,
@@ -473,7 +474,7 @@ async def get_live_conversations(
             }
         
         # Check emergency keywords
-        lower_content = m.content.lower()
+        lower_content = (m.content or "").lower()
         if any(kw in lower_content for kw in ["douleur", "urgence", "saignement", "abces", "abcès", "dent cassee", "dent cassée", "rage de dent", "gonfle", "gonflé", "infection", "wja3", "darssa", "sater"]):
             threads_map[phone_key]["is_urgent"] = True
 
@@ -488,40 +489,51 @@ async def get_live_conversations(
     # Enrich with Patient / Lead names and Session States
     for phone_key, thread in threads_map.items():
         thread["messages"].reverse() # Chronological 10 past preview messages
-        clean = normalize_phone(phone_key)
+        raw_p = thread["phone"]
 
         # Lookup patient name
-        patient = await find_patient_by_phone(db, phone_key)
-        if patient:
-            thread["name"] = f"{patient.first_name} {patient.last_name}"
-            thread["patient_id"] = str(patient.id)
-        else:
-            # Lookup lead name
-            lead_stmt = select(PatientLead).where(
-                or_(PatientLead.phone == phone_key, PatientLead.phone == clean)
-            ).order_by(desc(PatientLead.created_at))
-            lead_res = await db.execute(lead_stmt)
-            lead = lead_res.scalars().first()
-            if lead:
-                thread["name"] = lead.name
+        try:
+            patient = await find_patient_by_phone(db, raw_p)
+            if not patient:
+                patient = await find_patient_by_phone(db, phone_key)
+            if patient:
+                thread["name"] = f"{patient.first_name} {patient.last_name}"
+                thread["patient_id"] = str(patient.id)
+            else:
+                # Lookup lead name
+                lead_stmt = select(PatientLead).where(
+                    or_(PatientLead.phone == raw_p, PatientLead.phone == phone_key)
+                ).order_by(desc(PatientLead.created_at))
+                lead_res = await db.execute(lead_stmt)
+                lead = lead_res.scalars().first()
+                if lead:
+                    thread["name"] = lead.name
+        except Exception:
+            pass
 
-        # Lookup takeover state & override urgency
-        state_stmt = select(ChatSessionState).where(
-            or_(ChatSessionState.phone == phone_key, ChatSessionState.phone == clean)
-        )
-        state_res = await db.execute(state_stmt)
-        state = state_res.scalars().first()
-        if state:
-            thread["is_human_active"] = state.is_human_active
-            if state.is_urgent is not None:
-                thread["is_urgent"] = state.is_urgent
+        # Lookup takeover state & override urgency (fault tolerant)
+        try:
+            state_stmt = select(ChatSessionState).where(
+                or_(ChatSessionState.phone == raw_p, ChatSessionState.phone == phone_key)
+            )
+            state_res = await db.execute(state_stmt)
+            state = state_res.scalars().first()
+            if state:
+                thread["is_human_active"] = state.is_human_active
+                if getattr(state, "is_urgent", None) is not None:
+                    thread["is_urgent"] = state.is_urgent
+        except Exception:
+            pass
 
         # Check if patient has radios
-        if thread.get("patient_id"):
-            radio_stmt = select(PatientDossierFile).where(PatientDossierFile.patient_id == UUID(thread["patient_id"]))
-            radio_res = await db.execute(radio_stmt)
-            if radio_res.scalars().first():
-                thread["has_radio"] = True
+        try:
+            if thread.get("patient_id"):
+                radio_stmt = select(PatientDossierFile).where(PatientDossierFile.patient_id == UUID(thread["patient_id"]))
+                radio_res = await db.execute(radio_stmt)
+                if radio_res.scalars().first():
+                    thread["has_radio"] = True
+        except Exception:
+            pass
 
     return list(threads_map.values())
 
