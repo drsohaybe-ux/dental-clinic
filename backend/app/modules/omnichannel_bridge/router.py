@@ -14,6 +14,7 @@ from app.database import get_db
 from app.modules.patients.models import Patient
 from .models import ChatMessage, ChatSessionState, PatientDossierFile, PatientLead
 from .schemas import (
+    BatchMessagesPayload,
     ChatMessageResponse,
     ChatStatusResponse,
     GenericSuccessResponse,
