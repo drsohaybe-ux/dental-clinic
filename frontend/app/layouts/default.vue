@@ -353,6 +353,9 @@ function isActive(to: string): boolean {
 
       <!-- Page content -->
       <main class="flex-1 p-3 sm:p-4 md:p-6 min-w-0 overflow-x-hidden">
+        <!-- Global Emergency Alert Banner for Doctor Alerts -->
+        <GlobalEmergencyAlertBar />
+
         <!--
           Global banner slot for compliance modules (Verifactu rejected
           alerts, certificate expiry warnings, etc.). Modules register
