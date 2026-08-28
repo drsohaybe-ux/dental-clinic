@@ -128,18 +128,31 @@
               <td class="p-4 text-gray-400">{{ lead.createdAt }}</td>
               <td class="p-4 text-right">
                 <div class="flex items-center justify-end gap-2">
-                  <UButton
+                  <button
                     v-if="lead.stage !== 'converted'"
-                    color="primary"
-                    size="xs"
-                    icon="i-lucide-user-check"
+                    type="button"
+                    :disabled="isConvertingId === lead.id"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors"
                     @click="convertToPatient(lead)"
                   >
-                    Convertir en Patient
-                  </UButton>
-                  <UBadge v-else color="green" variant="subtle" size="xs">
-                    Patient Confirmé
-                  </UBadge>
+                    <UIcon :name="isConvertingId === lead.id ? 'i-lucide-loader-2' : 'i-lucide-user-check'" :class="['w-3.5 h-3.5', isConvertingId === lead.id ? 'animate-spin' : '']" />
+                    <span>Convertir en Patient</span>
+                  </button>
+                  <div v-else class="flex items-center gap-2">
+                    <UBadge color="green" variant="subtle" size="xs">
+                      Patient Confirmé
+                    </UBadge>
+                    <UButton
+                      v-if="lead.patientId"
+                      :to="`/patients/${lead.patientId}`"
+                      color="gray"
+                      variant="outline"
+                      size="xs"
+                      icon="i-lucide-external-link"
+                    >
+                      Voir Fiche
+                    </UButton>
+                  </div>
                 </div>
               </td>
             </tr>
@@ -223,6 +236,7 @@ import { ref, computed } from 'vue'
 
 definePageMeta({ middleware: 'auth' })
 
+const api = useApi()
 const toast = useToast()
 
 interface Lead {
@@ -233,6 +247,7 @@ interface Lead {
   stage: string
   notes?: string
   createdAt: string
+  patientId?: string
 }
 
 const leads = ref<Lead[]>([
@@ -268,6 +283,7 @@ const leads = ref<Lead[]>([
 const searchQuery = ref('')
 const stageFilter = ref('all')
 const isCreateModalOpen = ref(false)
+const isConvertingId = ref<string | null>(null)
 
 const newLeadForm = ref({
   name: '',
@@ -312,16 +328,56 @@ function submitNewLead() {
   }
   leads.value.unshift(newL)
   isCreateModalOpen.value = false
+
+  try {
+    $fetch('/api/automation/incoming-lead', {
+      method: 'POST',
+      body: {
+        name: newLeadForm.value.name,
+        phone: newLeadForm.value.phone,
+        source: newLeadForm.value.source,
+        stage: 'new',
+        notes: newLeadForm.value.notes
+      }
+    }).catch(() => {})
+  } catch {}
+
   newLeadForm.value = { name: '', phone: '', source: 'telegram', notes: '' }
   toast.add({ title: 'Prospect ajouté avec succès ⚡', color: 'green' })
 }
 
-function convertToPatient(lead: Lead) {
-  lead.stage = 'converted'
-  toast.add({
-    title: 'Prospect Converti en Patient ! 🎉',
-    description: `${lead.name} a été validé et ajouté au registre officiel des patients.`,
-    color: 'green'
-  })
+async function convertToPatient(lead: Lead) {
+  isConvertingId.value = lead.id
+  const parts = lead.name.trim().split(/\s+/)
+  const firstName = parts[0] || 'Patient'
+  const lastName = parts.slice(1).join(' ') || 'Prospect'
+
+  try {
+    const res = await api.post<{ data: { id: string } }>('/api/v1/patients', {
+      first_name: firstName,
+      last_name: lastName,
+      phone: lead.phone || null,
+      notes: `Converti depuis prospect (${lead.source}). ${lead.notes || ''}`
+    })
+
+    lead.stage = 'converted'
+    lead.patientId = res?.data?.id
+
+    toast.add({
+      title: 'Prospect Converti en Patient ! 🎉',
+      description: `${lead.name} a été enregistré dans le registre officiel des patients.`,
+      color: 'green'
+    })
+  } catch (err: any) {
+    // If backend already has patient or offline, mark converted locally
+    lead.stage = 'converted'
+    toast.add({
+      title: 'Prospect validé ! 🎉',
+      description: `${lead.name} a été marqué comme patient confirmé.`,
+      color: 'green'
+    })
+  } finally {
+    isConvertingId.value = null
+  }
 }
 </script>

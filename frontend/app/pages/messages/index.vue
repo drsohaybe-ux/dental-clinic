@@ -8,14 +8,14 @@
           Messagerie Omnicanal (Telegram & WhatsApp)
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Supervision en temps réel des conversations de l'IA n8n avec les patients du cabinet du Dr. Mokhtar.
+          Supervision en direct des conversations de l'IA n8n avec les patients du cabinet du Dr. Mokhtar.
         </p>
       </div>
 
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-300">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Synchronisation n8n active</span>
+          <span>Synchronisation live n8n active</span>
         </div>
       </div>
     </div>
@@ -39,18 +39,21 @@
           <!-- Filter Badges -->
           <div class="flex gap-1.5 overflow-x-auto pb-1">
             <button
-              v-for="filter in ['all', 'unread', 'human', 'ai']"
+              v-for="filter in ['all', 'unread', 'urgent', 'human', 'ai']"
               :key="filter"
               type="button"
               :class="[
-                'px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors',
+                'px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1',
                 activeFilter === filter
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
+                  ? (filter === 'urgent' ? 'bg-rose-600 text-white' : 'bg-primary-600 text-white')
+                  : (filter === 'urgent' ? 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200')
               ]"
               @click="activeFilter = filter"
             >
-              {{ getFilterLabel(filter) }}
+              <span>{{ getFilterLabel(filter) }}</span>
+              <span v-if="filter === 'urgent' && countUrgent > 0" class="px-1.5 py-0.2 bg-rose-500 text-white text-[10px] rounded-full font-bold">
+                {{ countUrgent }}
+              </span>
             </button>
           </div>
         </div>
@@ -64,13 +67,20 @@
               'p-3.5 rounded-xl border cursor-pointer transition-all duration-150 relative',
               selectedThread?.id === thread.id
                 ? 'bg-primary-50/60 dark:bg-primary-950/40 border-primary-300 dark:border-primary-800 shadow-2xs'
-                : 'bg-white dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'
+                : (thread.isUrgent ? 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50' : 'bg-white dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800')
             ]"
             @click="selectThread(thread)"
           >
             <div class="flex items-start justify-between gap-2">
               <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300 flex items-center justify-center font-bold text-xs">
+                <div
+                  :class="[
+                    'w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs',
+                    thread.isUrgent
+                      ? 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 ring-2 ring-rose-400'
+                      : 'bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300'
+                  ]"
+                >
                   {{ getInitials(thread.name) }}
                 </div>
                 <div>
@@ -89,27 +99,42 @@
               {{ thread.lastMessage }}
             </p>
 
-            <div class="mt-2.5 flex items-center justify-between">
-              <span
-                v-if="thread.isHumanActive"
-                class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded"
-              >
-                <UIcon name="i-lucide-user" class="w-3 h-3" />
-                Prise en main Dr. Mokhtar
-              </span>
-              <span
-                v-else
-                class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded"
-              >
-                <UIcon name="i-lucide-bot" class="w-3 h-3" />
-                IA n8n Active
-              </span>
+            <div class="mt-2.5 flex flex-wrap items-center justify-between gap-1">
+              <div class="flex items-center gap-1.5">
+                <span
+                  v-if="thread.isUrgent"
+                  class="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-rose-600 px-2 py-0.5 rounded shadow-2xs"
+                >
+                  <UIcon name="i-lucide-alert-triangle" class="w-3 h-3 animate-bounce" />
+                  🚨 Urgence
+                </span>
+
+                <span
+                  v-if="thread.isHumanActive"
+                  class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded"
+                >
+                  <UIcon name="i-lucide-user" class="w-3 h-3" />
+                  Prise en main
+                </span>
+                <span
+                  v-else
+                  class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded"
+                >
+                  <UIcon name="i-lucide-bot" class="w-3 h-3" />
+                  IA Active
+                </span>
+              </div>
 
               <span v-if="thread.hasRadio" class="text-[10px] font-semibold text-primary-600 flex items-center gap-1">
                 <UIcon name="i-lucide-scan" class="w-3 h-3" />
                 Radio jointe
               </span>
             </div>
+          </div>
+
+          <div v-if="filteredThreads.length === 0" class="text-center py-12 text-gray-400 text-xs">
+            <UIcon name="i-lucide-inbox" class="w-8 h-8 mx-auto mb-2 opacity-50" />
+            Aucune conversation dans ce filtre.
           </div>
         </div>
       </div>
@@ -119,7 +144,14 @@
         <!-- Top Bar -->
         <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between gap-4 bg-gray-50/50 dark:bg-gray-800/40">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300 flex items-center justify-center font-bold text-sm">
+            <div
+              :class="[
+                'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm',
+                selectedThread.isUrgent
+                  ? 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 ring-2 ring-rose-400'
+                  : 'bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300'
+              ]"
+            >
               {{ getInitials(selectedThread.name) }}
             </div>
             <div>
@@ -127,6 +159,9 @@
                 {{ selectedThread.name }}
                 <UBadge :color="selectedThread.platform === 'telegram' ? 'blue' : 'green'" variant="subtle" size="xs">
                   {{ selectedThread.platform.toUpperCase() }}
+                </UBadge>
+                <UBadge v-if="selectedThread.isUrgent" color="rose" variant="solid" size="xs">
+                  🚨 URGENCE
                 </UBadge>
               </h3>
               <p class="text-xs text-gray-500 font-mono">{{ selectedThread.phone }}</p>
@@ -265,7 +300,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -280,6 +315,7 @@ interface ChatThread {
   lastMessage: string
   lastTime: string
   isHumanActive: boolean
+  isUrgent?: boolean
   hasRadio: boolean
   messages: Array<{
     id: string
@@ -290,7 +326,7 @@ interface ChatThread {
   }>
 }
 
-const threads = ref<ChatThread[]>([
+const defaultSeedThreads: ChatThread[] = [
   {
     id: 'thread-1',
     name: 'Karim Benali',
@@ -299,18 +335,19 @@ const threads = ref<ChatThread[]>([
     lastMessage: 'Voici ma panoramique faite la semaine dernière.',
     lastTime: '14:32',
     isHumanActive: false,
+    isUrgent: true,
     hasRadio: true,
     messages: [
       {
         id: 'm1',
         sender: 'patient',
-        content: 'Bonjour docteur, j\'ai une vive douleur sur la molaire droite depuis hier soir.',
+        content: 'Bonjour docteur, j\'ai une vive douleur et rage de dent sur la molaire droite depuis hier soir.',
         time: '14:28'
       },
       {
         id: 'm2',
         sender: 'ai_bot',
-        content: 'Bonjour Karim ! Je suis l\'assistant du cabinet du Dr. Mokhtar. Pouvez-vous nous transmettre une photo ou votre dernière radio pour que le docteur analyse la situation ?',
+        content: 'Bonjour Karim ! Je suis l\'assistant du cabinet du Dr. Mokhtar. Pouvez-vous nous transmettre une photo ou votre dernière radio pour que le docteur analyse la situation d\'urgence ?',
         time: '14:29'
       },
       {
@@ -323,7 +360,7 @@ const threads = ref<ChatThread[]>([
       {
         id: 'm4',
         sender: 'ai_bot',
-        content: 'Merci ! Notre IA a détecté une suspicion de carie sur la dent #16 et a préparé votre dossier clinique pour le Dr. Mokhtar. Souhaitez-vous un rendez-vous demain à 10h00 ?',
+        content: 'Merci ! Notre IA a détecté une suspicion de carie sur la dent #16 et a préparé votre dossier clinique d\'urgence pour le Dr. Mokhtar. Souhaitez-vous un rendez-vous prioritaire demain à 10h00 ?',
         time: '14:32'
       }
     ]
@@ -336,6 +373,7 @@ const threads = ref<ChatThread[]>([
     lastMessage: 'Parfait pour jeudi à 14h30, merci !',
     lastTime: '11:15',
     isHumanActive: false,
+    isUrgent: false,
     hasRadio: false,
     messages: [
       {
@@ -366,6 +404,7 @@ const threads = ref<ChatThread[]>([
     lastMessage: 'Je serai là à l\'heure pour la pose de l\'implant.',
     lastTime: 'Hier',
     isHumanActive: true,
+    isUrgent: false,
     hasRadio: true,
     messages: [
       {
@@ -388,12 +427,57 @@ const threads = ref<ChatThread[]>([
       }
     ]
   }
-])
+]
 
+const threads = ref<ChatThread[]>([...defaultSeedThreads])
 const selectedThread = ref<ChatThread | null>(threads.value[0])
 const searchQuery = ref('')
 const activeFilter = ref('all')
 const replyText = ref('')
+
+let syncTimer: any = null
+
+async function syncLiveThreads() {
+  try {
+    const liveThreads = await $fetch<any[]>('/api/messages/threads')
+    if (Array.isArray(liveThreads) && liveThreads.length > 0) {
+      liveThreads.forEach(live => {
+        const existingIdx = threads.value.findIndex(t => t.phone.replace(/\D/g, '') === live.phone.replace(/\D/g, ''))
+        const mapped: ChatThread = {
+          id: live.id || `thread-${live.phone}`,
+          name: live.name || live.phone,
+          phone: live.phone,
+          platform: live.platform || 'telegram',
+          patientId: live.patient_id || undefined,
+          lastMessage: live.last_message || '',
+          lastTime: live.last_time ? new Date(live.last_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'À l\'instant',
+          isHumanActive: live.is_human_active || false,
+          isUrgent: live.is_urgent || false,
+          hasRadio: live.has_radio || false,
+          messages: Array.isArray(live.messages) ? live.messages : []
+        }
+
+        if (existingIdx >= 0) {
+          threads.value[existingIdx] = mapped
+          if (selectedThread.value?.id === mapped.id) {
+            selectedThread.value = mapped
+          }
+        } else {
+          threads.value.unshift(mapped)
+        }
+      })
+    }
+  } catch {}
+}
+
+onMounted(() => {
+  syncLiveThreads()
+  syncTimer = setInterval(syncLiveThreads, 3000) // 3-second live sync loop
+})
+
+onUnmounted(() => {
+  if (syncTimer) clearInterval(syncTimer)
+})
 
 // Lightbox
 const isLightboxOpen = ref(false)
@@ -405,10 +489,10 @@ function openLightbox(url: string) {
 }
 
 const quickChips = [
+  '⚡ Créneau d\'urgence disponible aujourd\'hui',
   '📅 Proposer un RDV demain à 10h00',
   '🩻 Demander une radio panoramique',
   '💰 Envoyer devis transparent en DZD',
-  '📍 Cabinet situé à Alger Centre',
   '📲 Confirmer la réservation'
 ]
 
@@ -416,14 +500,23 @@ function insertChip(chip: string) {
   replyText.value = chip.slice(2).trim()
 }
 
+const countUrgent = computed(() => {
+  return threads.value.filter(t => t.isUrgent).length
+})
+
 const filteredThreads = computed(() => {
   return threads.value.filter(t => {
     const matchSearch = t.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || t.phone.includes(searchQuery.value)
     if (!matchSearch) return false
     if (activeFilter.value === 'unread') return t.id === 'thread-1'
+    if (activeFilter.value === 'urgent') return t.isUrgent === true
     if (activeFilter.value === 'human') return t.isHumanActive
     if (activeFilter.value === 'ai') return !t.isHumanActive
     return true
+  }).sort((a, b) => {
+    if (a.isUrgent && !b.isUrgent) return -1
+    if (!a.isUrgent && b.isUrgent) return 1
+    return 0
   })
 })
 
@@ -439,6 +532,7 @@ function getFilterLabel(filter: string) {
   switch(filter) {
     case 'all': return 'Toutes'
     case 'unread': return 'Non lus'
+    case 'urgent': return '🚨 Urgences'
     case 'human': return 'Prise en main'
     case 'ai': return 'IA Active'
     default: return filter

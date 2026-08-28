@@ -110,8 +110,14 @@ export function useModules() {
       ? active.value.flatMap(m => m.navigation)
       : []
 
-    return [...HOST_NAV, ...moduleNav]
-      .filter(item => !item.permission || can(item.permission))
+    const merged = [...HOST_NAV, ...moduleNav]
+    const seen = new Set<string>()
+    return merged
+      .filter(item => {
+        if (!item.to || seen.has(item.to)) return false
+        seen.add(item.to)
+        return !item.permission || can(item.permission)
+      })
       .slice()
       .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
       .map(item => ({ ...item, label: t(item.label) }))

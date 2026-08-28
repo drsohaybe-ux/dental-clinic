@@ -299,3 +299,83 @@ async def toggle_human_takeover(
     await db.commit()
     status_text = "Human Takeover Active (AI Paused)" if active else "AI Assistant Active"
     return GenericSuccessResponse(success=True, message=status_text)
+
+
+# --- 9. GET /conversations (Aggregated Live Threads for Dashboard) ---
+@router.get("/conversations")
+async def get_live_conversations(
+    db: AsyncSession = Depends(get_db),
+):
+    """Returns aggregated conversation threads for the Messagerie dashboard."""
+    stmt = select(ChatMessage).order_by(desc(ChatMessage.sent_at)).limit(200)
+    res = await db.execute(stmt)
+    all_msgs = res.scalars().all()
+
+    # Group by phone
+    threads_map: dict[str, dict] = {}
+    for m in all_msgs:
+        phone_key = m.phone.strip()
+        if phone_key not in threads_map:
+            threads_map[phone_key] = {
+                "id": f"thread-{phone_key}",
+                "phone": phone_key,
+                "platform": m.platform or "telegram",
+                "patient_id": str(m.patient_id) if m.patient_id else None,
+                "name": phone_key,
+                "last_message": m.content,
+                "last_time": m.sent_at.isoformat(),
+                "is_human_active": False,
+                "is_urgent": False,
+                "has_radio": False,
+                "messages": [],
+            }
+        
+        # Check emergency keywords
+        lower_content = m.content.lower()
+        if any(kw in lower_content for kw in ["douleur", "urgence", "saignement", "abces", "abcès", "dent cassee", "dent cassée", "rage de dent", "gonfle", "gonflé", "infection", "wja3", "darssa", "sater"]):
+            threads_map[phone_key]["is_urgent"] = True
+
+        threads_map[phone_key]["messages"].append({
+            "id": str(m.id),
+            "sender": m.sender,
+            "content": m.content,
+            "time": m.sent_at.strftime("%H:%M"),
+        })
+
+    # Enrich with Patient / Lead names and Session States
+    for phone_key, thread in threads_map.items():
+        thread["messages"].reverse() # Chronological
+        clean = normalize_phone(phone_key)
+
+        # Lookup patient name
+        patient = await find_patient_by_phone(db, phone_key)
+        if patient:
+            thread["name"] = f"{patient.first_name} {patient.last_name}"
+            thread["patient_id"] = str(patient.id)
+        else:
+            # Lookup lead name
+            lead_stmt = select(PatientLead).where(
+                or_(PatientLead.phone == phone_key, PatientLead.phone == clean)
+            ).order_by(desc(PatientLead.created_at))
+            lead_res = await db.execute(lead_stmt)
+            lead = lead_res.scalars().first()
+            if lead:
+                thread["name"] = lead.name
+
+        # Lookup takeover state
+        state_stmt = select(ChatSessionState).where(
+            or_(ChatSessionState.phone == phone_key, ChatSessionState.phone == clean)
+        )
+        state_res = await db.execute(state_stmt)
+        state = state_res.scalars().first()
+        if state:
+            thread["is_human_active"] = state.is_human_active
+
+        # Check if patient has radios
+        if thread.get("patient_id"):
+            radio_stmt = select(PatientDossierFile).where(PatientDossierFile.patient_id == UUID(thread["patient_id"]))
+            radio_res = await db.execute(radio_stmt)
+            if radio_res.scalars().first():
+                thread["has_radio"] = True
+
+    return list(threads_map.values())
