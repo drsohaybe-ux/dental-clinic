@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, Text, JSON, Enum
 from sqlalchemy.orm import Mapped, mapped_column
-from app.core.database import Base
+from app.database import Base
 import enum
 
 class PostStatus(str, enum.Enum):
