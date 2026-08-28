@@ -83,11 +83,11 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    // Server-side only (for SSR inside Docker)
-    apiBaseUrlServer: process.env.API_BASE_URL_SERVER || 'http://backend:8000',
+    // Server-side only (for SSR & Vercel serverless routes)
+    apiBaseUrlServer: process.env.API_BASE_URL_SERVER || 'https://dental-api-2z19.onrender.com',
     public: {
       // Client-side (browser)
-      apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8000',
+      apiBaseUrl: process.env.API_BASE_URL || 'https://dental-api-2z19.onrender.com',
       demoMode: process.env.NUXT_PUBLIC_DEMO_MODE === 'true',
       // Documentation portal origin used by the in-app help drawer
       // (Fase 5 of issue #75). Empty disables the help button.

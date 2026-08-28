@@ -1,7 +1,7 @@
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const config = useRuntimeConfig()
-  const backendBase = config.apiBaseUrlServer || config.public.apiBaseUrl
+  const backendBase = config.apiBaseUrlServer || config.public.apiBaseUrl || 'https://dental-api-2z19.onrender.com'
 
   try {
     const res = await $fetch(`${backendBase}/api/v1/omnichannel_bridge/patients/dossier`, {
