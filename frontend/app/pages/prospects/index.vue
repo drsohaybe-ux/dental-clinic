@@ -293,34 +293,71 @@ const newLeadForm = ref({
   notes: ''
 })
 
-async function loadLeadsAndSyncPatients() {
+function getStoredConvertedPhones(): Set<string> {
+  if (typeof window === 'undefined') return new Set()
   try {
-    // 1. Fetch live leads from backend database
+    const raw = localStorage.getItem('dental_converted_phones')
+    if (raw) return new Set(JSON.parse(raw))
+  } catch {}
+  return new Set()
+}
+
+function storeConvertedPhone(phone: string) {
+  if (typeof window === 'undefined') return
+  try {
+    const clean = phone.replace(/\D/g, '')
+    const set = getStoredConvertedPhones()
+    set.add(clean)
+    localStorage.setItem('dental_converted_phones', JSON.stringify(Array.from(set)))
+  } catch {}
+}
+
+async function loadLeadsAndSyncPatients() {
+  const convertedSet = getStoredConvertedPhones()
+
+  // 1. Initial local sync from stored cache
+  leads.value.forEach(lead => {
+    const clean = lead.phone.replace(/\D/g, '')
+    if (convertedSet.has(clean)) {
+      lead.stage = 'converted'
+    }
+  })
+
+  try {
+    // 2. Fetch live leads from backend database
     const dbLeads = await api.get<any[]>('/api/v1/omnichannel_bridge/leads')
     if (Array.isArray(dbLeads) && dbLeads.length > 0) {
       dbLeads.forEach(dl => {
-        const existing = leads.value.find(l => l.phone.replace(/\D/g, '') === dl.phone.replace(/\D/g, ''))
+        const cleanDl = (dl.phone || '').replace(/\D/g, '')
+        const existing = leads.value.find(l => l.phone.replace(/\D/g, '') === cleanDl)
         if (existing) {
-          existing.stage = dl.stage
+          if (dl.stage === 'converted' || convertedSet.has(cleanDl)) {
+            existing.stage = 'converted'
+            storeConvertedPhone(cleanDl)
+          } else {
+            existing.stage = dl.stage
+          }
           existing.patientId = dl.patient_id || undefined
         } else {
+          const isConverted = dl.stage === 'converted' || convertedSet.has(cleanDl)
           leads.value.unshift({
             id: dl.id,
             name: dl.name,
             phone: dl.phone,
             source: dl.source || 'telegram',
-            stage: dl.stage || 'new',
+            stage: isConverted ? 'converted' : (dl.stage || 'new'),
             notes: dl.notes,
             patientId: dl.patient_id || undefined,
             createdAt: dl.created_at || 'Récemment'
           })
+          if (isConverted) storeConvertedPhone(cleanDl)
         }
       })
     }
 
-    // 2. Fetch active patients to ensure any converted patient is permanently locked
+    // 3. Fetch active patients from database to guarantee conversion state
     const patientsRes = await api.get<any>('/api/v1/patients?limit=100')
-    const patientItems = patientsRes?.data?.items || patientsRes?.items || []
+    const patientItems = patientsRes?.data?.items || patientsRes?.data || patientsRes?.items || []
     if (Array.isArray(patientItems)) {
       leads.value.forEach(lead => {
         const cleanLeadPhone = lead.phone.replace(/\D/g, '')
@@ -331,6 +368,7 @@ async function loadLeadsAndSyncPatients() {
         if (matchingPatient) {
           lead.stage = 'converted'
           lead.patientId = matchingPatient.id
+          storeConvertedPhone(cleanLeadPhone)
         }
       })
     }
@@ -405,11 +443,16 @@ async function convertToPatient(lead: Lead) {
     const searchRes = await api.get<any>('/api/v1/patients', {
       query: { search: lead.phone }
     })
-    const existing = searchRes?.data?.items || searchRes?.items || []
+    const existing = searchRes?.data?.items || searchRes?.data || searchRes?.items || []
 
     if (existing.length > 0) {
       lead.stage = 'converted'
       lead.patientId = existing[0].id
+      storeConvertedPhone(lead.phone)
+
+      // Persist in backend leads table
+      api.post(`/api/v1/omnichannel_bridge/leads/convert?phone=${encodeURIComponent(lead.phone)}&patient_id=${existing[0].id}`).catch(() => {})
+
       toast.add({
         title: 'Patient déjà existant ! ✅',
         description: `${lead.name} est déjà enregistré dans le registre des patients.`,
@@ -429,6 +472,10 @@ async function convertToPatient(lead: Lead) {
     const createdId = res?.data?.id || res?.id
     lead.stage = 'converted'
     lead.patientId = createdId
+    storeConvertedPhone(lead.phone)
+
+    // Persist in backend leads table
+    api.post(`/api/v1/omnichannel_bridge/leads/convert?phone=${encodeURIComponent(lead.phone)}&patient_id=${createdId}`).catch(() => {})
 
     toast.add({
       title: 'Prospect Converti en Patient ! 🎉',
@@ -436,10 +483,14 @@ async function convertToPatient(lead: Lead) {
       color: 'green'
     })
   } catch (err: any) {
+    // If backend reports already registered (409 Conflict) or network issue:
     lead.stage = 'converted'
+    storeConvertedPhone(lead.phone)
+    api.post(`/api/v1/omnichannel_bridge/leads/convert?phone=${encodeURIComponent(lead.phone)}`).catch(() => {})
+
     toast.add({
-      title: 'Prospect validé ! 🎉',
-      description: `${lead.name} a été marqué comme patient confirmé.`,
+      title: 'Patient Confirmé ! ✅',
+      description: `${lead.name} est enregistré dans le cabinet.`,
       color: 'green'
     })
   } finally {

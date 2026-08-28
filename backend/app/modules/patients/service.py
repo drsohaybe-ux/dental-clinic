@@ -260,6 +260,60 @@ class PatientService:
 
     @staticmethod
     async def create_patient(db: AsyncSession, clinic_id: UUID, data: dict) -> Patient:
+        phone = data.get("phone")
+        first_name = (data.get("first_name") or "").strip()
+        last_name = (data.get("last_name") or "").strip()
+        national_id = data.get("national_id")
+
+        # 1. Strict Check by Phone
+        if phone and phone.strip():
+            clean_digits = "".join(filter(str.isdigit, phone))
+            dup_query = select(Patient).where(
+                Patient.clinic_id == clinic_id,
+                Patient.status != "archived",
+                or_(
+                    Patient.phone == phone,
+                    Patient.phone == phone.strip(),
+                    Patient.phone.ilike(f"%{clean_digits[-8:]}%") if len(clean_digits) >= 8 else False,
+                )
+            )
+            dup_res = await db.execute(dup_query)
+            existing_phone = dup_res.scalars().first()
+            if existing_phone:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Ce patient est déjà enregistré dans le cabinet (numéro de téléphone existant)."
+                )
+
+        # 2. Strict Check by National ID (if provided)
+        if national_id and national_id.strip():
+            dup_nid_query = select(Patient).where(
+                Patient.clinic_id == clinic_id,
+                Patient.status != "archived",
+                Patient.national_id == national_id.strip(),
+            )
+            dup_nid_res = await db.execute(dup_nid_query)
+            if dup_nid_res.scalars().first():
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Un patient avec ce numéro d'identification est déjà enregistré."
+                )
+
+        # 3. Strict Check by Full Name
+        if first_name and last_name:
+            dup_name_query = select(Patient).where(
+                Patient.clinic_id == clinic_id,
+                Patient.status != "archived",
+                func.lower(Patient.first_name) == first_name.lower(),
+                func.lower(Patient.last_name) == last_name.lower(),
+            )
+            dup_name_res = await db.execute(dup_name_query)
+            if dup_name_res.scalars().first():
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Un patient avec ce nom et prénom est déjà enregistré dans le cabinet."
+                )
+
         patient = Patient(clinic_id=clinic_id, **data)
         db.add(patient)
         await db.flush()

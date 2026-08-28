@@ -335,16 +335,17 @@ async def get_live_conversations(
         if any(kw in lower_content for kw in ["douleur", "urgence", "saignement", "abces", "abcès", "dent cassee", "dent cassée", "rage de dent", "gonfle", "gonflé", "infection", "wja3", "darssa", "sater"]):
             threads_map[phone_key]["is_urgent"] = True
 
-        threads_map[phone_key]["messages"].append({
-            "id": str(m.id),
-            "sender": m.sender,
-            "content": m.content,
-            "time": m.sent_at.strftime("%H:%M"),
-        })
+        if len(threads_map[phone_key]["messages"]) < 10:
+            threads_map[phone_key]["messages"].append({
+                "id": str(m.id),
+                "sender": m.sender,
+                "content": m.content,
+                "time": m.sent_at.strftime("%H:%M"),
+            })
 
     # Enrich with Patient / Lead names and Session States
     for phone_key, thread in threads_map.items():
-        thread["messages"].reverse() # Chronological
+        thread["messages"].reverse() # Chronological 10 past preview messages
         clean = normalize_phone(phone_key)
 
         # Lookup patient name
@@ -399,10 +400,38 @@ async def get_all_leads(
             "name": l.name,
             "phone": l.phone,
             "source": l.source,
-            "stage": "converted" if patient else l.stage,
+            "stage": "converted" if patient or l.stage == "converted" else l.stage,
             "notes": l.notes,
             "patient_id": str(patient.id) if patient else None,
             "created_at": l.created_at.strftime("%d/%m/%Y %H:%M") if l.created_at else "Récemment",
         })
     return result
+
+
+# --- 11. POST /leads/convert (Persist Lead Conversion in DB) ---
+@router.post("/leads/convert", response_model=GenericSuccessResponse)
+async def convert_lead_in_db(
+    phone: str = Query(...),
+    patient_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Marks a lead as converted in PostgreSQL."""
+    clean = normalize_phone(phone)
+    stmt = select(PatientLead).where(
+        or_(PatientLead.phone == phone, PatientLead.phone == clean)
+    )
+    res = await db.execute(stmt)
+    leads = res.scalars().all()
+
+    for l in leads:
+        l.stage = "converted"
+        if patient_id:
+            try:
+                l.patient_id = UUID(patient_id)
+            except Exception:
+                pass
+
+    await db.commit()
+    return GenericSuccessResponse(success=True, message="Lead permanently marked as converted")
+
 

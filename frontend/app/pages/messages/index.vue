@@ -461,9 +461,27 @@ async function syncLiveThreads() {
         }
 
         if (existingIdx >= 0) {
-          threads.value[existingIdx] = mapped
-          if (selectedThread.value?.id === mapped.id || selectedThread.value?.phone === mapped.phone) {
-            selectedThread.value = mapped
+          const target = threads.value[existingIdx]
+          target.name = mapped.name
+          target.lastMessage = mapped.lastMessage
+          target.lastTime = mapped.lastTime
+          target.isHumanActive = mapped.isHumanActive
+          target.isUrgent = mapped.isUrgent
+          target.hasRadio = mapped.hasRadio
+          if (mapped.patientId) target.patientId = mapped.patientId
+
+          // Merge / append new messages
+          mapped.messages.forEach(newMsg => {
+            const alreadyPresent = target.messages.some(
+              m => m.id === newMsg.id || (m.content === newMsg.content && m.sender === newMsg.sender)
+            )
+            if (!alreadyPresent) {
+              target.messages.push(newMsg)
+            }
+          })
+
+          if (selectedThread.value?.id === target.id || selectedThread.value?.phone === target.phone) {
+            selectedThread.value = target
           }
         } else {
           threads.value.unshift(mapped)
