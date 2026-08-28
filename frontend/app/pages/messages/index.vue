@@ -581,8 +581,4 @@ function sendReply() {
   replyText.value = ''
   toast.add({ title: 'Message envoyé au patient 🚀', color: 'green' })
 }
-
-  replyText.value = ''
-  toast.add({ title: 'Message envoyé au patient 🚀', color: 'green' })
-}
 </script>
