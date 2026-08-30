@@ -716,7 +716,30 @@ async def sync_incoming_appointment(
             cabinet_id = cab.id
             cabinet_name = cab.name
 
-    # Check if cabinet slot is occupied by an active appointment
+    # 7. Check for existing appointment by external_id or matching patient slot
+    existing_apt = None
+    if payload.external_id:
+        apt_stmt = select(Appointment).where(
+            Appointment.clinic_id == clinic_id,
+            Appointment.external_id == payload.external_id,
+        )
+        apt_res = await db.execute(apt_stmt)
+        existing_apt = apt_res.scalars().first()
+
+    if not existing_apt:
+        # Check if patient already booked at this exact start time
+        pt_apt_stmt = select(Appointment).where(
+            Appointment.clinic_id == clinic_id,
+            Appointment.patient_id == patient.id,
+            Appointment.start_time == start_utc,
+            Appointment.status != "cancelled",
+        )
+        pt_apt_res = await db.execute(pt_apt_stmt)
+        existing_apt = pt_apt_res.scalars().first()
+
+    existing_id = existing_apt.id if existing_apt else None
+
+    # Check if cabinet slot is occupied by a DIFFERENT active appointment
     if cabinet_id:
         slot_stmt = select(Appointment).where(
             Appointment.clinic_id == clinic_id,
@@ -725,9 +748,11 @@ async def sync_incoming_appointment(
             Appointment.start_time == start_utc,
             Appointment.status != "cancelled",
         )
+        if existing_id:
+            slot_stmt = slot_stmt.where(Appointment.id != existing_id)
         slot_res = await db.execute(slot_stmt)
         occupied = slot_res.scalars().first()
-        if occupied and occupied.external_id != payload.external_id:
+        if occupied:
             # Try alternate active cabinets
             cabinets = await CabinetService.list_cabinets(db, clinic_id)
             found_free = False
@@ -740,6 +765,8 @@ async def sync_incoming_appointment(
                         Appointment.start_time == start_utc,
                         Appointment.status != "cancelled",
                     )
+                    if existing_id:
+                        alt_stmt = alt_stmt.where(Appointment.id != existing_id)
                     if not (await db.execute(alt_stmt)).scalars().first():
                         cabinet_id = alt_cab.id
                         cabinet_name = alt_cab.name
@@ -761,31 +788,12 @@ async def sync_incoming_appointment(
                     Appointment.start_time == start_utc,
                     Appointment.status != "cancelled",
                 )
+                if existing_id:
+                    slot_stmt = slot_stmt.where(Appointment.id != existing_id)
                 if not (await db.execute(slot_stmt)).scalars().first():
                     cabinet_id = cab.id
                     cabinet_name = cab.name
                     break
-
-    # 7. Check for existing appointment by external_id or matching patient slot
-    existing_apt = None
-    if payload.external_id:
-        apt_stmt = select(Appointment).where(
-            Appointment.clinic_id == clinic_id,
-            Appointment.external_id == payload.external_id,
-        )
-        apt_res = await db.execute(apt_stmt)
-        existing_apt = apt_res.scalars().first()
-
-    if not existing_apt:
-        # Check if patient already booked at this exact start time
-        pt_apt_stmt = select(Appointment).where(
-            Appointment.clinic_id == clinic_id,
-            Appointment.patient_id == patient.id,
-            Appointment.start_time == start_utc,
-            Appointment.status != "cancelled",
-        )
-        pt_apt_res = await db.execute(pt_apt_stmt)
-        existing_apt = pt_apt_res.scalars().first()
 
     action = "created"
     if existing_apt:
@@ -832,13 +840,38 @@ async def sync_incoming_appointment(
             )
             db.add(status_event)
         await db.commit()
-    except IntegrityError:
+    except Exception as err:
         await db.rollback()
-        # Fallback to unassigned cabinet (deferred chair) to guarantee insertion
-        appointment.cabinet_id = None
-        appointment.cabinet = None
-        db.add(appointment)
-        await db.commit()
+        # Fallback to unassigned cabinet (deferred chair) to guarantee insertion without error
+        if existing_id:
+            clean_apt = (await db.execute(select(Appointment).where(Appointment.id == existing_id))).scalars().first()
+            if clean_apt:
+                clean_apt.cabinet_id = None
+                clean_apt.cabinet = None
+                clean_apt.start_time = start_utc
+                clean_apt.end_time = end_utc
+                clean_apt.status = payload.status or "confirmed"
+                await db.commit()
+                appointment = clean_apt
+        else:
+            fallback_apt = Appointment(
+                id=uuid4(),
+                clinic_id=clinic_id,
+                patient_id=patient.id,
+                professional_id=doctor.id,
+                cabinet_id=None,
+                cabinet=None,
+                start_time=start_utc,
+                end_time=end_utc,
+                treatment_type=payload.treatment_type or "Consultation",
+                status=payload.status or "confirmed",
+                external_id=payload.external_id,
+                source="google_calendar",
+                current_status_since=datetime.now(UTC),
+            )
+            db.add(fallback_apt)
+            await db.commit()
+            appointment = fallback_apt
 
     await db.refresh(appointment)
 
