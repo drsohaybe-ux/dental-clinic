@@ -127,3 +127,33 @@ class PatientDossierResponse(BaseModel):
     ai_analysis: str
     status: str
     created_at: datetime
+
+
+# --- 6. Incoming Appointment (Google Calendar / Sheets Sync) ---
+class IncomingAppointmentPayload(BaseModel):
+    patient_name: str = Field(..., description="Full Name of the patient")
+    patient_phone: str = Field(..., description="Phone number")
+    start_time: str = Field(..., description="ISO 8601 Datetime string")
+    end_time: Optional[str] = Field(None, description="ISO 8601 Datetime string or auto-calculated")
+    treatment_type: Optional[str] = Field("Consultation", description="Motive or treatment")
+    notes: Optional[str] = Field(None, description="Clinical notes or description")
+    external_id: str = Field(..., description="Unique Google Calendar Event ID or Sheet Row ID")
+    doctor_email: Optional[str] = Field(None, description="Optional target doctor email")
+    cabinet_name: Optional[str] = Field(None, description="Optional room name")
+    status: Optional[str] = Field("confirmed", description="Appointment status")
+
+    class Config:
+        populate_by_name = True
+        extra = "allow"
+
+
+class AppointmentSyncResponse(BaseModel):
+    success: bool = True
+    action: str  # 'created' | 'updated'
+    appointment_id: str
+    patient_id: str
+    doctor_name: str
+    cabinet: Optional[str] = None
+    start_time_local: str
+    message: str
+

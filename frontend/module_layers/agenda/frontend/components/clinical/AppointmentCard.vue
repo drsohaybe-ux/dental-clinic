@@ -194,19 +194,29 @@ const cardStyle = computed(() => ({
       </div>
     </div>
     <div class="flex items-center justify-between gap-2 mt-1">
-      <UBadge
-        v-if="cabinet"
-        :label="cabinet.name"
-        :style="{ backgroundColor: cabinet.color, color: '#fff' }"
-        size="xs"
-      />
-      <UBadge
-        v-else
-        :label="t('appointments.cabinetAssignment.unassigned')"
-        color="warning"
-        variant="subtle"
-        size="xs"
-      />
+      <div class="flex items-center gap-1 min-w-0">
+        <UBadge
+          v-if="cabinet"
+          :label="cabinet.name"
+          :style="{ backgroundColor: cabinet.color, color: '#fff' }"
+          size="xs"
+        />
+        <UBadge
+          v-else
+          :label="t('appointments.cabinetAssignment.unassigned')"
+          color="warning"
+          variant="subtle"
+          size="xs"
+        />
+        <UBadge
+          v-if="appointment.source === 'google_calendar' || (appointment.external_id && String(appointment.external_id).startsWith('gcal'))"
+          label="📅 G-Sync"
+          color="info"
+          variant="subtle"
+          size="xs"
+          class="shrink-0 font-medium"
+        />
+      </div>
       <span
         class="text-xs"
         :class="timerClass"

@@ -2,23 +2,29 @@
 
 import os
 import re
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy import desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth.models import Clinic, ClinicMembership, User
 from app.database import get_db
+from app.modules.agenda.models import Appointment, AppointmentStatusEvent, Cabinet
+from app.modules.agenda.service import CabinetService
+from app.modules.agenda.tz import as_utc, get_clinic_tz, safe_zone
 from app.modules.patients.models import Patient
 from .models import ChatMessage, ChatSessionState, PatientDossierFile, PatientLead
 from .schemas import (
+    AppointmentSyncResponse,
     BatchMessagesPayload,
     ChatMessageResponse,
     ChatStatusResponse,
     GenericSuccessResponse,
     InboundMessagePayload,
+    IncomingAppointmentPayload,
     IncomingLeadPayload,
     OutboundMessagePayload,
     PatientDossierPayload,
@@ -589,5 +595,200 @@ async def convert_lead_in_db(
 
     await db.commit()
     return GenericSuccessResponse(success=True, message="Lead permanently marked as converted")
+
+
+# --- 12. POST /appointments/sync (Google Calendar & Sheets Sync) ---
+@router.post("/appointments/sync", response_model=AppointmentSyncResponse)
+async def sync_incoming_appointment(
+    payload: IncomingAppointmentPayload,
+    authorization: Optional[str] = Header(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Synchronizes external bookings from Google Calendar / Sheets to DentalPin Agenda."""
+    # 1. Verify Secret
+    if not verify_n8n_secret(authorization):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing DENTALPIN_N8N_SECRET authorization header",
+        )
+
+    # 2. Resolve Clinic
+    clinic_res = await db.execute(select(Clinic).limit(1))
+    clinic = clinic_res.scalars().first()
+    if not clinic:
+        raise HTTPException(status_code=500, detail="No active clinic found")
+    clinic_id = clinic.id
+
+    # 3. Patient Resolution & Auto-Registration
+    clean_phone = normalize_phone(payload.patient_phone)
+    patient = await find_patient_by_phone(db, payload.patient_phone)
+    if not patient:
+        parts = payload.patient_name.strip().split(" ", 1)
+        first_name = parts[0]
+        last_name = parts[1] if len(parts) > 1 else ""
+
+        patient = Patient(
+            clinic_id=clinic_id,
+            first_name=first_name,
+            last_name=last_name,
+            phone=payload.patient_phone.strip(),
+            status="active",
+            notes=f"[Origine: Google Calendar / n8n — Synchronisé le {datetime.now(UTC).strftime('%Y-%m-%d %H:%M')}]",
+        )
+        db.add(patient)
+        await db.flush()
+        await db.refresh(patient)
+
+    # Convert staged lead if exists
+    lead_stmt = select(PatientLead).where(
+        or_(PatientLead.phone == payload.patient_phone, PatientLead.phone == clean_phone)
+    )
+    lead_res = await db.execute(lead_stmt)
+    lead = lead_res.scalars().first()
+    if lead:
+        lead.stage = "converted"
+        lead.patient_id = patient.id
+
+    # 4. Deterministic Doctor Resolution
+    doctor: Optional[User] = None
+    if payload.doctor_email:
+        doc_stmt = (
+            select(User)
+            .join(ClinicMembership, ClinicMembership.user_id == User.id)
+            .where(
+                ClinicMembership.clinic_id == clinic_id,
+                ClinicMembership.is_professional.is_(True),
+                User.email == payload.doctor_email.strip().lower(),
+            )
+        )
+        doctor = (await db.execute(doc_stmt)).scalars().first()
+
+    if not doctor:
+        # Prioritize primary Dentist / Admin Doctor
+        doc_stmt = (
+            select(User)
+            .join(ClinicMembership, ClinicMembership.user_id == User.id)
+            .where(
+                ClinicMembership.clinic_id == clinic_id,
+                ClinicMembership.is_professional.is_(True),
+                ClinicMembership.role.in_(["dentist", "admin"]),
+            )
+            .order_by(
+                ClinicMembership.role == "dentist",
+                User.created_at.asc(),
+            )
+        )
+        doctor = (await db.execute(doc_stmt)).scalars().first()
+
+    if not doctor:
+        fallback_stmt = select(User).join(ClinicMembership, ClinicMembership.user_id == User.id).where(ClinicMembership.clinic_id == clinic_id)
+        doctor = (await db.execute(fallback_stmt)).scalars().first()
+
+    if not doctor:
+        raise HTTPException(status_code=500, detail="No doctor available to assign appointment")
+
+    # 5. Timezone & Duration Normalization
+    clinic_tz = await get_clinic_tz(db, clinic_id)
+    try:
+        start_raw = payload.start_time.replace("Z", "+00:00")
+        start_dt = datetime.fromisoformat(start_raw)
+        start_utc = as_utc(start_dt, clinic_tz)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid start_time format: {e}")
+
+    if payload.end_time:
+        try:
+            end_raw = payload.end_time.replace("Z", "+00:00")
+            end_dt = datetime.fromisoformat(end_raw)
+            end_utc = as_utc(end_dt, clinic_tz)
+        except Exception:
+            end_utc = start_utc + timedelta(minutes=30)
+    else:
+        end_utc = start_utc + timedelta(minutes=30)
+
+    # 6. Cabinet Resolution
+    cabinet_id = None
+    cabinet_name = None
+    if payload.cabinet_name:
+        cab = await CabinetService.get_by_name(db, clinic_id, payload.cabinet_name.strip())
+        if cab:
+            cabinet_id = cab.id
+            cabinet_name = cab.name
+
+    if not cabinet_id:
+        cabinets = await CabinetService.list_cabinets(db, clinic_id)
+        if cabinets:
+            cabinet_id = cabinets[0].id
+            cabinet_name = cabinets[0].name
+
+    # 7. Check for existing appointment by external_id
+    existing_apt = None
+    if payload.external_id:
+        apt_stmt = select(Appointment).where(
+            Appointment.clinic_id == clinic_id,
+            Appointment.external_id == payload.external_id,
+        )
+        apt_res = await db.execute(apt_stmt)
+        existing_apt = apt_res.scalars().first()
+
+    action = "created"
+    if existing_apt:
+        existing_apt.patient_id = patient.id
+        existing_apt.professional_id = doctor.id
+        existing_apt.cabinet_id = cabinet_id
+        existing_apt.cabinet = cabinet_name
+        existing_apt.start_time = start_utc
+        existing_apt.end_time = end_utc
+        existing_apt.treatment_type = payload.treatment_type or existing_apt.treatment_type
+        existing_apt.status = payload.status or "confirmed"
+        existing_apt.source = "google_calendar"
+        appointment = existing_apt
+        action = "updated"
+    else:
+        appointment = Appointment(
+            id=uuid4(),
+            clinic_id=clinic_id,
+            patient_id=patient.id,
+            professional_id=doctor.id,
+            cabinet_id=cabinet_id,
+            cabinet=cabinet_name,
+            start_time=start_utc,
+            end_time=end_utc,
+            treatment_type=payload.treatment_type or "Consultation",
+            status=payload.status or "confirmed",
+            external_id=payload.external_id,
+            source="google_calendar",
+            current_status_since=datetime.now(UTC),
+        )
+        db.add(appointment)
+        await db.flush()
+
+        # Audit log event
+        status_event = AppointmentStatusEvent(
+            id=uuid4(),
+            clinic_id=clinic_id,
+            appointment_id=appointment.id,
+            from_status=None,
+            to_status=appointment.status,
+            changed_by=doctor.id,
+        )
+        db.add(status_event)
+
+    await db.commit()
+    await db.refresh(appointment)
+
+    start_local = appointment.start_time.astimezone(clinic_tz).isoformat()
+
+    return AppointmentSyncResponse(
+        success=True,
+        action=action,
+        appointment_id=str(appointment.id),
+        patient_id=str(patient.id),
+        doctor_name=f"{doctor.first_name} {doctor.last_name}",
+        cabinet=appointment.cabinet,
+        start_time_local=start_local,
+        message=f"Appointment {action} successfully for {patient.first_name} {patient.last_name}",
+    )
+
 
 

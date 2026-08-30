@@ -108,6 +108,8 @@ class Appointment(Base, TimestampMixin):
         DateTime(timezone=True), server_default=func.now()
     )
     color: Mapped[str | None] = mapped_column(String(7))
+    external_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    source: Mapped[str] = mapped_column(String(50), default="manual", server_default="manual")
 
     clinic: Mapped[Clinic] = relationship(back_populates="appointments")
     # No ``back_populates`` — patients is foundational and cannot
@@ -145,6 +147,13 @@ class Appointment(Base, TimestampMixin):
             "start_time",
             unique=True,
             postgresql_where=(status != "cancelled"),
+        ),
+        Index(
+            "uq_appointments_clinic_external_id",
+            "clinic_id",
+            "external_id",
+            unique=True,
+            postgresql_where=(external_id.is_not(None)),
         ),
         CheckConstraint(
             "status IN (" + ", ".join(f"'{s}'" for s in APPOINTMENT_STATUSES) + ")",

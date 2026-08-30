@@ -209,6 +209,16 @@ async function reloadActiveView() {
 // this page knowing. Refetch when the data bus signals an ``agenda`` change.
 useDataBus().on('agenda', reloadActiveView)
 
+// Auto-refetch when user focuses tab to catch new external bookings from Google Calendar / n8n
+if (import.meta.client) {
+  onMounted(() => {
+    window.addEventListener('focus', reloadActiveView)
+  })
+  onBeforeUnmount(() => {
+    window.removeEventListener('focus', reloadActiveView)
+  })
+}
+
 // Handle week change
 async function handleWeekChange(newStart: Date) {
   currentWeekStart.value = newStart

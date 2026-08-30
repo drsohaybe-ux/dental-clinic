@@ -268,6 +268,8 @@ class AppointmentResponse(BaseModel):
     status: str
     current_status_since: datetime
     color: str | None
+    external_id: str | None = None
+    source: str = "manual"
     created_at: datetime
     updated_at: datetime
     patient: PatientBrief | None = None
@@ -306,6 +308,8 @@ class AppointmentResponse(BaseModel):
                 "status": data.status,
                 "current_status_since": data.current_status_since,
                 "color": data.color,
+                "external_id": getattr(data, "external_id", None),
+                "source": getattr(data, "source", "manual"),
                 "created_at": data.created_at,
                 "updated_at": data.updated_at,
                 "patient": data.patient,
