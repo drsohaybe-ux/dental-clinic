@@ -10,7 +10,7 @@ from __future__ import annotations
 from app.config import settings
 from app.core.llm.base import LLMConfigError, Provider
 
-SUPPORTED_PROVIDERS = ("openai",)
+SUPPORTED_PROVIDERS = ("openai", "gemini", "google")
 
 
 def get_provider(name: str, *, api_key: str | None = None) -> Provider:
@@ -22,7 +22,20 @@ def get_provider(name: str, *, api_key: str | None = None) -> Provider:
     if name == "openai":
         from app.core.llm.openai_provider import OpenAIProvider
 
-        return OpenAIProvider(api_key=api_key or settings.OPENAI_API_KEY)
+        key = api_key or settings.OPENAI_API_KEY or settings.GEMINI_API_KEY
+        return OpenAIProvider(
+            api_key=key,
+            base_url=settings.OPENAI_BASE_URL if getattr(settings, "OPENAI_BASE_URL", "") else None,
+        )
+
+    if name in ("gemini", "google"):
+        from app.core.llm.openai_provider import OpenAIProvider
+
+        key = api_key or settings.GEMINI_API_KEY or settings.OPENAI_API_KEY
+        return OpenAIProvider(
+            api_key=key,
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        )
 
     raise LLMConfigError(
         f"Unsupported LLM provider: {name!r} (supported: {', '.join(SUPPORTED_PROVIDERS)})"

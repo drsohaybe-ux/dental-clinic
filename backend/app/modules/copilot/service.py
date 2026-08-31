@@ -27,6 +27,14 @@ class CopilotSettingsService:
     async def get_or_create(db: AsyncSession, clinic_id: UUID) -> CopilotSettings:
         row = await db.get(CopilotSettings, clinic_id)
         if row is not None:
+            if (
+                row.provider == "openai"
+                and not app_settings.OPENAI_API_KEY
+                and app_settings.GEMINI_API_KEY
+            ):
+                row.provider = "gemini"
+                row.model = app_settings.COPILOT_MODEL_CHAT_OPENAI
+                await db.flush()
             return CopilotSettingsService._roll_period(row)
         row = CopilotSettings(
             clinic_id=clinic_id,

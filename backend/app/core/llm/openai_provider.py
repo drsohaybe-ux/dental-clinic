@@ -32,14 +32,14 @@ from app.core.llm.base import (
 class OpenAIProvider:
     """Streams completions from OpenAI, speaking neutral types."""
 
-    def __init__(self, *, api_key: str) -> None:
+    def __init__(self, *, api_key: str, base_url: str | None = None) -> None:
         if not api_key:
-            raise LLMConfigError("OpenAI provider requires OPENAI_API_KEY")
+            raise LLMConfigError("LLM provider requires an API key")
         # Imported lazily so the dependency is only needed when the
         # provider is actually instantiated (keeps test/import light).
         from openai import AsyncOpenAI
 
-        self._client = AsyncOpenAI(api_key=api_key)
+        self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
 
     async def complete(
         self,
