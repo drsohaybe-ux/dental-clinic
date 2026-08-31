@@ -399,6 +399,7 @@
                   <option value="Orthodontie Invisible & Aligners">🦷 Orthodontie Invisible & Aligners</option>
                   <option value="Implants & Chirurgie Guidée">🔩 Implants & Chirurgie Guidée</option>
                   <option value="Soins Préventifs & Pédodontie">🛡️ Soins Préventifs & Pédodontie</option>
+                  <option value="Vie du Cabinet (Nouveaux horaires, Local, Équipe)">🏥 Vie du Cabinet (Nouveaux horaires, Local, Équipe)</option>
                 </select>
               </div>
 
