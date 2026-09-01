@@ -550,15 +550,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useSocialAutomation, type SocialPost } from '~/composables/useSocialAutomation'
 
 definePageMeta({ middleware: 'auth' })
 
 const socialStore = useSocialAutomation()
+let pollTimer: any = null
 
 onMounted(() => {
   socialStore.fetchPosts()
+  pollTimer = setInterval(() => {
+    socialStore.fetchPosts()
+  }, 4000)
+})
+
+onUnmounted(() => {
+  if (pollTimer) clearInterval(pollTimer)
 })
 
 // Tab & Platform state

@@ -214,6 +214,12 @@ from app.modules.omnichannel_bridge.router import router as omnichannel_bridge_r
 
 app.include_router(omnichannel_bridge_router, prefix="/api/v1")
 
+# Mount social automation router (n8n Studio Content & Social Posts)
+from app.modules.social_automation.router import router as social_automation_router  # noqa: E402
+
+app.include_router(social_automation_router, prefix="/api/v1/social_automation")
+app.include_router(social_automation_router, prefix="/api/v1")
+
 
 @app.get("/health")
 async def health_check() -> JSONResponse:

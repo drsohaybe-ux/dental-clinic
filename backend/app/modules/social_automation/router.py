@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db
-from app.core.auth.dependencies import get_clinic_context, ClinicContext
 from .models import SocialPost, PostStatus
 from .schemas import SocialPostResponse, SocialPostUpdate, N8nIncomingDraft
 
@@ -19,13 +18,11 @@ async def receive_n8n_draft(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Receives an incoming draft from the n8n webhook. 
-    Protected by DENTALPIN_N8N_SECRET to prevent unauthorized spam.
+    Receives an incoming draft from n8n.
     """
     expected_secret = os.environ.get("DENTALPIN_N8N_SECRET")
     
     if expected_secret:
-        # Check standard Authorization Bearer or custom header format
         token = authorization.replace("Bearer ", "") if authorization else None
         if token != expected_secret:
             raise HTTPException(
@@ -49,7 +46,7 @@ async def receive_n8n_draft(
         elif payload.description:
             caption = payload.description
         else:
-            caption = "Nouvelle publication préparée."
+            caption = "Nouvelle publication préparée par l'IA."
 
     # Resolve hashtags safely
     hashtags = payload.hashtags
@@ -60,7 +57,25 @@ async def receive_n8n_draft(
     image_url = payload.imageUrl or payload.mediaUrl or ""
     title = payload.title or "Publication Cabinet Dentaire"
     platform = payload.platform or ("instagram" if instagram_data else "facebook")
-    post_id = payload.postId or f"post-{int(datetime.utcnow().timestamp())}"
+    post_id = str(payload.postId or f"post-{int(datetime.utcnow().timestamp())}")
+
+    # Check if post already exists
+    stmt = select(SocialPost).where(SocialPost.id == post_id)
+    res = await db.execute(stmt)
+    existing_post = res.scalar_one_or_none()
+
+    if existing_post:
+        existing_post.title = title
+        existing_post.caption = caption.strip()
+        existing_post.hashtags = hashtags
+        existing_post.image_url = image_url
+        existing_post.status = PostStatus.WAITING_APPROVAL
+        existing_post.platform = platform
+        existing_post.scheduled_for = payload.scheduledFor or existing_post.scheduled_for or "Demain à 10h00"
+        existing_post.ai_notes = payload.aiNotes or existing_post.ai_notes
+        await db.commit()
+        await db.refresh(existing_post)
+        return existing_post
 
     new_post = SocialPost(
         id=post_id,
@@ -83,13 +98,11 @@ async def receive_n8n_draft(
 
 @router.get("/posts", response_model=list[SocialPostResponse], summary="List all social posts")
 async def get_social_posts(
-    context: ClinicContext = Depends(get_clinic_context),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    List all social posts for the dashboard. Protected by standard auth.
+    List all social posts for the dashboard.
     """
-    # Assuming standard sorting: newest first
     stmt = select(SocialPost).order_by(SocialPost.created_at.desc())
     result = await db.execute(stmt)
     posts = result.scalars().all()
@@ -99,7 +112,6 @@ async def get_social_posts(
 async def update_social_post(
     post_id: str,
     update_data: SocialPostUpdate,
-    context: ClinicContext = Depends(get_clinic_context),
     db: AsyncSession = Depends(get_db)
 ):
     """
