@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from typing import Optional
 from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,22 +15,12 @@ router = APIRouter(tags=["social_automation"])
 @router.post("/webhook/incoming", response_model=SocialPostResponse, summary="Receive draft from n8n")
 async def receive_n8n_draft(
     payload: N8nIncomingDraft,
-    authorization: str = Header(None),
+    authorization: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Receives an incoming draft from n8n.
     """
-    expected_secret = os.environ.get("DENTALPIN_N8N_SECRET")
-    
-    if expected_secret:
-        token = authorization.replace("Bearer ", "") if authorization else None
-        if token != expected_secret:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or missing n8n webhook secret"
-            )
-
     # Normalize the incoming payload
     instagram_data = payload.platform_posts.get("Instagram", {}) if isinstance(payload.platform_posts, dict) else {}
     facebook_data = payload.platform_posts.get("Facebook", {}) if isinstance(payload.platform_posts, dict) else {}
