@@ -177,22 +177,35 @@ export function useSocialAutomation() {
   }
 
   function createNewDraft(payload: {
-    title: string
-    caption: string
+    title?: string
+    topic?: string
+    caption?: string
+    instructions?: string
     imageUrl?: string
-    platform?: 'instagram' | 'facebook' | 'tiktok'
+    platform?: 'instagram' | 'facebook' | 'both'
+    platforms?: string[]
     pillar?: string
+    hashtags?: string[] | string
+    cta?: string
   }) {
+    const selectedPlatform = payload.platform || 'both'
+    const targetPlatforms = payload.platforms || (
+      selectedPlatform === 'both' ? ['facebook', 'instagram'] : [selectedPlatform]
+    )
+
+    const resolvedTitle = payload.title?.trim() || (payload.pillar ? `${payload.pillar} au Cabinet Dr. Mokhtar` : 'Publication IA Cabinet Dentaire')
+    const resolvedCaption = payload.caption?.trim() || (payload.instructions?.trim() ? `Instructions Dr. Mokhtar : ${payload.instructions}` : '🦷 Publication générée par l\'IA n8n selon les protocoles cliniques du cabinet.')
+
     const newPost: SocialPost = {
       id: `post-${Date.now()}`,
-      platform: payload.platform || 'instagram',
-      title: payload.title,
-      caption: payload.caption,
+      platform: (selectedPlatform === 'both' ? 'instagram' : selectedPlatform) as any,
+      title: resolvedTitle,
+      caption: resolvedCaption,
       hashtags: ['#DentisteAlger', '#DrMokhtar', '#SanteDentaire', '#CabinetDentaire'],
       image_url: payload.imageUrl || 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=80',
       status: 'waiting_approval',
       scheduled_for: 'Demain à 10h00',
-      ai_notes: `Généré automatiquement par Dr. Mokhtar AI — Pilier: ${payload.pillar || 'Soins Généraux'}.`,
+      ai_notes: `Généré automatiquement par Dr. Mokhtar AI — Pilier: ${payload.pillar || 'Soins Généraux'}. Réseaux cibles: ${targetPlatforms.join(', ')}.`,
       created_at: new Date().toISOString()
     }
 
@@ -203,18 +216,28 @@ export function useSocialAutomation() {
         $fetch(n8nCreateUrl.value, {
           method: 'POST',
           body: {
-            pillar: payload.pillar || 'Services & Technologies du Cabinet',
-            topic: payload.title,
-            instructions: payload.caption,
-            imageSource: 'OpenAI'
+            platforms: targetPlatforms,
+            pillar: payload.pillar || undefined,
+            title: payload.title?.trim() || undefined,
+            topic: payload.title?.trim() || payload.topic?.trim() || undefined,
+            content: payload.caption?.trim() || undefined,
+            custom_content: payload.caption?.trim() || undefined,
+            instructions: payload.instructions?.trim() || payload.caption?.trim() || undefined,
+            image_url: payload.imageUrl?.trim() || undefined,
+            imageSource: payload.imageUrl?.trim() ? 'custom' : 'pollinations',
+            hashtags: payload.hashtags || undefined,
+            cta: payload.cta?.trim() || undefined,
+            content_mode: (payload.title?.trim() || payload.caption?.trim()) ? 'doctor_copilot' : 'ai_autonomous'
           }
-        }).catch(() => {})
+        }).catch((err) => {
+          console.warn('n8n Create Draft notice:', err)
+        })
       } catch {}
     }
 
     toast.add({
-      title: 'Nouvelle Publication Créée ⚡',
-      description: 'Le brouillon a été généré et ajouté en tête de liste.',
+      title: 'Publication Transmise à l\'IA n8n ! ⚡',
+      description: `Génération lancée pour ${targetPlatforms.join(' & ')}.`,
       color: 'green'
     })
   }

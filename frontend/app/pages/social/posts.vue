@@ -411,42 +411,86 @@
                   v-model="newPostForm.platform"
                   class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
                 >
-                  <option value="instagram">Instagram</option>
-                  <option value="facebook">Facebook</option>
+                  <option value="both">🌐 Facebook & Instagram (Simultané - 1200x630 & 1080x1080)</option>
+                  <option value="instagram">📸 Instagram uniquement (1080x1080)</option>
+                  <option value="facebook">📘 Facebook uniquement (1200x630)</option>
                 </select>
               </div>
             </div>
 
-            <!-- Custom Mode Fields -->
+            <!-- Custom Mode Fields (Doctor Copilot & Gap-filling) -->
             <div v-else class="space-y-4">
+              <!-- Informational Banner for Optional Fields -->
+              <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2">
+                <UIcon name="i-lucide-sparkles" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <span class="font-bold">Mode Copilot & Gap-Filling :</span>
+                  Tous les champs ci-dessous sont <span class="underline font-bold">100% optionnels</span>. Tout champ que vous laissez vide sera automatiquement conçu, rédigé et comblé par l'IA selon les protocoles cliniques de votre cabinet.
+                </div>
+              </div>
+
               <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">Titre du soin :</label>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                  Plateforme Cible :
+                </label>
+                <select
+                  v-model="newPostForm.platform"
+                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
+                >
+                  <option value="both">🌐 Facebook & Instagram (Simultané)</option>
+                  <option value="instagram">📸 Instagram uniquement</option>
+                  <option value="facebook">📘 Facebook uniquement</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                  Titre / Sujet Clinique <span class="text-gray-400 font-normal">(optionnel)</span> :
+                </label>
                 <input
                   v-model="newPostForm.title"
                   type="text"
-                  placeholder="e.g. Facettes Dentaires en Céramique"
+                  placeholder="e.g. Facettes Dentaires, Blanchiment... (laissé vide = choisi par l'IA)"
                   class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">Texte / Légende :</label>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                  Consignes spécifiques ou Texte du Dr. Mokhtar <span class="text-gray-400 font-normal">(optionnel)</span> :
+                </label>
                 <textarea
                   v-model="newPostForm.caption"
-                  rows="4"
-                  placeholder="Texte détaillé avec tarifs DZD et appel à l'action WhatsApp..."
+                  rows="3"
+                  placeholder="Consignes particulières, tarifs en DZD, matériel à mentionner... ou laissez vide pour génération 100% autonome"
                   class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
                 ></textarea>
               </div>
 
-              <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">URL de l'image (optionnel) :</label>
-                <input
-                  v-model="newPostForm.imageUrl"
-                  type="text"
-                  placeholder="https://images.unsplash.com/..."
-                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
-                />
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Call to Action <span class="text-gray-400 font-normal">(optionnel)</span> :
+                  </label>
+                  <input
+                    v-model="newPostForm.cta"
+                    type="text"
+                    placeholder="e.g. Contactez-nous sur WhatsApp !"
+                    class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                    URL de l'image <span class="text-gray-400 font-normal">(optionnel)</span> :
+                  </label>
+                  <input
+                    v-model="newPostForm.imageUrl"
+                    type="text"
+                    placeholder="https://... (laissé vide = généré par IA)"
+                    class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -645,7 +689,8 @@ const createMode = ref<'auto' | 'custom'>('auto')
 const newPostForm = ref({
   title: '',
   caption: '',
-  platform: 'instagram' as 'instagram' | 'facebook',
+  cta: '',
+  platform: 'both' as 'both' | 'instagram' | 'facebook',
   pillar: 'Esthétique Dentaire & Blanchiment',
   imageUrl: ''
 })
@@ -659,10 +704,11 @@ function submitNewPost() {
       pillar: newPostForm.value.pillar
     })
   } else {
-    if (!newPostForm.value.title.trim() || !newPostForm.value.caption.trim()) return
+    // Custom Copilot Mode: All fields are optional and gap-filled by n8n AI
     socialStore.createNewDraft({
-      title: newPostForm.value.title,
-      caption: newPostForm.value.caption,
+      title: newPostForm.value.title || undefined,
+      caption: newPostForm.value.caption || undefined,
+      cta: newPostForm.value.cta || undefined,
       platform: newPostForm.value.platform,
       imageUrl: newPostForm.value.imageUrl || undefined
     })
@@ -671,7 +717,8 @@ function submitNewPost() {
   newPostForm.value = {
     title: '',
     caption: '',
-    platform: 'instagram',
+    cta: '',
+    platform: 'both',
     pillar: 'Esthétique Dentaire & Blanchiment',
     imageUrl: ''
   }
