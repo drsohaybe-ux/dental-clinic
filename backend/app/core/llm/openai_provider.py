@@ -17,6 +17,7 @@ from typing import Any
 from app.core.llm.base import (
     Done,
     LLMConfigError,
+    LLMError,
     ProviderEvent,
     ProviderMessage,
     Role,
@@ -28,26 +29,6 @@ from app.core.llm.base import (
     Usage,
 )
 
-
-def _extract_extra(*objs: Any) -> dict[str, Any] | None:
-    for obj in objs:
-        if obj is None:
-            continue
-        val = getattr(obj, "extra_content", None)
-        if val:
-            return val if isinstance(val, dict) else dict(val)
-        model_extra = getattr(obj, "model_extra", None)
-        if isinstance(model_extra, dict) and model_extra.get("extra_content"):
-            extra = model_extra.get("extra_content")
-            return extra if isinstance(extra, dict) else dict(extra)
-        if isinstance(obj, dict) and obj.get("extra_content"):
-            extra = obj.get("extra_content")
-            return extra if isinstance(extra, dict) else dict(extra)
-        raw_dict = getattr(obj, "__dict__", None)
-        if isinstance(raw_dict, dict) and raw_dict.get("extra_content"):
-            extra = raw_dict.get("extra_content")
-            return extra if isinstance(extra, dict) else dict(extra)
-    return None
 
 
 class OpenAIProvider:
@@ -131,6 +112,12 @@ class OpenAIProvider:
                     if content:
                         yield TextDelta(text=content)
 
+                    extra_delta = delta.get("extra_content") or choice.get("extra_content")
+                    if extra_delta:
+                        for slot in pending.values():
+                            if not slot.get("extra"):
+                                slot["extra"] = extra_delta
+
                     tool_calls = delta.get("tool_calls")
                     if tool_calls:
                         for tc in tool_calls:
@@ -140,7 +127,7 @@ class OpenAIProvider:
                             )
                             if tc.get("id"):
                                 slot["id"] = tc["id"]
-                            extra = tc.get("extra_content") or delta.get("extra_content")
+                            extra = tc.get("extra_content") or extra_delta
                             if extra:
                                 slot["extra"] = extra
                             fn = tc.get("function")
