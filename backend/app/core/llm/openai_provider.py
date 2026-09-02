@@ -62,6 +62,15 @@ class OpenAIProvider:
             "stream": True,
             "stream_options": {"include_usage": True},
         }
+        # Google Gemini models enforce a proprietary thought_signature on tool calls
+        # when thinking is active. Setting thinkingBudget to 0 disables thinking tokens
+        # and eliminates the 400 thought_signature requirement.
+        base_url_str = str(getattr(self._client, "base_url", ""))
+        if "generativelanguage.googleapis.com" in base_url_str or "gemini" in model.lower():
+            kwargs["extra_body"] = {
+                "thinkingConfig": {"thinkingBudget": 0},
+            }
+
         if tools:
             kwargs["tools"] = [_sanitize_tool_schema(t) for t in tools]
             kwargs["parallel_tool_calls"] = False
