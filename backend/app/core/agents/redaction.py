@@ -137,7 +137,12 @@ class Redactor:
                 new_content.append(TextBlock(self.table.replace_known(block.text)))
             elif isinstance(block, ToolUseBlock):
                 new_content.append(
-                    ToolUseBlock(block.id, block.name, self._redact_obj(block.input))
+                    ToolUseBlock(
+                        block.id,
+                        block.name,
+                        self._redact_obj(block.input),
+                        extra=block.extra,
+                    )
                 )
             elif isinstance(block, ToolResultBlock):
                 new_content.append(
