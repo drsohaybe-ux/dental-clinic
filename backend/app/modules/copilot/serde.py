@@ -18,7 +18,15 @@ def block_to_dict(block: ContentBlock) -> dict[str, Any]:
     if isinstance(block, TextBlock):
         return {"type": "text", "text": block.text}
     if isinstance(block, ToolUseBlock):
-        return {"type": "tool_use", "id": block.id, "name": block.name, "input": block.input}
+        out: dict[str, Any] = {
+            "type": "tool_use",
+            "id": block.id,
+            "name": block.name,
+            "input": block.input,
+        }
+        if block.extra:
+            out["extra"] = block.extra
+        return out
     if isinstance(block, ToolResultBlock):
         return {
             "type": "tool_result",
@@ -34,7 +42,9 @@ def dict_to_block(data: dict[str, Any]) -> ContentBlock:
     if kind == "text":
         return TextBlock(data["text"])
     if kind == "tool_use":
-        return ToolUseBlock(data["id"], data["name"], data.get("input", {}))
+        return ToolUseBlock(
+            data["id"], data["name"], data.get("input", {}), extra=data.get("extra")
+        )
     if kind == "tool_result":
         return ToolResultBlock(
             data["tool_call_id"], data.get("content"), data.get("is_error", False)

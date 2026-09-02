@@ -47,6 +47,7 @@ class ToolUseBlock:
     id: str
     name: str
     input: dict[str, Any]
+    extra: dict[str, Any] | None = None
 
 
 @dataclass
@@ -92,6 +93,7 @@ class ToolUse:
     id: str
     name: str
     input: dict[str, Any]
+    extra: dict[str, Any] | None = None
 
 
 @dataclass

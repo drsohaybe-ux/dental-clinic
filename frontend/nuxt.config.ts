@@ -54,6 +54,10 @@ export default defineNuxtConfig({
     }
   ],
 
+  routeRules: {
+    '/copilot/**': { ssr: false }
+  },
+
   devtools: {
     // Vite devtools full-page reloads (optimizeDeps discovery and the
     // devtools client itself) abort Playwright `goto` mid-navigation

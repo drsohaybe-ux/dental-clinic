@@ -61,22 +61,12 @@ class OpenAIProvider:
             token_param: max_tokens,
             "stream": True,
             "stream_options": {"include_usage": True},
-        }
-        # Google Gemini models enforce a proprietary thought_signature on tool calls
-        # when thinking is active. Setting thinkingBudget to 0 disables thinking tokens
-        # and eliminates the 400 thought_signature requirement.
-        base_url_str = str(getattr(self._client, "base_url", ""))
-        if "generativelanguage.googleapis.com" in base_url_str or "gemini" in model.lower():
-            kwargs["extra_body"] = {
-                "thinkingConfig": {"thinkingBudget": 0},
-            }
-
         if tools:
             kwargs["tools"] = [_sanitize_tool_schema(t) for t in tools]
             kwargs["parallel_tool_calls"] = False
 
-        # index -> {"id": str, "name": str, "args": str}
-        pending: dict[int, dict[str, str]] = {}
+        # index -> {"id": str, "name": str, "args": str, "extra": dict | None}
+        pending: dict[int, dict[str, Any]] = {}
         stop_reason = "stop"
 
         stream = await self._client.chat.completions.create(**kwargs)
@@ -98,9 +88,16 @@ class OpenAIProvider:
 
             if delta is not None and delta.tool_calls:
                 for tc in delta.tool_calls:
-                    slot = pending.setdefault(tc.index, {"id": "", "name": "", "args": ""})
+                    slot = pending.setdefault(
+                        tc.index, {"id": "", "name": "", "args": "", "extra": None}
+                    )
                     if tc.id:
                         slot["id"] = tc.id
+                    extra_val = getattr(tc, "extra_content", None)
+                    if not extra_val and getattr(tc, "model_extra", None):
+                        extra_val = tc.model_extra.get("extra_content")
+                    if extra_val:
+                        slot["extra"] = extra_val
                     if tc.function is not None:
                         if tc.function.name:
                             slot["name"] = tc.function.name
@@ -115,6 +112,7 @@ class OpenAIProvider:
                 id=slot["id"],
                 name=_from_openai_name(slot["name"]),
                 input=_parse_args(slot["args"]),
+                extra=slot.get("extra"),
             )
 
         yield Done(stop_reason=stop_reason)
@@ -169,18 +167,20 @@ def _to_openai_messages(system: str, messages: list[ProviderMessage]) -> list[di
 
         elif msg.role is Role.ASSISTANT:
             text = _join_text(msg)
-            tool_calls = [
-                {
-                    "id": block.id,
-                    "type": "function",
-                    "function": {
-                        "name": _to_openai_name(block.name),
-                        "arguments": json.dumps(block.input),
-                    },
-                }
-                for block in msg.content
-                if isinstance(block, ToolUseBlock)
-            ]
+            tool_calls = []
+            for block in msg.content:
+                if isinstance(block, ToolUseBlock):
+                    tc_dict: dict[str, Any] = {
+                        "id": block.id,
+                        "type": "function",
+                        "function": {
+                            "name": _to_openai_name(block.name),
+                            "arguments": json.dumps(block.input),
+                        },
+                    }
+                    if block.extra:
+                        tc_dict["extra_content"] = block.extra
+                    tool_calls.append(tc_dict)
             wire: dict[str, Any] = {"role": "assistant", "content": text or None}
             if tool_calls:
                 wire["tool_calls"] = tool_calls

@@ -200,7 +200,14 @@ async def run_turn(
         if acc.text_parts:
             assistant_blocks.append(TextBlock(redactor.rehydrate("".join(acc.text_parts))))
         for tu in acc.tool_uses:
-            assistant_blocks.append(ToolUseBlock(tu.id, tu.name, redactor.resolve_args(tu.input)))
+            assistant_blocks.append(
+                ToolUseBlock(
+                    tu.id,
+                    tu.name,
+                    redactor.resolve_args(tu.input),
+                    extra=getattr(tu, "extra", None),
+                )
+            )
         history.append(ProviderMessage(role=Role.ASSISTANT, content=assistant_blocks))
 
         if not acc.tool_uses:

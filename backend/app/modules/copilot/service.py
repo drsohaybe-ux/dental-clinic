@@ -35,6 +35,12 @@ class CopilotSettingsService:
                 row.provider = "gemini"
                 row.model = app_settings.COPILOT_MODEL_CHAT_OPENAI
                 await db.flush()
+            elif row.provider == "gemini" and row.model in (
+                "gemini-2.5-flash-lite",
+                "gemini-2.5-flash",
+            ):
+                row.model = app_settings.COPILOT_MODEL_CHAT_OPENAI
+                await db.flush()
             return CopilotSettingsService._roll_period(row)
         row = CopilotSettings(
             clinic_id=clinic_id,

@@ -90,7 +90,7 @@ class Settings(BaseSettings):
     OPENAI_BASE_URL: str = ""
     GEMINI_API_KEY: str = ""
     COPILOT_PROVIDER_DEFAULT: str = "gemini"
-    COPILOT_MODEL_CHAT_OPENAI: str = "gemini-2.5-flash-lite"
+    COPILOT_MODEL_CHAT_OPENAI: str = "gemini-3.1-flash-lite"
     COPILOT_MAX_TOKENS: int = 4096
     COPILOT_REDACTION_DEFAULT: bool = True
 
