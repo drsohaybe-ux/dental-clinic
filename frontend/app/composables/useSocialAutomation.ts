@@ -60,6 +60,7 @@ export const EXACT_SEED_POSTS: SocialPost[] = [
 export function useSocialAutomation() {
   const posts = useState<SocialPost[]>('social_posts', () => [...EXACT_SEED_POSTS])
   const pinnedPostIds = useState<Set<string>>('pinned_social_post_ids', () => new Set())
+  const deletedPostIds = useState<Set<string>>('deleted_social_post_ids', () => new Set())
   
   const n8nApproveUrl = useState<string>('n8n_approve_url', () => {
     if (import.meta.client) return localStorage.getItem('n8n_approve_url') || ''
@@ -94,14 +95,40 @@ export function useSocialAutomation() {
     }
   }
 
+  function loadDeletedState() {
+    if (import.meta.client) {
+      try {
+        const saved = localStorage.getItem('deleted_social_posts')
+        if (saved) {
+          const ids = JSON.parse(saved)
+          deletedPostIds.value = new Set(ids)
+        }
+      } catch {}
+    }
+  }
+
+  function saveDeletedState() {
+    if (import.meta.client) {
+      try {
+        localStorage.setItem('deleted_social_posts', JSON.stringify(Array.from(deletedPostIds.value)))
+      } catch {}
+    }
+  }
+
   async function fetchPosts() {
     loadPinnedState()
+    loadDeletedState()
     try {
       const data = await api.get<SocialPost[]>('/api/v1/social_automation/posts')
-      if (Array.isArray(data) && data.length > 0) {
-        const existingIds = new Set(data.map(p => p.id))
-        const remainingSeeds = EXACT_SEED_POSTS.filter(s => !existingIds.has(s.id))
-        const all = [...data, ...remainingSeeds].map(p => ({
+      if (Array.isArray(data)) {
+        // Filter out any deleted posts
+        const activeBackendPosts = data.filter(p => !deletedPostIds.value.has(p.id))
+        const existingIds = new Set(activeBackendPosts.map(p => p.id))
+        
+        // Filter out seed posts that were deleted or already present
+        const remainingSeeds = EXACT_SEED_POSTS.filter(s => !existingIds.has(s.id) && !deletedPostIds.value.has(s.id))
+        
+        const all = [...activeBackendPosts, ...remainingSeeds].map(p => ({
           ...p,
           is_pinned: pinnedPostIds.value.has(p.id)
         }))
@@ -112,15 +139,18 @@ export function useSocialAutomation() {
         })
       }
     } catch {
-      // Fallback: apply pinned state to existing posts
-      posts.value = posts.value.map(p => ({
-        ...p,
-        is_pinned: pinnedPostIds.value.has(p.id)
-      })).sort((a, b) => {
-        if (a.is_pinned && !b.is_pinned) return -1
-        if (!a.is_pinned && b.is_pinned) return 1
-        return 0
-      })
+      // Fallback: filter out deleted posts and apply pinned state to existing posts
+      posts.value = posts.value
+        .filter(p => !deletedPostIds.value.has(p.id))
+        .map(p => ({
+          ...p,
+          is_pinned: pinnedPostIds.value.has(p.id)
+        }))
+        .sort((a, b) => {
+          if (a.is_pinned && !b.is_pinned) return -1
+          if (!a.is_pinned && b.is_pinned) return 1
+          return 0
+        })
     }
   }
 
@@ -231,29 +261,34 @@ export function useSocialAutomation() {
   }
 
   async function deletePost(postId: string) {
+    loadDeletedState()
+    deletedPostIds.value.add(postId)
+    saveDeletedState()
+
     const index = posts.value.findIndex(p => p.id === postId)
+    let postTitle = ''
     if (index !== -1) {
-      const post = posts.value[index]
+      postTitle = posts.value[index].title
       posts.value.splice(index, 1)
-      pinnedPostIds.value.delete(postId)
-      savePinnedState()
-
-      try {
-        await api.delete(`/api/v1/social_automation/posts/${postId}`)
-      } catch {
-        try {
-          await api.patch(`/api/v1/social_automation/posts/${postId}`, {
-            status: 'rejected'
-          })
-        } catch {}
-      }
-
-      toast.add({
-        title: 'Publication Supprimée 🗑️',
-        description: `Le post "${post.title}" a été retiré du tableau de bord.`,
-        color: 'gray'
-      })
     }
+    pinnedPostIds.value.delete(postId)
+    savePinnedState()
+
+    try {
+      await api.delete(`/api/v1/social_automation/posts/${postId}`)
+    } catch {
+      try {
+        await api.patch(`/api/v1/social_automation/posts/${postId}`, {
+          status: 'rejected'
+        })
+      } catch {}
+    }
+
+    toast.add({
+      title: 'Publication Supprimée 🗑️',
+      description: postTitle ? `Le post "${postTitle}" a été retiré du tableau de bord.` : 'Publication supprimée.',
+      color: 'gray'
+    })
   }
 
   const rejectPost = deletePost
