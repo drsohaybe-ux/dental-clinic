@@ -29,6 +29,27 @@ from app.core.llm.base import (
 )
 
 
+def _extract_extra(*objs: Any) -> dict[str, Any] | None:
+    for obj in objs:
+        if obj is None:
+            continue
+        val = getattr(obj, "extra_content", None)
+        if val:
+            return val if isinstance(val, dict) else dict(val)
+        model_extra = getattr(obj, "model_extra", None)
+        if isinstance(model_extra, dict) and model_extra.get("extra_content"):
+            extra = model_extra.get("extra_content")
+            return extra if isinstance(extra, dict) else dict(extra)
+        if isinstance(obj, dict) and obj.get("extra_content"):
+            extra = obj.get("extra_content")
+            return extra if isinstance(extra, dict) else dict(extra)
+        raw_dict = getattr(obj, "__dict__", None)
+        if isinstance(raw_dict, dict) and raw_dict.get("extra_content"):
+            extra = raw_dict.get("extra_content")
+            return extra if isinstance(extra, dict) else dict(extra)
+    return None
+
+
 class OpenAIProvider:
     """Streams completions from OpenAI, speaking neutral types."""
 
@@ -94,9 +115,7 @@ class OpenAIProvider:
                     )
                     if tc.id:
                         slot["id"] = tc.id
-                    extra_val = getattr(tc, "extra_content", None)
-                    if not extra_val and getattr(tc, "model_extra", None):
-                        extra_val = tc.model_extra.get("extra_content")
+                    extra_val = _extract_extra(tc, delta, choice, chunk)
                     if extra_val:
                         slot["extra"] = extra_val
                     if tc.function is not None:

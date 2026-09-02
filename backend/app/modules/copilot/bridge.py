@@ -149,6 +149,11 @@ async def drive_turn(
         session_id=session_id,
     )
 
+    active_model = settings_row.model or app_settings.COPILOT_MODEL_CHAT_OPENAI or conv.model
+    if conv.model != active_model:
+        conv.model = active_model
+        await db.flush()
+
     start = len(history)
     async for ev in run_turn(
         ctx=ctx,
@@ -157,7 +162,7 @@ async def drive_turn(
         history=history,
         tool_names=_tool_names_for(permissions, include_free_text=not redactor.enabled),
         redactor=redactor,
-        model=conv.model,
+        model=active_model,
         max_tokens=4096,
         budget=budget,
     ):
@@ -209,6 +214,11 @@ async def resume_turn(
     history.append(tool_msg)
     await ConversationService.append_message(db, conv, role="tool", blocks=tool_msg.content)
 
+    active_model = settings_row.model or app_settings.COPILOT_MODEL_CHAT_OPENAI or conv.model
+    if conv.model != active_model:
+        conv.model = active_model
+        await db.flush()
+
     start = len(history)
     async for ev in run_turn(
         ctx=ctx,
@@ -217,7 +227,7 @@ async def resume_turn(
         history=history,
         tool_names=_tool_names_for(permissions, include_free_text=not redactor.enabled),
         redactor=redactor,
-        model=conv.model,
+        model=active_model,
         max_tokens=4096,
         budget=budget,
     ):
