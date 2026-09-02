@@ -61,6 +61,7 @@ class OpenAIProvider:
             token_param: max_tokens,
             "stream": True,
             "stream_options": {"include_usage": True},
+        }
         if tools:
             kwargs["tools"] = [_sanitize_tool_schema(t) for t in tools]
             kwargs["parallel_tool_calls"] = False
