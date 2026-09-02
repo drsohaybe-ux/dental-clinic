@@ -51,16 +51,17 @@ def _extract_extra(*objs: Any) -> dict[str, Any] | None:
 
 
 class OpenAIProvider:
-    """Streams completions from OpenAI, speaking neutral types."""
+    """Streams completions from OpenAI / Gemini-compatible endpoint, speaking neutral types."""
 
     def __init__(self, *, api_key: str, base_url: str | None = None) -> None:
         if not api_key:
             raise LLMConfigError("LLM provider requires an API key")
-        # Imported lazily so the dependency is only needed when the
-        # provider is actually instantiated (keeps test/import light).
-        from openai import AsyncOpenAI
-
-        self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        self._api_key = api_key
+        base = (base_url or "https://api.openai.com/v1").rstrip("/")
+        if not base.endswith("/chat/completions"):
+            self._endpoint = f"{base}/chat/completions"
+        else:
+            self._endpoint = base
 
     async def complete(
         self,
@@ -71,12 +72,11 @@ class OpenAIProvider:
         model: str,
         max_tokens: int,
     ) -> AsyncIterator[ProviderEvent]:
+        import httpx
+
         wire_messages = _to_openai_messages(system, messages)
-        # The GPT-5 / o-series models reject the legacy `max_tokens` param and
-        # require `max_completion_tokens`. Older chat models still take
-        # `max_tokens`.
         token_param = "max_completion_tokens" if _uses_completion_tokens(model) else "max_tokens"
-        kwargs: dict[str, Any] = {
+        payload: dict[str, Any] = {
             "model": model,
             "messages": wire_messages,
             token_param: max_tokens,
@@ -84,48 +84,75 @@ class OpenAIProvider:
             "stream_options": {"include_usage": True},
         }
         if tools:
-            kwargs["tools"] = [_sanitize_tool_schema(t) for t in tools]
-            kwargs["parallel_tool_calls"] = False
+            payload["tools"] = [_sanitize_tool_schema(t) for t in tools]
+            payload["parallel_tool_calls"] = False
 
-        # index -> {"id": str, "name": str, "args": str, "extra": dict | None}
+        headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Content-Type": "application/json",
+        }
+
         pending: dict[int, dict[str, Any]] = {}
         stop_reason = "stop"
 
-        stream = await self._client.chat.completions.create(**kwargs)
-        async for chunk in stream:
-            # The usage-only final chunk carries no choices.
-            if chunk.usage is not None:
-                yield Usage(
-                    input_tokens=chunk.usage.prompt_tokens,
-                    output_tokens=chunk.usage.completion_tokens,
-                )
-            if not chunk.choices:
-                continue
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            async with client.stream("POST", self._endpoint, headers=headers, json=payload) as response:
+                if response.status_code >= 400:
+                    error_text = await response.aread()
+                    raise LLMError(f"HTTP {response.status_code}: {error_text.decode('utf-8')}")
 
-            choice = chunk.choices[0]
-            delta = choice.delta
+                async for line in response.aiter_lines():
+                    line = line.strip()
+                    if not line or not line.startswith("data: "):
+                        continue
+                    data_str = line[6:]
+                    if data_str == "[DONE]":
+                        break
+                    try:
+                        chunk = json.loads(data_str)
+                    except json.JSONDecodeError:
+                        continue
 
-            if delta is not None and delta.content:
-                yield TextDelta(text=delta.content)
+                    usage = chunk.get("usage")
+                    if usage:
+                        yield Usage(
+                            input_tokens=usage.get("prompt_tokens", 0),
+                            output_tokens=usage.get("completion_tokens", 0),
+                        )
 
-            if delta is not None and delta.tool_calls:
-                for tc in delta.tool_calls:
-                    slot = pending.setdefault(
-                        tc.index, {"id": "", "name": "", "args": "", "extra": None}
-                    )
-                    if tc.id:
-                        slot["id"] = tc.id
-                    extra_val = _extract_extra(tc, delta, choice, chunk)
-                    if extra_val:
-                        slot["extra"] = extra_val
-                    if tc.function is not None:
-                        if tc.function.name:
-                            slot["name"] = tc.function.name
-                        if tc.function.arguments:
-                            slot["args"] += tc.function.arguments
+                    choices = chunk.get("choices")
+                    if not choices:
+                        continue
 
-            if choice.finish_reason:
-                stop_reason = choice.finish_reason
+                    choice = choices[0]
+                    delta = choice.get("delta") or {}
+
+                    content = delta.get("content")
+                    if content:
+                        yield TextDelta(text=content)
+
+                    tool_calls = delta.get("tool_calls")
+                    if tool_calls:
+                        for tc in tool_calls:
+                            idx = tc.get("index", 0)
+                            slot = pending.setdefault(
+                                idx, {"id": "", "name": "", "args": "", "extra": None}
+                            )
+                            if tc.get("id"):
+                                slot["id"] = tc["id"]
+                            extra = tc.get("extra_content") or delta.get("extra_content")
+                            if extra:
+                                slot["extra"] = extra
+                            fn = tc.get("function")
+                            if fn:
+                                if fn.get("name"):
+                                    slot["name"] = fn["name"]
+                                if fn.get("arguments"):
+                                    slot["args"] += fn["arguments"]
+
+                    finish_reason = choice.get("finish_reason")
+                    if finish_reason:
+                        stop_reason = finish_reason
 
         for slot in pending.values():
             yield ToolUse(
