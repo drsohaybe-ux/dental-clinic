@@ -110,7 +110,10 @@
       <div
         v-for="post in filteredPosts"
         :key="post.id"
-        class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-2xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow"
+        :class="[
+          'bg-white dark:bg-gray-900 rounded-2xl shadow-2xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-all',
+          post.is_pinned ? 'border-2 border-amber-400 dark:border-amber-600 shadow-amber-500/10 ring-1 ring-amber-400/30' : 'border border-gray-100 dark:border-gray-800'
+        ]"
       >
         <!-- Card Top & Image -->
         <div>
@@ -121,8 +124,8 @@
               class="w-full h-full object-cover"
             />
             
-            <!-- Platform Badge (Top Left) -->
-            <div class="absolute top-3.5 left-3.5">
+            <!-- Platform & Status Badges (Top Left) -->
+            <div class="absolute top-3.5 left-3.5 flex flex-col gap-1.5">
               <span
                 v-if="post.platform === 'instagram'"
                 class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-white bg-[#0084ff] rounded-md shadow-xs"
@@ -137,31 +140,43 @@
                 <UIcon name="i-lucide-facebook" class="w-3.5 h-3.5" />
                 Facebook
               </span>
+
+              <span
+                v-if="post.is_pinned"
+                class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-900 bg-amber-300 rounded-md shadow-xs uppercase tracking-wider"
+              >
+                📌 Modèle Permanent
+              </span>
             </div>
 
-            <!-- Status Badge (Top Right) -->
-            <div class="absolute top-3.5 right-3.5">
-              <span
-                v-if="post.status === 'waiting_approval'"
-                class="inline-flex items-center px-2.5 py-1 text-xs font-bold text-white bg-[#f59e0b] rounded-md shadow-xs"
-              >
-                En attente de validation
-              </span>
-              <span
-                v-else-if="post.status === 'published' || post.status === 'approved'"
-                class="inline-flex items-center px-2.5 py-1 text-xs font-bold text-white bg-[#16a34a] rounded-md shadow-xs"
-              >
-                Publié
-              </span>
-            </div>
+            <!-- Pin / Unpin Button (Top Right) -->
+            <button
+              type="button"
+              :class="[
+                'absolute top-3.5 right-3.5 px-2.5 py-1 text-xs font-bold rounded-lg shadow-md transition-all flex items-center gap-1.5 cursor-pointer',
+                post.is_pinned
+                  ? 'bg-amber-500 text-white hover:bg-amber-600 ring-2 ring-white/50'
+                  : 'bg-black/50 text-white/90 hover:bg-black/75 backdrop-blur-xs'
+              ]"
+              :title="post.is_pinned ? 'Désépingler cette publication' : 'Épingler comme modèle permanent réutilisable'"
+              @click.stop="togglePinPost(post.id)"
+            >
+              <UIcon :name="post.is_pinned ? 'i-lucide-pin' : 'i-lucide-pin-off'" class="w-3.5 h-3.5" />
+              <span>{{ post.is_pinned ? 'Épinglé' : 'Épingler' }}</span>
+            </button>
           </div>
 
           <!-- Card Content -->
           <div class="p-5 space-y-3">
-            <!-- Date -->
-            <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
-              <UIcon name="i-lucide-calendar" class="w-3.5 h-3.5 text-red-500" />
-              <span>{{ post.scheduled_for }}</span>
+            <!-- Date & Pinned Notice -->
+            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+              <div class="flex items-center gap-1.5">
+                <UIcon name="i-lucide-calendar" class="w-3.5 h-3.5 text-red-500" />
+                <span>{{ post.scheduled_for }}</span>
+              </div>
+              <span v-if="post.is_pinned" class="text-amber-600 dark:text-amber-400 font-bold text-[11px]">
+                Modèle réutilisable
+              </span>
             </div>
 
             <!-- Title -->
@@ -198,16 +213,19 @@
 
         <!-- Card Footer -->
         <div class="px-5 pb-5 pt-2">
-          <!-- Pending Actions -->
-          <div v-if="post.status === 'waiting_approval'" class="flex items-center justify-between gap-2 border-t border-gray-100 dark:border-gray-800 pt-4">
+          <!-- Pending Actions OR Pinned Template Actions -->
+          <div v-if="post.status === 'waiting_approval' || post.is_pinned" class="flex items-center justify-between gap-2 border-t border-gray-100 dark:border-gray-800 pt-4">
             <div class="flex items-center gap-2">
               <button
                 type="button"
-                class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-2xs transition-colors"
+                :class="[
+                  'inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white rounded-lg shadow-2xs transition-colors',
+                  post.is_pinned ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[#0084ff] hover:bg-[#0073e6]'
+                ]"
                 @click="approvePost(post.id)"
               >
                 <UIcon name="i-lucide-check" class="w-4 h-4" />
-                Approuver & Publier
+                <span>{{ post.is_pinned ? 'Publier (Garder Épinglé)' : 'Approuver & Publier' }}</span>
               </button>
 
               <button
@@ -224,18 +242,41 @@
               type="button"
               class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
               title="Supprimer la publication"
-              @click="rejectPost(post.id)"
+              @click="deletePost(post.id)"
             >
               <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
             </button>
           </div>
 
-          <!-- Published Metrics -->
+          <!-- Published Actions & Metrics (When not pinned) -->
           <div v-else class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800 pt-3 font-medium">
-            <span>Portée : {{ post.metrics?.reach || 4820 }} vues</span>
-            <span class="flex items-center gap-1 text-gray-700 dark:text-gray-200 font-semibold">
-              <span class="text-red-500">❤️</span> {{ post.metrics?.likes || 312 }} likes
-            </span>
+            <div class="flex items-center gap-3">
+              <span>{{ post.metrics?.reach || 4820 }} vues</span>
+              <span class="flex items-center gap-1 text-gray-700 dark:text-gray-200 font-semibold">
+                <span class="text-red-500">❤️</span> {{ post.metrics?.likes || 312 }}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-[#0084ff] hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors"
+                title="Épingler comme modèle réutilisable"
+                @click="togglePinPost(post.id)"
+              >
+                <UIcon name="i-lucide-pin" class="w-3.5 h-3.5" />
+                <span>Épingler</span>
+              </button>
+
+              <button
+                type="button"
+                class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                title="Supprimer des archives"
+                @click="deletePost(post.id)"
+              >
+                <UIcon name="i-lucide-trash-2" class="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -636,12 +677,18 @@ const filteredPosts = computed(() => {
   if (platformFilter.value !== 'all') {
     list = list.filter(p => p.platform === platformFilter.value)
   }
-  return list
+  return list.sort((a, b) => {
+    if (a.is_pinned && !b.is_pinned) return -1
+    if (!a.is_pinned && b.is_pinned) return 1
+    return 0
+  })
 })
 
 // Actions
 const approvePost = async (id: string) => await socialStore.approvePost(id)
-const rejectPost = async (id: string) => await socialStore.rejectPost(id)
+const deletePost = async (id: string) => await socialStore.deletePost(id)
+const togglePinPost = (id: string) => socialStore.togglePinPost(id)
+const rejectPost = deletePost
 
 // Edit Modal State & Chips
 const isEditModalOpen = ref(false)

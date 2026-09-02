@@ -125,3 +125,22 @@ async def update_social_post(
     await db.commit()
     await db.refresh(post)
     return post
+
+@router.delete("/posts/{post_id}", summary="Delete social post")
+async def delete_social_post(
+    post_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Delete a social post permanently from the database.
+    """
+    stmt = select(SocialPost).where(SocialPost.id == post_id)
+    result = await db.execute(stmt)
+    post = result.scalar_one_or_none()
+    
+    if post:
+        await db.delete(post)
+        await db.commit()
+        
+    return {"success": True, "message": "Social post deleted successfully", "id": post_id}
+

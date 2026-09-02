@@ -11,6 +11,7 @@ export interface SocialPost {
   scheduled_for: string
   ai_notes?: string
   feedback?: string
+  is_pinned?: boolean
   metrics?: { reach: number; likes: number }
   approval_webhook_url?: string
   created_at: string
@@ -58,6 +59,7 @@ export const EXACT_SEED_POSTS: SocialPost[] = [
 
 export function useSocialAutomation() {
   const posts = useState<SocialPost[]>('social_posts', () => [...EXACT_SEED_POSTS])
+  const pinnedPostIds = useState<Set<string>>('pinned_social_post_ids', () => new Set())
   
   const n8nApproveUrl = useState<string>('n8n_approve_url', () => {
     if (import.meta.client) return localStorage.getItem('n8n_approve_url') || ''
@@ -70,33 +72,101 @@ export function useSocialAutomation() {
 
   const toast = useToast()
   const { t } = useI18n()
-  const api = useApi() 
+  const api = useApi()
+
+  function loadPinnedState() {
+    if (import.meta.client) {
+      try {
+        const saved = localStorage.getItem('pinned_social_posts')
+        if (saved) {
+          const ids = JSON.parse(saved)
+          pinnedPostIds.value = new Set(ids)
+        }
+      } catch {}
+    }
+  }
+
+  function savePinnedState() {
+    if (import.meta.client) {
+      try {
+        localStorage.setItem('pinned_social_posts', JSON.stringify(Array.from(pinnedPostIds.value)))
+      } catch {}
+    }
+  }
 
   async function fetchPosts() {
+    loadPinnedState()
     try {
       const data = await api.get<SocialPost[]>('/api/v1/social_automation/posts')
       if (Array.isArray(data) && data.length > 0) {
-        // Merge backend posts with seed posts to ensure we don't have empty view
         const existingIds = new Set(data.map(p => p.id))
         const remainingSeeds = EXACT_SEED_POSTS.filter(s => !existingIds.has(s.id))
-        posts.value = [...data, ...remainingSeeds]
+        const all = [...data, ...remainingSeeds].map(p => ({
+          ...p,
+          is_pinned: pinnedPostIds.value.has(p.id)
+        }))
+        posts.value = all.sort((a, b) => {
+          if (a.is_pinned && !b.is_pinned) return -1
+          if (!a.is_pinned && b.is_pinned) return 1
+          return 0
+        })
       }
     } catch {
-      // Graceful fallback to seeded posts
+      // Fallback: apply pinned state to existing posts
+      posts.value = posts.value.map(p => ({
+        ...p,
+        is_pinned: pinnedPostIds.value.has(p.id)
+      })).sort((a, b) => {
+        if (a.is_pinned && !b.is_pinned) return -1
+        if (!a.is_pinned && b.is_pinned) return 1
+        return 0
+      })
     }
+  }
+
+  function togglePinPost(postId: string) {
+    const post = posts.value.find(p => p.id === postId)
+    if (!post) return
+
+    post.is_pinned = !post.is_pinned
+    if (post.is_pinned) {
+      pinnedPostIds.value.add(postId)
+      toast.add({
+        title: 'Publication Épinglée 📌',
+        description: `"${post.title}" reste en tête de liste et restera toujours réutilisable/re-publiable.`,
+        color: 'amber'
+      })
+    } else {
+      pinnedPostIds.value.delete(postId)
+      toast.add({
+        title: 'Publication Désépinglée',
+        description: `"${post.title}" suit désormais le cycle de publication standard.`,
+        color: 'gray'
+      })
+    }
+    savePinnedState()
+
+    // Re-sort so pinned items rise to top
+    posts.value = [...posts.value].sort((a, b) => {
+      if (a.is_pinned && !b.is_pinned) return -1
+      if (!a.is_pinned && b.is_pinned) return 1
+      return 0
+    })
   }
 
   async function approvePost(postId: string) {
     const post = posts.value.find(p => p.id === postId)
     if (!post) return
 
-    post.status = 'published'
-
-    try {
-      await api.patch(`/api/v1/social_automation/posts/${postId}`, {
-        status: 'published'
-      })
-    } catch {}
+    // If NOT pinned, mark as published. If pinned, preserve it as reusable template!
+    if (!post.is_pinned) {
+      post.status = 'published'
+      try {
+        await api.patch(`/api/v1/social_automation/posts/${postId}`, {
+          status: 'published'
+        })
+      } catch {}
+    }
 
     const targetWebhook = post.approval_webhook_url || n8nApproveUrl.value
     if (targetWebhook) {
@@ -117,8 +187,10 @@ export function useSocialAutomation() {
     }
 
     toast.add({
-      title: 'Publication Transmise à n8n ! 🚀',
-      description: `Le post "${post.title}" a été approuvé et envoyé aux réseaux sociaux.`,
+      title: post.is_pinned ? 'Transmis à n8n (Modèle Épinglé conservé) 📌🚀' : 'Publication Transmise à n8n ! 🚀',
+      description: post.is_pinned
+        ? `Le post "${post.title}" a été envoyé aux réseaux et reste actif dans votre studio pour réutilisation future.`
+        : `Le post "${post.title}" a été approuvé et envoyé aux réseaux sociaux.`,
       color: 'green'
     })
   }
@@ -158,23 +230,33 @@ export function useSocialAutomation() {
     })
   }
 
-  async function rejectPost(postId: string) {
+  async function deletePost(postId: string) {
     const index = posts.value.findIndex(p => p.id === postId)
     if (index !== -1) {
       const post = posts.value[index]
       posts.value.splice(index, 1)
+      pinnedPostIds.value.delete(postId)
+      savePinnedState()
+
       try {
-        await api.patch(`/api/v1/social_automation/posts/${postId}`, {
-          status: 'rejected'
-        })
-      } catch {}
+        await api.delete(`/api/v1/social_automation/posts/${postId}`)
+      } catch {
+        try {
+          await api.patch(`/api/v1/social_automation/posts/${postId}`, {
+            status: 'rejected'
+          })
+        } catch {}
+      }
+
       toast.add({
-        title: 'Publication Supprimée',
-        description: `Le brouillon "${post.title}" a été retiré.`,
+        title: 'Publication Supprimée 🗑️',
+        description: `Le post "${post.title}" a été retiré du tableau de bord.`,
         color: 'gray'
       })
     }
   }
+
+  const rejectPost = deletePost
 
   function createNewDraft(payload: {
     title?: string
@@ -264,6 +346,8 @@ export function useSocialAutomation() {
     approvePost,
     updatePostLocally,
     rejectPost,
+    deletePost,
+    togglePinPost,
     createNewDraft,
     setN8nUrls
   }
