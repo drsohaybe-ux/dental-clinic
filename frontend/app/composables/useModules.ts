@@ -30,6 +30,13 @@ const HOST_NAV: NavigationItem[] = [
     order: 5
   },
   {
+    label: 'nav.socialReports',
+    icon: 'i-lucide-bar-chart-2',
+    to: '/social/reports',
+    order: 5.5
+  },
+
+  {
     label: 'nav.messages',
     icon: 'i-lucide-messages-square',
     to: '/messages',

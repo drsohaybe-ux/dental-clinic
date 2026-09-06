@@ -47,3 +47,40 @@ class N8nIncomingDraft(BaseModel):
     approvalWebhookUrl: Optional[str] = None
     scheduledFor: Optional[str] = None
     aiNotes: Optional[str] = None
+
+class SocialInsightCreate(BaseModel):
+    platform: str  # 'instagram' | 'facebook'
+    account_id: Optional[str] = "default"
+    date: Any  # string YYYY-MM-DD or datetime
+    total_followers: Optional[int] = 0
+    reach: Optional[int] = 0
+    profile_views: Optional[int] = 0
+    website_clicks: Optional[int] = 0
+    saves: Optional[int] = 0
+
+class SocialInsightResponse(BaseModel):
+    id: int
+    platform: str
+    account_id: str
+    date: Any
+    total_followers: int
+    reach: int
+    profile_views: int
+    website_clicks: int
+    saves: int
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class SocialInsightsSyncPayload(BaseModel):
+    insights: Optional[List[SocialInsightCreate]] = None
+    platform: Optional[str] = None
+    account_id: Optional[str] = None
+    date: Optional[Any] = None
+    total_followers: Optional[int] = None
+    reach: Optional[int] = None
+    profile_views: Optional[int] = None
+    website_clicks: Optional[int] = None
+    saves: Optional[int] = None
+

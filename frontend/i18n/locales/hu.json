@@ -35,7 +35,11 @@
     "menu": "Menü",
     "openMenu": "Menü megnyitása",
     "close": "Bezárás",
-    "toggleSidebar": "Oldalsáv be/ki"
+    "toggleSidebar": "Oldalsáv be/ki",
+    "social": "Tartalomellenőrzés",
+    "socialReports": "Közösségi Média Jelentések",
+    "messages": "Üzenetek",
+    "prospects": "Érdeklődők"
   },
   "auth": {
     "login": "Bejelentkezés",
@@ -2875,6 +2879,11 @@
         "title": "Nincs adat ebben az időszakban",
         "desc": "Próbáljon tágabb dátumtartományt, vagy távolítsa el a szűrőket."
       }
+    },
+    "social": {
+      "title": "Közösségi Média",
+      "subtitle": "Elérés, profilmegtekintések és konverziók",
+      "description": "Kövesse nyomon a közösségi média teljesítményét és az időpontfoglalási konverziókat"
     }
   },
   "invoiceSeries": {
@@ -3065,6 +3074,31 @@
     },
     "donut": {
       "ariaLabel": "Fánkdiagram, {count} szegmens"
+    }
+  },
+  "social": {
+    "title": "Tartalomellenőrzés (AI Stúdió)",
+    "tabs": {
+      "all": "Összes",
+      "waiting": "Függőben",
+      "approved": "Jóváhagyva",
+      "published": "Közzétéve"
+    },
+    "card": {
+      "approve_btn": "Jóváhagyás és Közzététel",
+      "edit_btn": "Szerkesztés",
+      "delete_btn": "Törlés"
+    },
+    "toast": {
+      "approved_title": "Elküldve az n8n-nek! 🚀",
+      "approved_desc": "A '{title}' bejegyzés jóváhagyva és közzétéve.",
+      "updated_title": "Szöveg frissítve",
+      "rejected": "Bejegyzés elutasítva",
+      "config_saved": "n8n konfiguráció elmentve! ⚡",
+      "webhook_failed": "Sikertelen kapcsolódás az n8n-hez"
+    },
+    "decision": {
+      "approve_publish": "Jóváhagyás és közzététel az összes hálózaton"
     }
   }
 }

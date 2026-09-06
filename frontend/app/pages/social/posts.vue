@@ -1,5 +1,27 @@
 <template>
   <div class="p-6 max-w-[1400px] mx-auto space-y-6">
+    <!-- Top Navigation Sub-Tabs -->
+    <div class="flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
+      <NuxtLink
+        to="/social/posts"
+        class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-gray-800 text-[#0084ff] dark:text-[#38bdf8] shadow-xs border border-gray-200 dark:border-gray-700 transition-colors"
+      >
+        <UIcon name="i-lucide-file-text" class="w-4 h-4 text-[#0084ff] dark:text-[#38bdf8]" />
+        <span>Studio de Contenu & Validation</span>
+      </NuxtLink>
+
+      <NuxtLink
+        to="/social/reports"
+        class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+      >
+        <UIcon name="i-lucide-bar-chart-3" class="w-4 h-4 text-gray-400" />
+        <span>Rapports & Statistiques Réseaux</span>
+        <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
+          Sync n8n
+        </span>
+      </NuxtLink>
+    </div>
+
     <!-- Top Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
@@ -10,6 +32,7 @@
           Générez, approuvez et diffusez vos publications sociales connectées en direct à vos workflows n8n.
         </p>
       </div>
+
 
       <div class="flex items-center gap-3">
         <!-- Configuration n8n Button -->
@@ -316,7 +339,7 @@
                 <UIcon name="i-lucide-sparkles" class="text-[#0084ff] w-5 h-5" />
                 Modifier & Révision Clinique
               </h3>
-              <UButton color="gray" variant="ghost" icon="i-lucide-x" size="xs" @click="isEditModalOpen = false" />
+              <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="xs" @click="isEditModalOpen = false" />
             </div>
           </template>
 
@@ -368,7 +391,7 @@
           <template #footer>
             <div class="flex justify-end gap-3">
               <UButton
-                color="gray"
+                color="neutral"
                 variant="ghost"
                 @click="isEditModalOpen = false"
               >
@@ -397,7 +420,7 @@
                 <UIcon name="i-lucide-zap" class="text-[#0084ff] w-5 h-5" />
                 Créer une Publication (IA / Manuel)
               </h3>
-              <UButton color="gray" variant="ghost" icon="i-lucide-x" size="xs" @click="isCreateModalOpen = false" />
+              <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="xs" @click="isCreateModalOpen = false" />
             </div>
           </template>
 
@@ -539,7 +562,7 @@
           <template #footer>
             <div class="flex justify-end gap-3">
               <UButton
-                color="gray"
+                color="neutral"
                 variant="ghost"
                 @click="isCreateModalOpen = false"
               >
@@ -568,7 +591,7 @@
                 <UIcon name="i-lucide-settings" class="text-[#0084ff] w-5 h-5" />
                 Configuration des Webhooks n8n
               </h3>
-              <UButton color="gray" variant="ghost" icon="i-lucide-x" size="xs" @click="isConfigModalOpen = false" />
+              <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="xs" @click="isConfigModalOpen = false" />
             </div>
           </template>
 
@@ -613,7 +636,7 @@
           <template #footer>
             <div class="flex justify-end gap-3">
               <UButton
-                color="gray"
+                color="neutral"
                 variant="ghost"
                 @click="isConfigModalOpen = false"
               >

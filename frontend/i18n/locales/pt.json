@@ -35,7 +35,11 @@
     "menu": "Menu",
     "openMenu": "Abrir menu",
     "close": "Fechar",
-    "toggleSidebar": "Alternar barra lateral"
+    "toggleSidebar": "Alternar barra lateral",
+    "social": "Validação de conteúdo",
+    "socialReports": "Relatórios Sociais",
+    "messages": "Mensagens",
+    "prospects": "Potenciais pacientes"
   },
   "auth": {
     "login": "Iniciar sessão",
@@ -2875,6 +2879,11 @@
         "title": "Sem dados para este período",
         "desc": "Experimente um intervalo de datas mais amplo ou remova os filtros."
       }
+    },
+    "social": {
+      "title": "Redes Sociais",
+      "subtitle": "Alcance, visualizações de perfil e conversões",
+      "description": "Acompanhe métricas e conversões para agendamentos dos seus canais sociais"
     }
   },
   "invoiceSeries": {
@@ -3065,6 +3074,31 @@
     },
     "donut": {
       "ariaLabel": "Gráfico de anel, {count} segmentos"
+    }
+  },
+  "social": {
+    "title": "Validação de Conteúdo (Estúdio IA)",
+    "tabs": {
+      "all": "Todas",
+      "waiting": "Pendentes",
+      "approved": "Aprobadas",
+      "published": "Publicadas"
+    },
+    "card": {
+      "approve_btn": "Aprovar e Publicar",
+      "edit_btn": "Editar",
+      "delete_btn": "Excluir"
+    },
+    "toast": {
+      "approved_title": "Enviado para n8n! 🚀",
+      "approved_desc": "A publicação '{title}' foi aprovada e publicada.",
+      "updated_title": "Texto atualizado",
+      "rejected": "Publicação rejeitada",
+      "config_saved": "Configuração n8n salva! ⚡",
+      "webhook_failed": "Falha ao conectar ao n8n"
+    },
+    "decision": {
+      "approve_publish": "Aprovar e publicar em todas as redes"
     }
   }
 }

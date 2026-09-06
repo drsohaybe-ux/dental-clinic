@@ -35,7 +35,11 @@
     "menu": "Menü",
     "openMenu": "Menü öffnen",
     "close": "Schließen",
-    "toggleSidebar": "Seitenleiste umschalten"
+    "toggleSidebar": "Seitenleiste umschalten",
+    "social": "Content-Validierung",
+    "socialReports": "Social-Media-Berichte",
+    "messages": "Nachrichten",
+    "prospects": "Interessenten"
   },
   "auth": {
     "login": "Anmelden",
@@ -2875,6 +2879,11 @@
         "title": "Keine Daten für diesen Zeitraum",
         "desc": "Versuchen Sie einen größeren Datumsbereich oder entfernen Sie Filter."
       }
+    },
+    "social": {
+      "title": "Soziale Medien",
+      "subtitle": "Reichweite, Profilaufrufe und Konversionen",
+      "description": "Verfolgen Sie Kennzahlen und Buchungskonversionen Ihrer sozialen Kanäle"
     }
   },
   "invoiceSeries": {
@@ -3065,6 +3074,31 @@
     },
     "donut": {
       "ariaLabel": "Ringdiagramm, {count} Segmente"
+    }
+  },
+  "social": {
+    "title": "Content-Validierung (KI-Studio)",
+    "tabs": {
+      "all": "Alle",
+      "waiting": "Ausstehend",
+      "approved": "Genehmigt",
+      "published": "Veröffentlicht"
+    },
+    "card": {
+      "approve_btn": "Genehmigen & Veröffentlichen",
+      "edit_btn": "Bearbeiten",
+      "delete_btn": "Löschen"
+    },
+    "toast": {
+      "approved_title": "An n8n gesendet! 🚀",
+      "approved_desc": "Beitrag '{title}' wurde genehmigt und veröffentlicht.",
+      "updated_title": "Text aktualisiert",
+      "rejected": "Beitrag abgelehnt",
+      "config_saved": "n8n-Konfiguration gespeichert! ⚡",
+      "webhook_failed": "Verbindung zu n8n fehlgeschlagen"
+    },
+    "decision": {
+      "approve_publish": "Genehmigen & in allen Netzwerken veröffentlichen"
     }
   }
 }

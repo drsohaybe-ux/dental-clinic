@@ -35,7 +35,11 @@
     "menu": "Menu",
     "openMenu": "Otwórz menu",
     "close": "Zamknij",
-    "toggleSidebar": "Przełącz pasek boczny"
+    "toggleSidebar": "Przełącz pasek boczny",
+    "social": "Walidacja treści",
+    "socialReports": "Raporty Social Media",
+    "messages": "Wiadomości",
+    "prospects": "Potencjalni pacjenci"
   },
   "auth": {
     "login": "Zaloguj się",
@@ -2875,6 +2879,11 @@
         "title": "Brak danych dla tego okresu",
         "desc": "Spróbuj szerszego zakresu dat lub usuń filtry."
       }
+    },
+    "social": {
+      "title": "Media Społecznościowe",
+      "subtitle": "Zasięg, wyświetlenia profilu i konwersje",
+      "description": "Śledź statystyki i konwersje na wizyty ze swoich profili społecznościowych"
     }
   },
   "invoiceSeries": {
@@ -3065,6 +3074,31 @@
     },
     "donut": {
       "ariaLabel": "Wykres pierścieniowy, {count} segmentów"
+    }
+  },
+  "social": {
+    "title": "Walidacja Treści (Studio AI)",
+    "tabs": {
+      "all": "Wszystkie",
+      "waiting": "Oczekujące",
+      "approved": "Zatwierdzone",
+      "published": "Opublikowane"
+    },
+    "card": {
+      "approve_btn": "Zatwierdź i Opublikuj",
+      "edit_btn": "Edytuj",
+      "delete_btn": "Usuń"
+    },
+    "toast": {
+      "approved_title": "Wysłano do n8n! 🚀",
+      "approved_desc": "Post '{title}' został zatwierdzony i opublikowany.",
+      "updated_title": "Tekst zaktualizowany",
+      "rejected": "Post odrzucony",
+      "config_saved": "Konfiguracja n8n zapisana! ⚡",
+      "webhook_failed": "Błąd połączenia z n8n"
+    },
+    "decision": {
+      "approve_publish": "Zatwierdź i opublikuj we wszystkich sieciach"
     }
   }
 }

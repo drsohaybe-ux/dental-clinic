@@ -83,8 +83,16 @@ const drilldownCards = computed(() => [
     icon: 'i-lucide-wallet',
     to: '/reports/payments',
     visible: canPayments.value
+  },
+  {
+    key: 'social',
+    label: t('reports.social.title'),
+    icon: 'i-lucide-share-2',
+    to: '/social/reports',
+    visible: true
   }
 ])
+
 </script>
 
 <template>

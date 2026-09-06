@@ -14,6 +14,10 @@
   },
   "nav": {
     "dashboard": "Inicio",
+    "social": "Validación de contenido",
+    "socialReports": "Informes Redes",
+    "messages": "Mensajería",
+    "prospects": "Prospectos",
     "journal": "Registro de actividad",
     "staffTasks": "Tareas del equipo",
     "patients": "Pacientes",
@@ -2577,6 +2581,11 @@
   "reports": {
     "title": "Informes",
     "subtitle": "Análisis y estadísticas de la clínica",
+    "social": {
+      "title": "Redes Sociales",
+      "subtitle": "Audiencia, alcance diario y conversiones",
+      "description": "Seguimiento de estadísticas y conversiones de tus cuentas sociales"
+    },
     "viewReports": "Ver informes",
     "noAccess": "No tienes acceso a ningún informe",
     "dashboard": {
@@ -3065,6 +3074,31 @@
     },
     "donut": {
       "ariaLabel": "Gráfico circular, {count} segmentos"
+    }
+  },
+  "social": {
+    "title": "Validación de Contenido (Estudio IA)",
+    "tabs": {
+      "all": "Todas",
+      "waiting": "Pendientes",
+      "approved": "Aprobadas",
+      "published": "Publicadas"
+    },
+    "card": {
+      "approve_btn": "Aprobar y Publicar",
+      "edit_btn": "Editar",
+      "delete_btn": "Eliminar"
+    },
+    "toast": {
+      "approved_title": "¡Enviado a n8n! 🚀",
+      "approved_desc": "La publicación '{title}' ha sido aprobada y publicada.",
+      "updated_title": "Texto actualizado",
+      "rejected": "Publicación rechazada",
+      "config_saved": "¡Configuración de n8n Guardada! ⚡",
+      "webhook_failed": "Error al conectar con n8n"
+    },
+    "decision": {
+      "approve_publish": "Aprobar y Publicar en todas las redes"
     }
   }
 }

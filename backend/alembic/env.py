@@ -118,6 +118,10 @@ from app.modules.whatsapp_kapso.models import (  # noqa: F401
     WhatsappKapsoSettings,
     WhatsappKapsoTemplate,
 )
+from app.modules.social_automation.models import (  # noqa: F401
+    SocialMediaInsight,
+    SocialPost,
+)
 
 ALEMBIC_DIR = Path(__file__).parent
 BACKEND_ROOT = ALEMBIC_DIR.parent

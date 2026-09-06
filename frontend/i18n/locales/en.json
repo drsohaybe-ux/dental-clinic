@@ -40,7 +40,9 @@
   "nav": {
     "dashboard": "Home",
     "social": "Content validation",
+    "socialReports": "Social Reports",
     "messages": "Messaging",
+
     "prospects": "Prospects",
     "journal": "Activity log",
     "staffTasks": "Staff tasks",
@@ -2708,8 +2710,14 @@
   "reports": {
     "title": "Reports",
     "subtitle": "Clinic analytics and statistics",
+    "social": {
+      "title": "Social Media",
+      "subtitle": "Audience, daily reach and conversions",
+      "description": "Track performance and booking conversions across your social channels"
+    },
     "viewReports": "View reports",
     "noAccess": "You don't have access to any reports",
+
     "dashboard": {
       "title": "Dashboard",
       "subtitle": "Your clinic at a glance",

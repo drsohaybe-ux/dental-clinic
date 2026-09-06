@@ -49,4 +49,8 @@ except Exception:
   ) &
 fi
 
+if [ -n "$PORT" ] && [ "$1" = "uvicorn" ]; then
+  exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT" --proxy-headers --forwarded-allow-ips "*"
+fi
+
 exec "$@"

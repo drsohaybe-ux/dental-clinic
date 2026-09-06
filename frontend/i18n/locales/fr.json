@@ -40,7 +40,9 @@
   "nav": {
     "dashboard": "Accueil",
     "social": "Validation de contenu",
+    "socialReports": "Rapports Réseaux",
     "messages": "Messagerie",
+
     "prospects": "Prospects",
     "journal": "Journal d'activité",
     "staffTasks": "Tâches de l'équipe",
@@ -2708,8 +2710,14 @@
   "reports": {
     "title": "Rapports",
     "subtitle": "Analyses et statistiques de la clinique",
+    "social": {
+      "title": "Réseaux Sociaux",
+      "subtitle": "Audience, portée quotidienne et conversions",
+      "description": "Suivi des statistiques et conversions de vos comptes sociaux"
+    },
     "viewReports": "Voir les rapports",
     "noAccess": "Vous n'avez accès à aucun rapport",
+
     "dashboard": {
       "title": "Tableau de bord",
       "subtitle": "Votre clinique en un coup d'œil",
