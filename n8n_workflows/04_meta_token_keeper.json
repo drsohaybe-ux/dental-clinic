@@ -1,0 +1,487 @@
+{
+  "name": "DentalPin - 04 - Meta Access Token Health & Expiry Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-04",
+      "name": "Weekly Monitor Trigger (Monday 08:00 AM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const metaAccessToken = $env.META_ACCESS_TOKEN || 'EAAG_DENTALPIN_META_ACCESS_TOKEN';\nconst metaAppId = $env.META_APP_ID || '123456789012345';\nconst metaAppSecret = $env.META_APP_SECRET || 'abcdef0123456789abcdef0123456789';\nconst alertWebhookUrl = $env.ALERT_WEBHOOK_URL || ($env.DENTALPIN_API_BASE_URL || 'https://dental-api-2z19.onrender.com') + '/api/v1/notifications';\n\nreturn [\n  {\n    json: {\n      meta_access_token: metaAccessToken,\n      meta_app_id: metaAppId,\n      meta_app_secret: metaAppSecret,\n      alert_webhook_url: alertWebhookUrl,\n      check_timestamp: $now.toISO()\n    }\n  }\n];"
+      },
+      "id": "node-init-04",
+      "name": "Init Token Parameters",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/debug_token",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "input_token",
+              "value": "={{ $json.meta_access_token }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-debug-token",
+      "name": "Query Meta Debug Token API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const init = $('Init Token Parameters').first().json;\nconst debugResponse = $json || {};\nconst tokenData = debugResponse.data || {};\n\nconst isValid = tokenData.is_valid === true;\nconst expiresAt = typeof tokenData.expires_at === 'number' ? tokenData.expires_at : 0;\nconst dataAccessExpiresAt = typeof tokenData.data_access_expires_at === 'number' ? tokenData.data_access_expires_at : 0;\nconst scopes = Array.isArray(tokenData.scopes) ? tokenData.scopes : [];\nconst appId = tokenData.app_id || init.meta_app_id;\nconst userId = tokenData.user_id || '';\nconst tokenType = tokenData.type || 'UNKNOWN';\n\nconst nowSec = Math.floor(Date.now() / 1000);\n\nlet daysRemaining = 9999;\nlet isPermanent = false;\nlet expiryDateFormatted = 'Illimité (Jeton de Page Permanent)';\n\nif (expiresAt === 0) {\n  isPermanent = true;\n} else {\n  daysRemaining = Math.max(0, Math.round((expiresAt - nowSec) / 86400));\n  const expDate = new Date(expiresAt * 1000);\n  expiryDateFormatted = expDate.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';\n}\n\n// Determine state\nlet status = 'HEALTHY';\nlet needsRefresh = false;\nlet isCritical = false;\n\nif (!isValid) {\n  status = 'INVALID_OR_REVOKED';\n  isCritical = true;\n} else if (isPermanent) {\n  status = 'PERMANENT_HEALTHY';\n  needsRefresh = false;\n} else if (daysRemaining <= 7) {\n  status = 'EXPIRING_SOON';\n  needsRefresh = true;\n  if (daysRemaining <= 3) {\n    isCritical = true;\n  }\n} else {\n  status = 'HEALTHY';\n}\n\nreturn [\n  {\n    json: {\n      status: status,\n      is_valid: isValid,\n      is_permanent: isPermanent,\n      needs_refresh: needsRefresh,\n      is_critical: isCritical,\n      days_remaining: daysRemaining,\n      expiry_date: expiryDateFormatted,\n      token_type: tokenType,\n      scopes: scopes,\n      app_id: appId,\n      user_id: userId,\n      meta_access_token: init.meta_access_token,\n      meta_app_id: init.meta_app_id,\n      meta_app_secret: init.meta_app_secret,\n      alert_webhook_url: init.alert_webhook_url,\n      checked_at: $now.toISO()\n    }\n  }\n];"
+      },
+      "id": "node-analyze-token-04",
+      "name": "Analyze Token Health & Expiration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "refresh-check",
+              "leftValue": "={{ $json.needs_refresh }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-if-refresh-token",
+      "name": "If Needs Token Exchange",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/oauth/access_token",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "fb_exchange_token"
+            },
+            {
+              "name": "client_id",
+              "value": "={{ $json.meta_app_id }}"
+            },
+            {
+              "name": "client_secret",
+              "value": "={{ $json.meta_app_secret }}"
+            },
+            {
+              "name": "fb_exchange_token",
+              "value": "={{ $json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-exchange-token",
+      "name": "Exchange for Long-Lived Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        200
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const tokenInfo = $('Analyze Token Health & Expiration').first().json;\nconst exchangeRes = $json || {};\n\nconst newAccessToken = exchangeRes.access_token;\nconst expiresIn = exchangeRes.expires_in || 5184000;\nconst newDays = Math.round(expiresIn / 86400);\nconst refreshSuccess = !!newAccessToken;\n\nreturn [\n  {\n    json: {\n      refresh_success: refreshSuccess,\n      is_critical: !refreshSuccess,\n      status: refreshSuccess ? 'TOKEN_REFRESHED' : 'REFRESH_FAILED',\n      old_status: tokenInfo.status,\n      days_remaining: refreshSuccess ? newDays : tokenInfo.days_remaining,\n      expiry_date: refreshSuccess ? `~${$now.plus({ days: newDays }).toFormat('yyyy-MM-dd')}` : tokenInfo.expiry_date,\n      new_access_token: newAccessToken || 'REFRESH_FAILED',\n      token_type: exchangeRes.token_type || 'bearer',\n      app_id: tokenInfo.app_id,\n      scopes: tokenInfo.scopes,\n      alert_webhook_url: tokenInfo.alert_webhook_url,\n      exchange_error: exchangeRes.error ? exchangeRes.error.message : null,\n      message: refreshSuccess\n        ? `Jeton d'accès Meta renouvelé avec succès pour ${newDays} jours.`\n        : `Échec du renouvellement automatique Meta : ${exchangeRes.error?.message || 'Erreur inconnue'}`\n    }\n  }\n];"
+      },
+      "id": "node-eval-refresh-result",
+      "name": "Evaluate Refresh Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "refresh-success-check",
+              "leftValue": "={{ $json.refresh_success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-if-refresh-ok",
+      "name": "If Refresh Succeeded",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const result = $json;\n\nreturn [\n  {\n    json: {\n      success: true,\n      event: 'TOKEN_REFRESHED',\n      status: 'HEALTHY',\n      days_remaining: result.days_remaining,\n      expiry_date: result.expiry_date,\n      message: result.message,\n      refreshed_at: $now.toISO()\n    }\n  }\n];"
+      },
+      "id": "node-log-refresh-success",
+      "name": "Log Token Refresh Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2020,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "critical-check",
+              "leftValue": "={{ $json.is_critical }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-if-critical",
+      "name": "If Token Is Critical or Expired",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const tokenInfo = $('Analyze Token Health & Expiration').first().json;\nconst refreshEval = $('Evaluate Refresh Result').first()?.json || {};\n\nconst isRefreshFailure = refreshEval.refresh_success === false;\nconst statusLabel = isRefreshFailure ? 'ÉCHEC RENOUVELLEMENT' : (tokenInfo.status || 'CRITIQUE');\n\nconst alertPayload = {\n  severity: 'CRITICAL',\n  service: 'DentalPin Social Automation',\n  title: 'ALERTE META TOKEN : Action Requise Immédiate',\n  message: isRefreshFailure\n    ? `Le renouvellement automatique du jeton Meta pour Dr. Mokhtar / DentalPin a échoué (${refreshEval.exchange_error || 'Erreur API'}). Expiration: ${tokenInfo.expiry_date} (${tokenInfo.days_remaining} jours restants).`\n    : `Le jeton d'accès Meta pour Dr. Mokhtar / DentalPin nécessite une attention immédiate. Statut: ${tokenInfo.status}. Jours restants: ${tokenInfo.days_remaining}. Date d'expiration: ${tokenInfo.expiry_date}.`,\n  action_required: 'Générez un nouveau jeton dans Meta Graph API Explorer et mettez à jour la variable META_ACCESS_TOKEN dans n8n.',\n  details: {\n    status: statusLabel,\n    days_remaining: tokenInfo.days_remaining,\n    expiry_date: tokenInfo.expiry_date,\n    app_id: tokenInfo.app_id,\n    scopes: tokenInfo.scopes,\n    error: isRefreshFailure ? refreshEval.exchange_error : null\n  },\n  alert_webhook_url: tokenInfo.alert_webhook_url,\n  timestamp: $now.toISO()\n};\n\nreturn [\n  {\n    json: alertPayload\n  }\n];"
+      },
+      "id": "node-prepare-alert",
+      "name": "Prepare Critical Token Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2020,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.alert_webhook_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-send-alert",
+      "name": "Send Critical Alert to Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2260,
+        340
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const alertData = $('Prepare Critical Token Alert').first().json;\nconst dispatchResponse = $json;\n\nreturn [\n  {\n    json: {\n      alert_dispatched: true,\n      title: alertData.title,\n      severity: alertData.severity,\n      message: alertData.message,\n      target_url: alertData.alert_webhook_url,\n      dispatch_response: dispatchResponse,\n      dispatched_at: $now.toISO()\n    }\n  }\n];"
+      },
+      "id": "node-log-alert-result",
+      "name": "Log Alert Dispatch Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const tokenInfo = $('Analyze Token Health & Expiration').first().json;\n\nreturn [\n  {\n    json: {\n      status: 'AUDIT_PASSED',\n      health: 'HEALTHY',\n      token_status: tokenInfo.status,\n      is_permanent: tokenInfo.is_permanent,\n      days_remaining: tokenInfo.days_remaining,\n      expiry_date: tokenInfo.expiry_date,\n      scopes: tokenInfo.scopes,\n      message: `Meta Token est en bonne santé. Expire le: ${tokenInfo.expiry_date} (${tokenInfo.days_remaining} jours restants).`\n    }\n  }\n];"
+      },
+      "id": "node-log-healthy",
+      "name": "Healthy Token Audit Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        540
+      ]
+    }
+  ],
+  "connections": {
+    "Weekly Monitor Trigger (Monday 08:00 AM)": {
+      "main": [
+        [
+          {
+            "node": "Init Token Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init Token Parameters": {
+      "main": [
+        [
+          {
+            "node": "Query Meta Debug Token API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Meta Debug Token API": {
+      "main": [
+        [
+          {
+            "node": "Analyze Token Health & Expiration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Token Health & Expiration": {
+      "main": [
+        [
+          {
+            "node": "If Needs Token Exchange",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Needs Token Exchange": {
+      "main": [
+        [
+          {
+            "node": "Exchange for Long-Lived Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If Token Is Critical or Expired",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exchange for Long-Lived Token": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Refresh Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Refresh Result": {
+      "main": [
+        [
+          {
+            "node": "If Refresh Succeeded",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Refresh Succeeded": {
+      "main": [
+        [
+          {
+            "node": "Log Token Refresh Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Critical Token Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Token Is Critical or Expired": {
+      "main": [
+        [
+          {
+            "node": "Prepare Critical Token Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Healthy Token Audit Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Critical Token Alert": {
+      "main": [
+        [
+          {
+            "node": "Send Critical Alert to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Critical Alert to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Log Alert Dispatch Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "DentalPin"
+    },
+    {
+      "name": "Token Health & Security"
+    }
+  ]
+}

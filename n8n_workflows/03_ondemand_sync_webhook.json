@@ -1,0 +1,351 @@
+{
+  "name": "DentalPin - 03 - On-Demand Social Insights Sync Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dentalpin-social-sync",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-03",
+      "name": "Doctor On-Demand Sync Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "webhookId": "dentalpin-ondemand-social-sync"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $json.body || {};\n\n// Doctor can request specific date or default to today\nconst targetDateStr = body.date || $now.toFormat('yyyy-MM-dd');\n\n// Credentials & Account IDs\nconst metaAccessToken = $env.META_ACCESS_TOKEN || 'EAAG_DENTALPIN_META_ACCESS_TOKEN';\nconst igUserId = $env.META_IG_USER_ID || '17841400000000000';\nconst fbPageId = $env.META_FB_PAGE_ID || '100000000000000';\nconst dentalpinApiBase = ($env.DENTALPIN_API_BASE_URL || 'https://dental-api-2z19.onrender.com').replace(/\\/+$/, '');\nconst dentalpinSyncPath = $env.DENTALPIN_SYNC_PATH || '/api/v1/social_automation/insights';\nconst dentalpinSyncUrl = `${dentalpinApiBase}${dentalpinSyncPath}`;\nconst dentalpinApiKey = $env.DENTALPIN_API_KEY || '';\n\nreturn [\n  {\n    json: {\n      target_date: targetDateStr,\n      requested_by: body.requested_by || 'Dr. Mokhtar',\n      meta_access_token: metaAccessToken,\n      ig_user_id: igUserId,\n      fb_page_id: fbPageId,\n      ig_account_id: 'dr_mokhtar_dental',\n      fb_account_id: 'dr_mokhtar_cabinet',\n      dentalpin_api_base: dentalpinApiBase,\n      dentalpin_sync_url: dentalpinSyncUrl,\n      dentalpin_api_key: dentalpinApiKey\n    }\n  }\n];"
+      },
+      "id": "node-parse-request-03",
+      "name": "Parse Doctor Request & Date",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/{{ $('Parse Doctor Request & Date').item.json.ig_user_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "followers_count,follows_count,media_count,name,username"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('Parse Doctor Request & Date').item.json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 12000
+        }
+      },
+      "id": "node-http-ig-profile-03",
+      "name": "Fetch Instagram Profile Live",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/{{ $('Parse Doctor Request & Date').item.json.ig_user_id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "reach,profile_views,website_clicks"
+            },
+            {
+              "name": "period",
+              "value": "day"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('Parse Doctor Request & Date').item.json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 12000
+        }
+      },
+      "id": "node-http-ig-insights-03",
+      "name": "Fetch Instagram Insights Live",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/{{ $('Parse Doctor Request & Date').item.json.fb_page_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "followers_count,fan_count,name"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('Parse Doctor Request & Date').item.json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 12000
+        }
+      },
+      "id": "node-http-fb-profile-03",
+      "name": "Fetch Facebook Profile Live",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1160,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/{{ $('Parse Doctor Request & Date').item.json.fb_page_id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "page_impressions_unique,page_views_total,page_total_actions"
+            },
+            {
+              "name": "period",
+              "value": "day"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('Parse Doctor Request & Date').item.json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 12000
+        }
+      },
+      "id": "node-http-fb-insights-03",
+      "name": "Fetch Facebook Insights Live",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const req = $('Parse Doctor Request & Date').first().json;\n\nlet igProfile = {};\nlet igInsights = [];\nlet fbProfile = {};\nlet fbInsights = [];\n\ntry {\n  const res = $('Fetch Instagram Profile Live').first()?.json || {};\n  if (!res.error) igProfile = res;\n} catch (e) {}\n\ntry {\n  const res = $('Fetch Instagram Insights Live').first()?.json || {};\n  if (Array.isArray(res.data)) igInsights = res.data;\n} catch (e) {}\n\ntry {\n  const res = $('Fetch Facebook Profile Live').first()?.json || {};\n  if (!res.error) fbProfile = res;\n} catch (e) {}\n\ntry {\n  const res = $('Fetch Facebook Insights Live').first()?.json || {};\n  if (Array.isArray(res.data)) fbInsights = res.data;\n} catch (e) {}\n\nfunction extractVal(dataArr, metricName) {\n  if (!Array.isArray(dataArr)) return 0;\n  const item = dataArr.find(d => d && d.name === metricName);\n  if (!item || !Array.isArray(item.values) || item.values.length === 0) return 0;\n  const val = item.values[item.values.length - 1]?.value;\n  return typeof val === 'number' ? val : (parseInt(val, 10) || 0);\n}\n\nconst igFollowers = typeof igProfile.followers_count === 'number' ? igProfile.followers_count : 0;\nconst igReach = extractVal(igInsights, 'reach');\nconst igViews = extractVal(igInsights, 'profile_views');\nconst igClicks = extractVal(igInsights, 'website_clicks');\n\nconst fbFollowers = typeof fbProfile.followers_count === 'number'\n  ? fbProfile.followers_count\n  : (typeof fbProfile.fan_count === 'number' ? fbProfile.fan_count : 0);\nconst fbReach = extractVal(fbInsights, 'page_impressions_unique');\nconst fbViews = extractVal(fbInsights, 'page_views_total');\nconst fbClicks = extractVal(fbInsights, 'page_total_actions');\n\nconst igRecord = {\n  platform: 'instagram',\n  account_id: igProfile.username || req.ig_account_id,\n  date: req.target_date,\n  total_followers: igFollowers,\n  reach: igReach,\n  profile_views: igViews,\n  website_clicks: igClicks,\n  saves: 0\n};\n\nconst fbRecord = {\n  platform: 'facebook',\n  account_id: fbProfile.name ? fbProfile.name.toLowerCase().replace(/[^a-z0-9_]/g, '_') : req.fb_account_id,\n  date: req.target_date,\n  total_followers: fbFollowers,\n  reach: fbReach,\n  profile_views: fbViews,\n  website_clicks: fbClicks,\n  saves: 0\n};\n\nreturn [\n  {\n    json: {\n      sync_payload: {\n        insights: [igRecord, fbRecord]\n      },\n      target_date: req.target_date,\n      requested_by: req.requested_by,\n      dentalpin_api_base: req.dentalpin_api_base,\n      dentalpin_sync_url: req.dentalpin_sync_url,\n      dentalpin_api_key: req.dentalpin_api_key,\n      summary: {\n        date: req.target_date,\n        instagram: { followers: igFollowers, reach: igReach, views: igViews, clicks: igClicks },\n        facebook: { followers: fbFollowers, reach: fbReach, views: fbViews, clicks: fbClicks }\n      }\n    }\n  }\n];"
+      },
+      "id": "node-normalize-live-03",
+      "name": "Normalize Live Insights",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1640,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.dentalpin_sync_url || ($json.dentalpin_api_base + '/api/v1/social_automation/insights') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ $json.dentalpin_api_key ? 'Bearer ' + $json.dentalpin_api_key : '' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.sync_payload) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-sync-live-backend",
+      "name": "Sync Live Insights to Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1880,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Synchronisation instantanée réussie pour \" + $('Normalize Live Insights').first().json.requested_by,\n  \"timestamp\": $now.toISO(),\n  \"date\": $('Normalize Live Insights').first().json.target_date,\n  \"summary\": $('Normalize Live Insights').first().json.summary,\n  \"synced_records\": $('Normalize Live Insights').first().json.sync_payload.insights\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "node-respond-webhook-03",
+      "name": "Respond Success to Doctor",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2120,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Doctor On-Demand Sync Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Doctor Request & Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Doctor Request & Date": {
+      "main": [
+        [
+          {
+            "node": "Fetch Instagram Profile Live",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Instagram Profile Live": {
+      "main": [
+        [
+          {
+            "node": "Fetch Instagram Insights Live",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Instagram Insights Live": {
+      "main": [
+        [
+          {
+            "node": "Fetch Facebook Profile Live",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Facebook Profile Live": {
+      "main": [
+        [
+          {
+            "node": "Fetch Facebook Insights Live",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Facebook Insights Live": {
+      "main": [
+        [
+          {
+            "node": "Normalize Live Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Live Insights": {
+      "main": [
+        [
+          {
+            "node": "Sync Live Insights to Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Live Insights to Backend": {
+      "main": [
+        [
+          {
+            "node": "Respond Success to Doctor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "DentalPin"
+    },
+    {
+      "name": "On-Demand Sync"
+    }
+  ]
+}

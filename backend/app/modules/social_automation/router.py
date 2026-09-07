@@ -181,6 +181,7 @@ async def get_social_insights(
         return []
 
 @router.post("/insights", summary="Upsert social media insights from n8n or API")
+@router.post("/insights/sync", summary="Upsert social media insights from n8n or API (sync alias)")
 async def sync_social_insights(
     payload: Union[SocialInsightsSyncPayload, List[SocialInsightCreate], SocialInsightCreate],
     db: AsyncSession = Depends(get_db)

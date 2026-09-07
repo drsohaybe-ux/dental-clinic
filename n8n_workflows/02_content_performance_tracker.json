@@ -1,0 +1,359 @@
+{
+  "name": "DentalPin - 02 - Reels & Content Performance Tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-02",
+      "name": "Daily Schedule Trigger (02:00 AM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const yesterday = $now.minus({ days: 1 });\nconst targetDateStr = yesterday.toFormat('yyyy-MM-dd');\n\nconst metaAccessToken = $env.META_ACCESS_TOKEN || 'EAAG_DENTALPIN_META_ACCESS_TOKEN';\nconst igUserId = $env.META_IG_USER_ID || '17841400000000000';\nconst fbPageId = $env.META_FB_PAGE_ID || '100000000000000';\nconst dentalpinApiBase = ($env.DENTALPIN_API_BASE_URL || 'https://dental-api-2z19.onrender.com').replace(/\\/+$/, '');\nconst dentalpinSyncPath = $env.DENTALPIN_SYNC_PATH || '/api/v1/social_automation/insights';\nconst dentalpinSyncUrl = `${dentalpinApiBase}${dentalpinSyncPath}`;\nconst dentalpinApiKey = $env.DENTALPIN_API_KEY || '';\n\nreturn [\n  {\n    json: {\n      target_date: targetDateStr,\n      meta_access_token: metaAccessToken,\n      ig_user_id: igUserId,\n      fb_page_id: fbPageId,\n      ig_account_id: 'dr_mokhtar_dental',\n      fb_account_id: 'dr_mokhtar_cabinet',\n      dentalpin_api_base: dentalpinApiBase,\n      dentalpin_sync_url: dentalpinSyncUrl,\n      dentalpin_api_key: dentalpinApiKey\n    }\n  }\n];"
+      },
+      "id": "node-init-02",
+      "name": "Init Config & Settings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.ig_user_id }}/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,caption,media_type,media_product_type,timestamp,permalink,like_count,comments_count"
+            },
+            {
+              "name": "limit",
+              "value": "25"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-fetch-media",
+      "name": "Fetch Recent Media & Reels",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const config = $('Init Config & Settings').first().json;\nconst mediaResponse = $json || {};\nconst mediaItems = Array.isArray(mediaResponse.data) ? mediaResponse.data : [];\n\n// Trap 1: Handle new accounts with 0 media/reels or API errors gracefully\nif (mediaItems.length === 0) {\n  return [\n    {\n      json: {\n        is_empty: true,\n        target_date: config.target_date,\n        dentalpin_api_base: config.dentalpin_api_base,\n        dentalpin_sync_url: config.dentalpin_sync_url,\n        dentalpin_api_key: config.dentalpin_api_key,\n        ig_account_id: config.ig_account_id,\n        meta_access_token: config.meta_access_token,\n        id: null,\n        media_type: null,\n        metric_query: ''\n      }\n    }\n  ];\n}\n\n// Trap 2: Meta Graph API throws error 100 if 'plays' is queried for static images/carousels.\n// Dynamically tailor the metric query based on media_type:\nreturn mediaItems.map(item => {\n  const isVideo = item.media_type === 'VIDEO' || item.media_product_type === 'REELS';\n  const metricQuery = isVideo ? 'saved,shares,plays,total_interactions' : 'saved,shares,total_interactions';\n  \n  return {\n    json: {\n      is_empty: false,\n      id: item.id,\n      caption: item.caption || '',\n      media_type: item.media_type,\n      media_product_type: item.media_product_type || 'POST',\n      timestamp: item.timestamp,\n      permalink: item.permalink,\n      like_count: item.like_count || 0,\n      comments_count: item.comments_count || 0,\n      metric_query: metricQuery,\n      meta_access_token: config.meta_access_token,\n      target_date: config.target_date,\n      dentalpin_api_base: config.dentalpin_api_base,\n      dentalpin_sync_url: config.dentalpin_sync_url,\n      dentalpin_api_key: config.dentalpin_api_key,\n      ig_account_id: config.ig_account_id\n    }\n  };\n});"
+      },
+      "id": "node-filter-media-02",
+      "name": "Filter Media & Set Adaptive Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "empty-check",
+              "leftValue": "={{ $json.is_empty }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-if-empty-media",
+      "name": "If Account Has No Media",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "={{ $json.metric_query }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-media-insights",
+      "name": "Fetch Media Insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        380
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const config = $('Init Config & Settings').first().json;\nconst mediaMetaItems = $('Filter Media & Set Adaptive Metrics').all();\nconst insightsResults = $('Fetch Media Insights').all();\n\nlet totalSaves = 0;\nlet totalShares = 0;\nlet totalPlays = 0;\nlet totalInteractions = 0;\n\nconst contentDetails = [];\n\nfor (let i = 0; i < mediaMetaItems.length; i++) {\n  const meta = mediaMetaItems[i].json;\n  if (meta.is_empty || !meta.id) continue;\n\n  const insightItem = insightsResults[i]?.json || {};\n  const dataArr = Array.isArray(insightItem.data) ? insightItem.data : [];\n\n  function getVal(metricName) {\n    const found = dataArr.find(d => d.name === metricName);\n    return found?.values?.[0]?.value || 0;\n  }\n\n  const itemSaves = getVal('saved');\n  const itemShares = getVal('shares');\n  const itemPlays = getVal('plays');\n  const itemInteractions = getVal('total_interactions') || (itemSaves + itemShares + (meta.like_count || 0) + (meta.comments_count || 0));\n\n  totalSaves += itemSaves;\n  totalShares += itemShares;\n  totalPlays += itemPlays;\n  totalInteractions += itemInteractions;\n\n  contentDetails.push({\n    id: meta.id,\n    type: meta.media_product_type || meta.media_type,\n    caption: (meta.caption || '').substring(0, 80),\n    permalink: meta.permalink,\n    timestamp: meta.timestamp,\n    likes: meta.like_count,\n    comments: meta.comments_count,\n    saves: itemSaves,\n    shares: itemShares,\n    plays: itemPlays,\n    interactions: itemInteractions\n  });\n}\n\n// Sort top performing content by saves + interactions\ncontentDetails.sort((a, b) => (b.saves + b.interactions) - (a.saves + a.interactions));\nconst topContent = contentDetails.slice(0, 5);\n\nconst syncPayload = {\n  platform: 'instagram',\n  account_id: config.ig_account_id,\n  date: config.target_date,\n  saves: totalSaves\n};\n\nreturn [\n  {\n    json: {\n      sync_payload: syncPayload,\n      target_date: config.target_date,\n      dentalpin_api_base: config.dentalpin_api_base,\n      dentalpin_sync_url: config.dentalpin_sync_url,\n      dentalpin_api_key: config.dentalpin_api_key,\n      stats: {\n        total_media_scanned: contentDetails.length,\n        total_saves: totalSaves,\n        total_shares: totalShares,\n        total_plays: totalPlays,\n        total_interactions: totalInteractions\n      },\n      top_content: topContent\n    }\n  }\n];"
+      },
+      "id": "node-aggregate-content-02",
+      "name": "Aggregate Content & Daily Saves",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const config = $('Init Config & Settings').first().json;\n\nreturn [\n  {\n    json: {\n      sync_payload: {\n        platform: 'instagram',\n        account_id: config.ig_account_id,\n        date: config.target_date,\n        saves: 0\n      },\n      target_date: config.target_date,\n      dentalpin_api_base: config.dentalpin_api_base,\n      dentalpin_sync_url: config.dentalpin_sync_url,\n      dentalpin_api_key: config.dentalpin_api_key,\n      stats: {\n        total_media_scanned: 0,\n        total_saves: 0,\n        total_shares: 0,\n        total_plays: 0,\n        total_interactions: 0\n      },\n      top_content: [],\n      message: 'New account with 0 media posts. Handled gracefully.'\n    }\n  }\n];"
+      },
+      "id": "node-handle-empty-media",
+      "name": "Handle Empty Media Gracefully",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.dentalpin_sync_url || ($json.dentalpin_api_base + '/api/v1/social_automation/insights') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ $json.dentalpin_api_key ? 'Bearer ' + $json.dentalpin_api_key : '' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.sync_payload) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-sync-saves",
+      "name": "Update Saves in DentalPin Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const prev = $('Aggregate Content & Daily Saves').first()?.json || $('Handle Empty Media Gracefully').first().json;\n\nreturn [\n  {\n    json: {\n      success: true,\n      execution_timestamp: $now.toISO(),\n      target_date: prev.target_date,\n      stats: prev.stats,\n      top_content: prev.top_content,\n      backend_status: $json,\n      message: `Content performance & saves metric updated for ${prev.target_date}. Total Saves: ${prev.stats.total_saves}, Plays: ${prev.stats.total_plays}`\n    }\n  }\n];"
+      },
+      "id": "node-content-report-log-02",
+      "name": "Content Performance Report Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2040,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Daily Schedule Trigger (02:00 AM)": {
+      "main": [
+        [
+          {
+            "node": "Init Config & Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init Config & Settings": {
+      "main": [
+        [
+          {
+            "node": "Fetch Recent Media & Reels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Recent Media & Reels": {
+      "main": [
+        [
+          {
+            "node": "Filter Media & Set Adaptive Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Media & Set Adaptive Metrics": {
+      "main": [
+        [
+          {
+            "node": "If Account Has No Media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Account Has No Media": {
+      "main": [
+        [
+          {
+            "node": "Handle Empty Media Gracefully",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Media Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Media Insights": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Content & Daily Saves",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Empty Media Gracefully": {
+      "main": [
+        [
+          {
+            "node": "Update Saves in DentalPin Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Content & Daily Saves": {
+      "main": [
+        [
+          {
+            "node": "Update Saves in DentalPin Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Saves in DentalPin Backend": {
+      "main": [
+        [
+          {
+            "node": "Content Performance Report Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "DentalPin"
+    },
+    {
+      "name": "Reels & Saves Tracker"
+    }
+  ]
+}

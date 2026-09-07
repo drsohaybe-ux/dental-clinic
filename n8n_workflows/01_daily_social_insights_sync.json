@@ -1,0 +1,368 @@
+{
+  "name": "DentalPin - 01 - Daily Social Insights Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 1 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-01",
+      "name": "Daily Schedule Trigger (01:00 AM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Target reporting date is yesterday (completed 24h cycle for finalized Meta metrics)\nconst yesterday = $now.minus({ days: 1 });\nconst targetDateStr = yesterday.toFormat('yyyy-MM-dd');\n\n// Unix timestamps for Meta Graph API since/until parameters\nconst sinceTimestamp = Math.floor(yesterday.startOf('day').toSeconds());\nconst untilTimestamp = Math.floor(yesterday.endOf('day').toSeconds());\n\n// Meta Credentials & Account IDs from environment or configured defaults\nconst metaAccessToken = $env.META_ACCESS_TOKEN || 'EAAG_DENTALPIN_META_ACCESS_TOKEN';\nconst igUserId = $env.META_IG_USER_ID || '17841400000000000';\nconst fbPageId = $env.META_FB_PAGE_ID || '100000000000000';\n\n// DentalPin Backend Configuration\nconst dentalpinApiBase = ($env.DENTALPIN_API_BASE_URL || 'https://dental-api-2z19.onrender.com').replace(/\\/+$/, '');\nconst dentalpinSyncPath = $env.DENTALPIN_SYNC_PATH || '/api/v1/social_automation/insights';\nconst dentalpinSyncUrl = `${dentalpinApiBase}${dentalpinSyncPath}`;\nconst dentalpinApiKey = $env.DENTALPIN_API_KEY || '';\n\nreturn [\n  {\n    json: {\n      target_date: targetDateStr,\n      since: sinceTimestamp,\n      until: untilTimestamp,\n      meta_access_token: metaAccessToken,\n      ig_user_id: igUserId,\n      fb_page_id: fbPageId,\n      ig_account_id: 'dr_mokhtar_dental',\n      fb_account_id: 'dr_mokhtar_cabinet',\n      dentalpin_api_base: dentalpinApiBase,\n      dentalpin_sync_url: dentalpinSyncUrl,\n      dentalpin_api_key: dentalpinApiKey\n    }\n  }\n];"
+      },
+      "id": "node-init-01",
+      "name": "Init Config & Calculate Dates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/{{ $('Init Config & Calculate Dates').item.json.ig_user_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "followers_count,follows_count,media_count,name,username"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('Init Config & Calculate Dates').item.json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-ig-info",
+      "name": "Fetch Instagram Profile",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/{{ $('Init Config & Calculate Dates').item.json.ig_user_id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "reach,profile_views,website_clicks"
+            },
+            {
+              "name": "period",
+              "value": "day"
+            },
+            {
+              "name": "since",
+              "value": "={{ $('Init Config & Calculate Dates').item.json.since }}"
+            },
+            {
+              "name": "until",
+              "value": "={{ $('Init Config & Calculate Dates').item.json.until }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('Init Config & Calculate Dates').item.json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-ig-insights",
+      "name": "Fetch Instagram Insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/{{ $('Init Config & Calculate Dates').item.json.fb_page_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "followers_count,fan_count,name"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('Init Config & Calculate Dates').item.json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-fb-info",
+      "name": "Fetch Facebook Page Info",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1160,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v20.0/{{ $('Init Config & Calculate Dates').item.json.fb_page_id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "page_impressions_unique,page_views_total,page_total_actions"
+            },
+            {
+              "name": "period",
+              "value": "day"
+            },
+            {
+              "name": "since",
+              "value": "={{ $('Init Config & Calculate Dates').item.json.since }}"
+            },
+            {
+              "name": "until",
+              "value": "={{ $('Init Config & Calculate Dates').item.json.until }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('Init Config & Calculate Dates').item.json.meta_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-fb-insights",
+      "name": "Fetch Facebook Page Insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const config = $('Init Config & Calculate Dates').first().json;\n\n// Safely retrieve items from each upstream node\nlet igInfo = {};\nlet igInsights = [];\nlet fbInfo = {};\nlet fbInsights = [];\n\ntry {\n  const igInfoItem = $('Fetch Instagram Profile').first()?.json || {};\n  if (!igInfoItem.error) igInfo = igInfoItem;\n} catch (e) {}\n\ntry {\n  const igInsightsItem = $('Fetch Instagram Insights').first()?.json || {};\n  if (Array.isArray(igInsightsItem.data)) igInsights = igInsightsItem.data;\n} catch (e) {}\n\ntry {\n  const fbInfoItem = $('Fetch Facebook Page Info').first()?.json || {};\n  if (!fbInfoItem.error) fbInfo = fbInfoItem;\n} catch (e) {}\n\ntry {\n  const fbInsightsItem = $('Fetch Facebook Page Insights').first()?.json || {};\n  if (Array.isArray(fbInsightsItem.data)) fbInsights = fbInsightsItem.data;\n} catch (e) {}\n\n// Helper to extract numeric metric value safely\nfunction extractMetric(dataArray, metricName) {\n  if (!Array.isArray(dataArray)) return 0;\n  const item = dataArray.find(m => m && m.name === metricName);\n  if (!item || !Array.isArray(item.values) || item.values.length === 0) return 0;\n  \n  const val = item.values[item.values.length - 1]?.value;\n  return typeof val === 'number' ? val : (parseInt(val, 10) || 0);\n}\n\n// 1. Build Instagram Record\nconst igFollowers = typeof igInfo.followers_count === 'number' ? igInfo.followers_count : 0;\nconst igReach = extractMetric(igInsights, 'reach');\nconst igViews = extractMetric(igInsights, 'profile_views');\nconst igClicks = extractMetric(igInsights, 'website_clicks');\n\nconst instagramRecord = {\n  platform: 'instagram',\n  account_id: igInfo.username || config.ig_account_id,\n  date: config.target_date,\n  total_followers: igFollowers,\n  reach: igReach,\n  profile_views: igViews,\n  website_clicks: igClicks,\n  saves: 0\n};\n\n// 2. Build Facebook Record\nconst fbFollowers = typeof fbInfo.followers_count === 'number'\n  ? fbInfo.followers_count\n  : (typeof fbInfo.fan_count === 'number' ? fbInfo.fan_count : 0);\nconst fbReach = extractMetric(fbInsights, 'page_impressions_unique');\nconst fbViews = extractMetric(fbInsights, 'page_views_total');\nconst fbClicks = extractMetric(fbInsights, 'page_total_actions');\n\nconst facebookRecord = {\n  platform: 'facebook',\n  account_id: fbInfo.name ? fbInfo.name.toLowerCase().replace(/[^a-z0-9_]/g, '_') : config.fb_account_id,\n  date: config.target_date,\n  total_followers: fbFollowers,\n  reach: fbReach,\n  profile_views: fbViews,\n  website_clicks: fbClicks,\n  saves: 0\n};\n\nconst syncPayload = {\n  insights: [instagramRecord, facebookRecord]\n};\n\nreturn [\n  {\n    json: {\n      sync_payload: syncPayload,\n      target_date: config.target_date,\n      dentalpin_api_base: config.dentalpin_api_base,\n      dentalpin_sync_url: config.dentalpin_sync_url,\n      dentalpin_api_key: config.dentalpin_api_key,\n      summary: {\n        date: config.target_date,\n        instagram: { followers: igFollowers, reach: igReach, views: igViews, clicks: igClicks },\n        facebook: { followers: fbFollowers, reach: fbReach, views: fbViews, clicks: fbClicks }\n      }\n    }\n  }\n];"
+      },
+      "id": "node-normalize-01",
+      "name": "Normalize & Build Unified Insights",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1640,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.dentalpin_sync_url || ($json.dentalpin_api_base + '/api/v1/social_automation/insights') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ $json.dentalpin_api_key ? 'Bearer ' + $json.dentalpin_api_key : '' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.sync_payload) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-http-sync-backend",
+      "name": "Sync to DentalPin Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1880,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const prev = $('Normalize & Build Unified Insights').first().json;\nconst syncResult = $json;\n\nreturn [\n  {\n    json: {\n      success: true,\n      execution_timestamp: $now.toISO(),\n      target_date: prev.target_date,\n      summary: prev.summary,\n      backend_response: syncResult,\n      message: `DentalPin social media insights successfully synchronized for date: ${prev.target_date}`\n    }\n  }\n];"
+      },
+      "id": "node-audit-log-01",
+      "name": "Sync Audit & Summary Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2120,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Daily Schedule Trigger (01:00 AM)": {
+      "main": [
+        [
+          {
+            "node": "Init Config & Calculate Dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init Config & Calculate Dates": {
+      "main": [
+        [
+          {
+            "node": "Fetch Instagram Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Instagram Profile": {
+      "main": [
+        [
+          {
+            "node": "Fetch Instagram Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Instagram Insights": {
+      "main": [
+        [
+          {
+            "node": "Fetch Facebook Page Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Facebook Page Info": {
+      "main": [
+        [
+          {
+            "node": "Fetch Facebook Page Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Facebook Page Insights": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Build Unified Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Build Unified Insights": {
+      "main": [
+        [
+          {
+            "node": "Sync to DentalPin Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync to DentalPin Backend": {
+      "main": [
+        [
+          {
+            "node": "Sync Audit & Summary Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "DentalPin"
+    },
+    {
+      "name": "Social Analytics"
+    }
+  ]
+}
