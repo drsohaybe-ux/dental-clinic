@@ -7,7 +7,7 @@
         class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-gray-800 text-[#0084ff] dark:text-[#38bdf8] shadow-xs border border-gray-200 dark:border-gray-700 transition-colors"
       >
         <UIcon name="i-lucide-file-text" class="w-4 h-4 text-[#0084ff] dark:text-[#38bdf8]" />
-        <span>Studio de Contenu & Validation</span>
+        <span>{{ t('social.tabStudio', 'Studio de Contenu & Validation') }}</span>
       </NuxtLink>
 
       <NuxtLink
@@ -15,9 +15,9 @@
         class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
       >
         <UIcon name="i-lucide-bar-chart-3" class="w-4 h-4 text-gray-400" />
-        <span>Rapports & Statistiques Réseaux</span>
+        <span>{{ t('social.tabReports', 'Rapports & Statistiques Réseaux') }}</span>
         <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-          Sync n8n
+          {{ t('social.syncN8n', 'Sync n8n') }}
         </span>
       </NuxtLink>
     </div>
@@ -26,10 +26,10 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Studio de Contenu & Validation IA
+          {{ t('social.title', 'Studio de Contenu & Validation IA') }}
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Générez, approuvez et diffusez vos publications sociales connectées en direct à vos workflows n8n.
+          {{ t('social.subtitle', 'Générez, approuvez et diffusez vos publications sociales connectées en direct à vos workflows n8n.') }}
         </p>
       </div>
 
@@ -42,7 +42,7 @@
           @click="isConfigModalOpen = true"
         >
           <UIcon name="i-lucide-settings" class="w-4 h-4 text-gray-500" />
-          <span>Configuration n8n</span>
+          <span>{{ t('social.btnConfigN8n', 'Configuration n8n') }}</span>
         </button>
 
         <!-- Créer une Publication Button -->
@@ -52,7 +52,7 @@
           @click="isCreateModalOpen = true"
         >
           <UIcon name="i-lucide-zap" class="w-4 h-4 text-white" />
-          <span>Créer une Publication (IA / Manuel)</span>
+          <span>{{ t('social.btnCreatePost', 'Créer une Publication (IA / Manuel)') }}</span>
         </button>
       </div>
     </div>
@@ -71,7 +71,7 @@
           ]"
           @click="activeTab = 'all'"
         >
-          Toutes ({{ counts.all }})
+          {{ t('social.tabAll', 'Toutes') }} ({{ counts.all }})
         </button>
 
         <button
@@ -84,7 +84,7 @@
           ]"
           @click="activeTab = 'waiting_approval'"
         >
-          En attente ({{ counts.waiting }})
+          {{ t('social.tabWaiting', 'En attente') }} ({{ counts.waiting }})
         </button>
 
         <button
@@ -97,7 +97,7 @@
           ]"
           @click="activeTab = 'approved'"
         >
-          Validées ({{ counts.approved }})
+          {{ t('social.tabApproved', 'Validées') }} ({{ counts.approved }})
         </button>
 
         <button
@@ -110,18 +110,18 @@
           ]"
           @click="activeTab = 'published'"
         >
-          Publiées ({{ counts.published }})
+          {{ t('social.tabPublished', 'Publiées') }} ({{ counts.published }})
         </button>
       </div>
 
       <!-- Platform Dropdown -->
       <div class="flex items-center gap-2 self-end sm:self-auto">
-        <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Plateforme :</span>
+        <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{ t('social.filterPlatform', 'Plateforme :') }}</span>
         <select
           v-model="platformFilter"
           class="text-xs font-medium bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-[#0084ff]"
         >
-          <option value="all">Toutes</option>
+          <option value="all">{{ t('social.platformAll', 'Toutes') }}</option>
           <option value="instagram">Instagram</option>
           <option value="facebook">Facebook</option>
         </select>
@@ -168,7 +168,7 @@
                 v-if="post.is_pinned"
                 class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-900 bg-amber-300 rounded-md shadow-xs uppercase tracking-wider"
               >
-                📌 Modèle Permanent
+                {{ t('social.badgePermanentModel', '📌 Modèle Permanent') }}
               </span>
             </div>
 
@@ -185,7 +185,7 @@
               @click.stop="togglePinPost(post.id)"
             >
               <UIcon :name="post.is_pinned ? 'i-lucide-pin' : 'i-lucide-pin-off'" class="w-3.5 h-3.5" />
-              <span>{{ post.is_pinned ? 'Épinglé' : 'Épingler' }}</span>
+              <span>{{ post.is_pinned ? t('social.btnPinned', 'Épinglé') : t('social.btnPin', 'Épingler') }}</span>
             </button>
           </div>
 
@@ -198,7 +198,7 @@
                 <span>{{ post.scheduled_for }}</span>
               </div>
               <span v-if="post.is_pinned" class="text-amber-600 dark:text-amber-400 font-bold text-[11px]">
-                Modèle réutilisable
+                {{ t('social.badgeReusableModel', 'Modèle réutilisable') }}
               </span>
             </div>
 
@@ -248,7 +248,7 @@
                 @click="approvePost(post.id)"
               >
                 <UIcon name="i-lucide-check" class="w-4 h-4" />
-                <span>{{ post.is_pinned ? 'Publier (Garder Épinglé)' : 'Approuver & Publier' }}</span>
+                <span>{{ post.is_pinned ? t('social.btnPublish', 'Publier') : t('social.btnApprove', 'Approuver & Publier') }}</span>
               </button>
 
               <button
@@ -257,14 +257,14 @@
                 @click="openEditModal(post)"
               >
                 <UIcon name="i-lucide-sparkles" class="w-3.5 h-3.5 text-gray-500" />
-                Modifier
+                {{ t('social.btnEdit', 'Modifier') }}
               </button>
             </div>
 
             <button
               type="button"
               class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-              title="Supprimer la publication"
+              :title="t('social.btnDelete', 'Supprimer la publication')"
               @click="deletePost(post.id)"
             >
               <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
@@ -274,7 +274,7 @@
           <!-- Published Actions & Metrics (When not pinned) -->
           <div v-else class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800 pt-3 font-medium">
             <div class="flex items-center gap-3">
-              <span>{{ post.metrics?.reach || 4820 }} vues</span>
+              <span>{{ post.metrics?.reach || 4820 }} {{ t('socialReports.metricReach', 'vues') }}</span>
               <span class="flex items-center gap-1 text-gray-700 dark:text-gray-200 font-semibold">
                 <span class="text-red-500">❤️</span> {{ post.metrics?.likes || 312 }}
               </span>
@@ -284,17 +284,17 @@
               <button
                 type="button"
                 class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-[#0084ff] hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors"
-                title="Épingler comme modèle réutilisable"
+                :title="t('social.btnPin', 'Épingler comme modèle réutilisable')"
                 @click="togglePinPost(post.id)"
               >
                 <UIcon name="i-lucide-pin" class="w-3.5 h-3.5" />
-                <span>Épingler</span>
+                <span>{{ t('social.btnPin', 'Épingler') }}</span>
               </button>
 
               <button
                 type="button"
                 class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                title="Supprimer des archives"
+                :title="t('social.btnDelete', 'Supprimer des archives')"
                 @click="deletePost(post.id)"
               >
                 <UIcon name="i-lucide-trash-2" class="w-3.5 h-3.5" />
@@ -314,10 +314,10 @@
         <UIcon name="i-lucide-newspaper" class="w-8 h-8 opacity-70" />
       </div>
       <h3 class="text-base font-bold text-gray-900 dark:text-white">
-        Aucune publication dans cette catégorie
+        {{ t('social.emptyCategory', 'Aucune publication dans cette catégorie') }}
       </h3>
       <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-        Créez ou générez une nouvelle publication avec Dr. Mokhtar AI.
+        {{ t('social.emptyCategoryDesc', 'Créez ou générez une nouvelle publication avec Dr. Mokhtar AI.') }}
       </p>
       <button
         type="button"
@@ -325,7 +325,7 @@
         @click="isCreateModalOpen = true"
       >
         <UIcon name="i-lucide-sparkles" class="w-3.5 h-3.5" />
-        <span>Créer une publication</span>
+        <span>{{ t('social.btnCreatePost', 'Créer une publication') }}</span>
       </button>
     </div>
 
@@ -337,7 +337,7 @@
             <div class="flex items-center justify-between">
               <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
                 <UIcon name="i-lucide-sparkles" class="text-[#0084ff] w-5 h-5" />
-                Modifier & Révision Clinique
+                {{ t('social.modalEditTitle', 'Modifier & Révision Clinique') }}
               </h3>
               <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="xs" @click="isEditModalOpen = false" />
             </div>
@@ -347,7 +347,7 @@
             <!-- Quick 1-Click Prompt Chips -->
             <div>
               <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">
-                Recommandations rapides en 1 clic :
+                {{ t('social.quickRecsLabel', 'Recommandations rapides en 1 clic :') }}
               </label>
               <div class="flex flex-wrap gap-2">
                 <button
@@ -365,7 +365,7 @@
             <!-- Instruction input -->
             <div>
               <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                Instructions pour Dr. Mokhtar AI :
+                {{ t('social.instructionsLabel', 'Instructions pour Dr. Mokhtar AI :') }}
               </label>
               <input
                 v-model="editForm.feedback"
@@ -378,7 +378,7 @@
             <!-- Textarea -->
             <div>
               <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                Texte de la publication (modifiable en direct) :
+                {{ t('social.captionLabel', 'Texte de la publication (modifiable en direct) :') }}
               </label>
               <textarea
                 v-model="editForm.caption"
@@ -402,7 +402,7 @@
                 class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-xs"
                 @click="saveEdit"
               >
-                Appliquer les Modifications
+                {{ t('social.btnApplyChanges', 'Appliquer les Modifications') }}
               </button>
             </div>
           </template>
@@ -418,7 +418,7 @@
             <div class="flex items-center justify-between">
               <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
                 <UIcon name="i-lucide-zap" class="text-[#0084ff] w-5 h-5" />
-                Créer une Publication (IA / Manuel)
+                {{ t('social.modalCreateTitle', 'Créer une Publication (IA / Manuel)') }}
               </h3>
               <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="xs" @click="isCreateModalOpen = false" />
             </div>
@@ -435,7 +435,7 @@
                 ]"
                 @click="createMode = 'auto'"
               >
-                ⚡ Mode 100% Automatique (IA)
+                {{ t('social.modeAuto', '⚡ Mode 100% Automatique (IA)') }}
               </button>
               <button
                 type="button"
@@ -445,7 +445,7 @@
                 ]"
                 @click="createMode = 'custom'"
               >
-                ✍️ Mode Personnalisé
+                {{ t('social.modeCustom', '✍️ Mode Personnalisé') }}
               </button>
             </div>
 
@@ -453,17 +453,17 @@
             <div v-if="createMode === 'auto'" class="space-y-4">
               <div>
                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                  Pilier / Thématique Clinique :
+                  {{ t('social.pillarLabel', 'Pilier / Thématique Clinique :') }}
                 </label>
                 <select
                   v-model="newPostForm.pillar"
                   class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
                 >
-                  <option value="Esthétique Dentaire & Blanchiment">✨ Esthétique Dentaire & Blanchiment</option>
-                  <option value="Orthodontie Invisible & Aligners">🦷 Orthodontie Invisible & Aligners</option>
-                  <option value="Implants & Chirurgie Guidée">🔩 Implants & Chirurgie Guidée</option>
-                  <option value="Soins Préventifs & Pédodontie">🛡️ Soins Préventifs & Pédodontie</option>
-                  <option value="Vie du Cabinet (Nouveaux horaires, Local, Équipe)">🏥 Vie du Cabinet (Nouveaux horaires, Local, Équipe)</option>
+                  <option value="Esthétique Dentaire & Blanchiment">{{ t('social.pillarAesthetics', '✨ Esthétique Dentaire & Blanchiment') }}</option>
+                  <option value="Orthodontie Invisible & Aligners">{{ t('social.pillarOrtho', '🦷 Orthodontie Invisible & Aligners') }}</option>
+                  <option value="Implants & Chirurgie Guidée">{{ t('social.pillarImplants', '🔩 Implants & Chirurgie Guidée') }}</option>
+                  <option value="Soins Préventifs & Pédodontie">{{ t('social.pillarPrevention', '🛡️ Soins Préventifs & Pédodontie') }}</option>
+                  <option value="Vie du Cabinet (Nouveaux horaires, Local, Équipe)">{{ t('social.pillarClinicLife', '🏥 Vie du Cabinet (Nouveaux horaires, Local, Équipe)') }}</option>
                 </select>
               </div>
 
@@ -475,9 +475,9 @@
                   v-model="newPostForm.platform"
                   class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
                 >
-                  <option value="both">🌐 Facebook & Instagram (Simultané - 1200x630 & 1080x1080)</option>
-                  <option value="instagram">📸 Instagram uniquement (1080x1080)</option>
-                  <option value="facebook">📘 Facebook uniquement (1200x630)</option>
+                  <option value="both">{{ t('social.targetBothSizes', '🌐 Facebook & Instagram (Simultané - 1200x630 & 1080x1080)') }}</option>
+                  <option value="instagram">{{ t('social.targetInstaSize', '📸 Instagram uniquement (1080x1080)') }}</option>
+                  <option value="facebook">{{ t('social.targetFbSize', '📘 Facebook uniquement (1200x630)') }}</option>
                 </select>
               </div>
             </div>
@@ -488,8 +488,8 @@
               <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2">
                 <UIcon name="i-lucide-sparkles" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <span class="font-bold">Mode Copilot & Gap-Filling :</span>
-                  Tous les champs ci-dessous sont <span class="underline font-bold">100% optionnels</span>. Tout champ que vous laissez vide sera automatiquement conçu, rédigé et comblé par l'IA selon les protocoles cliniques de votre cabinet.
+                  <span class="font-bold">{{ t('social.copilotModeTitle', 'Mode Copilot & Gap-Filling :') }}</span>
+                  {{ t('social.copilotModeDesc', "Tous les champs ci-dessous sont 100% optionnels. Tout champ que vous laissez vide sera automatiquement conçu, rédigé et comblé par l'IA selon les protocoles cliniques de votre cabinet.") }}
                 </div>
               </div>
 
@@ -501,15 +501,15 @@
                   v-model="newPostForm.platform"
                   class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
                 >
-                  <option value="both">🌐 Facebook & Instagram (Simultané)</option>
-                  <option value="instagram">📸 Instagram uniquement</option>
-                  <option value="facebook">📘 Facebook uniquement</option>
+                  <option value="both">{{ t('social.targetBoth', '🌐 Facebook & Instagram (Simultané)') }}</option>
+                  <option value="instagram">{{ t('social.targetInsta', '📸 Instagram uniquement') }}</option>
+                  <option value="facebook">{{ t('social.targetFb', '📘 Facebook uniquement') }}</option>
                 </select>
               </div>
 
               <div>
                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                  Titre / Sujet Clinique <span class="text-gray-400 font-normal">(optionnel)</span> :
+                  {{ t('social.labelTitleSubject', 'Titre / Sujet Clinique') }} <span class="text-gray-400 font-normal">({{ t('common.optional', 'optionnel') }})</span> :
                 </label>
                 <input
                   v-model="newPostForm.title"
@@ -521,7 +521,7 @@
 
               <div>
                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                  Consignes spécifiques ou Texte du Dr. Mokhtar <span class="text-gray-400 font-normal">(optionnel)</span> :
+                  {{ t('social.labelInstructionsOrText', 'Consignes spécifiques ou Texte du Dr. Mokhtar') }} <span class="text-gray-400 font-normal">({{ t('common.optional', 'optionnel') }})</span> :
                 </label>
                 <textarea
                   v-model="newPostForm.caption"
@@ -534,7 +534,7 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                    Call to Action <span class="text-gray-400 font-normal">(optionnel)</span> :
+                    {{ t('social.labelCta', 'Call to Action') }} <span class="text-gray-400 font-normal">({{ t('common.optional', 'optionnel') }})</span> :
                   </label>
                   <input
                     v-model="newPostForm.cta"
@@ -546,7 +546,7 @@
 
                 <div>
                   <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                    URL de l'image <span class="text-gray-400 font-normal">(optionnel)</span> :
+                    {{ t('social.labelImageUrl', "URL de l'image") }} <span class="text-gray-400 font-normal">({{ t('common.optional', 'optionnel') }})</span> :
                   </label>
                   <input
                     v-model="newPostForm.imageUrl"
@@ -573,7 +573,7 @@
                 class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-xs"
                 @click="submitNewPost"
               >
-                Générer / Enregistrer
+                {{ t('social.btnGenerateOrSave', 'Générer / Enregistrer') }}
               </button>
             </div>
           </template>
@@ -589,7 +589,7 @@
             <div class="flex items-center justify-between">
               <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
                 <UIcon name="i-lucide-settings" class="text-[#0084ff] w-5 h-5" />
-                Configuration des Webhooks n8n
+                {{ t('social.modalConfigTitle', 'Configuration des Webhooks n8n') }}
               </h3>
               <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="xs" @click="isConfigModalOpen = false" />
             </div>
@@ -597,12 +597,12 @@
 
           <div class="space-y-4">
             <p class="text-xs text-gray-600 dark:text-gray-400">
-              Vos webhooks n8n permettent d'envoyer les publications directement sur Instagram, Facebook et TikTok une fois approuvées par le Dr. Mokhtar.
+              {{ t('social.modalConfigDesc', "Vos webhooks n8n permettent d'envoyer les publications directement sur Instagram, Facebook et TikTok une fois approuvées par le Dr. Mokhtar.") }}
             </p>
 
             <div>
               <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                Webhook d'Approbation n8n (POST) :
+                {{ t('social.labelWebhookApprove', "Webhook d'Approbation n8n (POST) :") }}
               </label>
               <input
                 v-model="configForm.approveUrl"
@@ -614,7 +614,7 @@
 
             <div>
               <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                Webhook de Création / Révision n8n (POST) :
+                {{ t('social.labelWebhookCreate', 'Webhook de Création / Révision n8n (POST) :') }}
               </label>
               <input
                 v-model="configForm.createUrl"
@@ -629,7 +629,7 @@
                 <UIcon name="i-lucide-shield-check" class="w-4 h-4 text-[#0084ff]" />
                 Inbound Secret Token
               </p>
-              <p>Configuré dans vos variables Render : <code class="font-bold">DENTALPIN_N8N_SECRET=your_random_password_here</code></p>
+              <p>{{ t('social.renderVarsConfigured', 'Configuré dans vos variables Render :') }} <code class="font-bold">DENTALPIN_N8N_SECRET=your_random_password_here</code></p>
             </div>
           </div>
 
@@ -647,7 +647,7 @@
                 class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-xs"
                 @click="saveConfig"
               >
-                Enregistrer la Configuration
+                {{ t('social.btnSaveConfig', 'Enregistrer la Configuration') }}
               </button>
             </div>
           </template>
@@ -663,6 +663,7 @@ import { useSocialAutomation, type SocialPost } from '~/composables/useSocialAut
 
 definePageMeta({ middleware: 'auth' })
 
+const { t } = useI18n()
 const socialStore = useSocialAutomation()
 let pollTimer: any = null
 
@@ -717,14 +718,14 @@ const rejectPost = deletePost
 const isEditModalOpen = ref(false)
 const editForm = ref({ id: '', caption: '', feedback: '' })
 
-const quickChips = [
-  '⚡ Plus court & percutant',
-  '💰 Insister sur les tarifs en DZD',
-  '👨‍⚕️ Ajouter le conseil du Dr. Mokhtar',
-  '📲 Ajouter le bouton WhatsApp',
-  '🦷 Mettre en avant le soin sans douleur',
-  '🌟 Style Avant / Après'
-]
+const quickChips = computed(() => [
+  t('social.chipShorter', '⚡ Plus court & percutant'),
+  t('social.chipDzd', '💰 Insister sur les tarifs en DZD'),
+  t('social.chipDoctorTip', '👨‍⚕️ Ajouter le conseil du Dr. Mokhtar'),
+  t('social.chipWhatsapp', '📲 Ajouter le bouton WhatsApp'),
+  t('social.chipPainless', '🦷 Mettre en avant le soin sans douleur'),
+  t('social.chipBeforeAfter', '🌟 Style Avant / Après')
+])
 
 function openEditModal(post: SocialPost) {
   editForm.value = {

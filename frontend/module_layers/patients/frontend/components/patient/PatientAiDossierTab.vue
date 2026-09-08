@@ -14,14 +14,14 @@
         <div>
           <div class="flex items-center gap-2">
             <h3 class="text-sm font-bold text-gray-900 dark:text-white">
-              {{ isHumanActive ? 'Prise en main humaine active' : 'Assistant IA Téléphone & Messagerie actif' }}
+              {{ isHumanActive ? t('patientAiDossier.humanActiveTitle', 'Prise en main humaine active') : t('patientAiDossier.aiActiveTitle', 'Assistant IA Téléphone & Messagerie actif') }}
             </h3>
             <UBadge :color="isHumanActive ? 'amber' : 'green'" variant="subtle" size="xs">
-              {{ isHumanActive ? 'IA en pause' : 'En ligne' }}
+              {{ isHumanActive ? t('patientAiDossier.aiPausedBadge', 'IA en pause') : t('patientAiDossier.onlineBadge', 'En ligne') }}
             </UBadge>
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            {{ isHumanActive ? 'Le Dr. Mokhtar ou le secrétariat répond directement au patient.' : 'L\'IA n8n répond automatiquement aux questions et recueille les radios.' }}
+            {{ isHumanActive ? t('patientAiDossier.humanActiveDesc', 'Le Dr. Mokhtar ou le secrétariat répond directement au patient.') : t('patientAiDossier.aiActiveDesc', "L'IA n8n répond automatiquement aux questions et recueille les radios.") }}
           </p>
         </div>
       </div>
@@ -39,7 +39,7 @@
           @click="toggleHumanTakeover"
         >
           <UIcon :name="isHumanActive ? 'i-lucide-bot' : 'i-lucide-hand'" class="w-4 h-4" />
-          <span>{{ isHumanActive ? 'Réactiver l\'Assistant IA' : 'Prendre la main sur la conversation' }}</span>
+          <span>{{ isHumanActive ? t('patientAiDossier.takeoverAi', "Réactiver l'Assistant IA") : t('patientAiDossier.takeoverHuman', 'Prendre la main sur la conversation') }}</span>
         </button>
       </div>
     </div>
@@ -51,10 +51,10 @@
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <UIcon name="i-lucide-scan" class="text-primary-500 w-5 h-5" />
-            Radiographies & Diagnostic IA
+            {{ t('patientAiDossier.radiosTitle', 'Radiographies & Diagnostic IA') }}
           </h3>
           <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">
-            {{ dossierFiles.length }} radiographie(s) analysée(s)
+            {{ t('patientAiDossier.radiosAnalyzed', { count: dossierFiles.length }, `${dossierFiles.length} radiographie(s) analysée(s)`) }}
           </span>
         </div>
 
@@ -88,7 +88,7 @@
                   @click="openLightbox(file.file_url)"
                 >
                   <UIcon name="i-lucide-zoom-in" class="w-4 h-4" />
-                  Plein écran
+                  {{ t('patientAiDossier.fullscreen', 'Plein écran') }}
                 </button>
               </div>
             </div>
@@ -101,7 +101,7 @@
                     {{ file.name }}
                   </h4>
                   <p class="text-xs text-gray-400 mt-0.5">
-                    Transmis via WhatsApp/Telegram le {{ formatDate(file.created_at) }}
+                    {{ t('patientAiDossier.sentVia', { date: formatDate(file.created_at) }) }}
                   </p>
                 </div>
               </div>
@@ -110,7 +110,7 @@
               <div class="p-4 bg-primary-50/60 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/50 rounded-xl space-y-2">
                 <div class="flex items-center gap-2 text-xs font-bold text-primary-700 dark:text-primary-300">
                   <UIcon name="i-lucide-sparkles" class="w-4 h-4" />
-                  Rapport de Vision Clinique IA (Dr. Mokhtar AI)
+                  {{ t('patientAiDossier.visionReportTitle', 'Rapport de Vision Clinique IA (Dr. Mokhtar AI)') }}
                 </div>
                 <p class="text-xs text-gray-700 dark:text-gray-200 leading-relaxed whitespace-pre-line font-medium">
                   {{ file.ai_analysis }}
@@ -126,9 +126,9 @@
           class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl py-14 px-6 text-center shadow-2xs"
         >
           <UIcon name="i-lucide-scan" class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-          <h4 class="text-sm font-bold text-gray-900 dark:text-white">Aucune radiographie reçue</h4>
+          <h4 class="text-sm font-bold text-gray-900 dark:text-white">{{ t('patientAiDossier.noRadios', 'Aucune radiographie reçue') }}</h4>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-            Dès que le patient transmet une photo ou une panoramique sur WhatsApp ou Telegram, l'IA l'analysera et l'affichera ici.
+            {{ t('patientAiDossier.noRadiosDesc', "Dès que le patient transmet une photo ou une panoramique sur WhatsApp ou Telegram, l'IA l'analysera et l'affichera ici.") }}
           </p>
         </div>
       </div>
@@ -138,7 +138,7 @@
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <UIcon name="i-lucide-messages-square" class="text-primary-500 w-5 h-5" />
-            Échanges Omnicanal
+            {{ t('patientAiDossier.omnichannelTitle', 'Échanges Omnicanal') }}
           </h3>
           <span class="text-xs text-gray-500 font-medium capitalize">
             {{ patientPhone || 'WhatsApp / Telegram' }}
@@ -160,7 +160,7 @@
               ]"
             >
               <div class="flex items-center justify-between gap-2 mb-1 opacity-75 text-[10px]">
-                <span class="font-bold capitalize">{{ msg.sender === 'patient' ? 'Patient' : (msg.sender === 'doctor' ? 'Dr. Mokhtar' : 'IA Assistant') }}</span>
+                <span class="font-bold capitalize">{{ msg.sender === 'patient' ? t('patientAiDossier.senderPatient', 'Patient') : (msg.sender === 'doctor' ? t('patientAiDossier.senderDoctor', 'Dr. Mokhtar') : t('patientAiDossier.senderAi', 'IA Assistant')) }}</span>
                 <span>{{ formatTime(msg.sent_at) }}</span>
               </div>
               <p class="whitespace-pre-line">{{ msg.content }}</p>
@@ -168,7 +168,7 @@
 
             <div v-if="chatMessages.length === 0" class="text-center py-20 text-gray-400 text-xs">
               <UIcon name="i-lucide-message-circle" class="w-8 h-8 mx-auto mb-2 opacity-50" />
-              Aucun message synchronisé pour ce patient.
+              {{ t('patientAiDossier.noMessages', 'Aucun message synchronisé pour ce patient.') }}
             </div>
           </div>
 
@@ -177,7 +177,7 @@
             <input
               v-model="replyText"
               type="text"
-              placeholder="Écrire un message direct..."
+              :placeholder="t('patientAiDossier.directMsgPlaceholder', 'Écrire un message direct...')"
               class="flex-grow text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-primary-500"
               @keyup.enter="sendDoctorReply"
             />
@@ -222,6 +222,7 @@ const props = defineProps<{
   patientPhone?: string
 }>()
 
+const { t } = useI18n()
 const api = useApi()
 const toast = useToast()
 

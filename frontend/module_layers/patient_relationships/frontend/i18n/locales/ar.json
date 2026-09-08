@@ -1,21 +1,21 @@
 {
   "patientRelationships": {
-    "title": "Family",
-    "emptyHint": "No family links on file.",
+    "title": "العائلة",
+    "emptyHint": "لا توجد روابط عائلية في الملف.",
     "relationships": {
-      "title": "Family relationships",
-      "searchPatient": "Search patient to link…",
-      "addSuccess": "Relationship added",
-      "addError": "Could not add relationship",
-      "removeError": "Could not remove relationship",
+      "title": "العلاقات العائلية",
+      "searchPatient": "ابحث عن مريض للربط...",
+      "addSuccess": "تمت إضافة صلة القرابة",
+      "addError": "تعذر إضافة صلة القرابة",
+      "removeError": "تعذر إزالة العلاقة",
       "types": {
-        "parent": "Parent",
-        "child": "Child",
-        "spouse": "Spouse",
-        "sibling": "Sibling",
-        "guardian": "Guardian",
-        "ward": "Ward",
-        "other": "Other"
+        "parent": "الأصل (المرجع)",
+        "child": "طفل",
+        "spouse": "الزوج/الزوجة",
+        "sibling": "أخ/أخت",
+        "guardian": "ولي الأمر",
+        "ward": "جناح",
+        "other": "أخرى"
       }
     }
   }

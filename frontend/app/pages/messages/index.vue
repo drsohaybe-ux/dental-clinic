@@ -5,10 +5,10 @@
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
           <UIcon name="i-lucide-messages-square" class="text-primary-500 w-7 h-7" />
-          Messagerie Omnicanal (Telegram & WhatsApp)
+          {{ t('messages.title', 'Messagerie Omnicanal (Telegram & WhatsApp)') }}
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Supervision en direct des conversations de l'IA n8n avec les patients du cabinet du Dr. Mokhtar.
+          {{ t('messages.subtitle', 'Supervision en direct des conversations de l\'IA n8n avec les patients du cabinet du Dr. Mokhtar.') }}
         </p>
       </div>
 
@@ -19,12 +19,12 @@
           @click="openNewChatModal"
         >
           <UIcon name="i-lucide-plus" class="w-4 h-4" />
-          <span>Nouvelle Conversation</span>
+          <span>{{ t('messages.newConversation', 'Nouvelle Conversation') }}</span>
         </button>
 
         <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-300">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Synchronisation live n8n active</span>
+          <span>{{ t('messages.liveSync', 'Synchronisation live n8n active') }}</span>
         </div>
       </div>
     </div>
@@ -40,7 +40,7 @@
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Rechercher par nom ou numéro..."
+              :placeholder="t('messages.searchPlaceholder', 'Rechercher par nom ou numéro...')"
               class="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-hidden"
             />
           </div>
@@ -118,7 +118,7 @@
                   class="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-rose-600 px-2 py-0.5 rounded shadow-2xs"
                 >
                   <UIcon name="i-lucide-alert-triangle" class="w-3 h-3 animate-bounce" />
-                  🚨 Urgence
+                  🚨 {{ t('messages.badgeUrgent', 'Urgence') }}
                 </span>
 
                 <span
@@ -126,27 +126,27 @@
                   class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded"
                 >
                   <UIcon name="i-lucide-user" class="w-3 h-3" />
-                  Prise en main
+                  {{ t('messages.badgeTakeover', 'Prise en main') }}
                 </span>
                 <span
                   v-else
                   class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded"
                 >
                   <UIcon name="i-lucide-bot" class="w-3 h-3" />
-                  IA Active
+                  {{ t('messages.badgeAi', 'IA Active') }}
                 </span>
               </div>
 
               <span v-if="thread.hasRadio" class="text-[10px] font-semibold text-primary-600 flex items-center gap-1">
                 <UIcon name="i-lucide-scan" class="w-3 h-3" />
-                Radio jointe
+                {{ t('messages.badgeRadio', 'Radio jointe') }}
               </span>
             </div>
           </div>
 
           <div v-if="filteredThreads.length === 0" class="text-center py-12 text-gray-400 text-xs">
             <UIcon name="i-lucide-inbox" class="w-8 h-8 mx-auto mb-2 opacity-50" />
-            Aucune conversation dans ce filtre.
+            {{ t('messages.noConversations', 'Aucune conversation dans ce filtre.') }}
           </div>
         </div>
       </div>
@@ -173,7 +173,7 @@
                   {{ selectedThread.platform.toUpperCase() }}
                 </UBadge>
                 <UBadge v-if="selectedThread.isUrgent" color="rose" variant="solid" size="xs">
-                  🚨 URGENCE
+                  🚨 {{ t('messages.badgeUrgent', 'URGENCE') }}
                 </UBadge>
               </h3>
               <p class="text-xs text-gray-500 font-mono">{{ selectedThread.phone }}</p>
@@ -193,7 +193,7 @@
               @click="toggleTakeover"
             >
               <UIcon :name="selectedThread.isHumanActive ? 'i-lucide-bot' : 'i-lucide-hand'" class="w-3.5 h-3.5" />
-              <span>{{ selectedThread.isHumanActive ? 'Rendre la main à l\'IA' : 'Prendre la main' }}</span>
+              <span>{{ selectedThread.isHumanActive ? t('messages.handoverToAi', 'Rendre la main à l\'IA') : t('messages.takeover', 'Prendre la main') }}</span>
             </button>
 
             <!-- Go to Patient File -->
@@ -205,7 +205,7 @@
               variant="outline"
               size="xs"
             >
-              Dossier
+              {{ t('messages.patientFile', 'Dossier') }}
             </UButton>
 
             <!-- Emergency Toggle (De-escalate / Escalate) -->
@@ -217,11 +217,11 @@
                   ? 'bg-rose-100 dark:bg-rose-950/60 hover:bg-rose-200 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
                   : 'bg-gray-100 dark:bg-gray-800 hover:bg-rose-50 hover:text-rose-600 text-gray-600 dark:text-gray-300'
               ]"
-              :title="selectedThread.isUrgent ? 'Déclasser : retirer le statut urgence pour cette conversation' : 'Marquer cette conversation comme urgence prioritaire'"
+              :title="selectedThread.isUrgent ? t('messages.removeUrgent', 'Déclasser : retirer le statut urgence') : t('messages.markUrgent', 'Marquer cette conversation comme urgence')"
               @click="toggleUrgency"
             >
               <UIcon :name="selectedThread.isUrgent ? 'i-lucide-shield-check' : 'i-lucide-alert-triangle'" class="w-3.5 h-3.5" />
-              <span>{{ selectedThread.isUrgent ? 'Retirer Urgence' : 'Marquer Urgence' }}</span>
+              <span>{{ selectedThread.isUrgent ? t('messages.removeUrgent', 'Retirer Urgence') : t('messages.markUrgent', 'Marquer Urgence') }}</span>
             </button>
 
             <!-- Hide / Unhide Chat Button -->
@@ -229,21 +229,21 @@
               v-if="!hiddenThreads.has(selectedThread.id)"
               type="button"
               class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-rose-50 hover:text-rose-600 text-gray-600 dark:text-gray-300 transition-colors"
-              title="Masquer la conversation du tableau de bord (données conservées en base)"
+              :title="t('messages.hideChat', 'Masquer la conversation')"
               @click="archiveConversation"
             >
               <UIcon name="i-lucide-archive" class="w-3.5 h-3.5" />
-              <span>Masquer</span>
+              <span>{{ t('messages.hideChat', 'Masquer') }}</span>
             </button>
             <button
               v-else
               type="button"
               class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors"
-              title="Restaurer la conversation dans la boîte de réception principale"
+              :title="t('messages.unhideChat', 'Restaurer la conversation')"
               @click="unarchiveConversation(selectedThread)"
             >
               <UIcon name="i-lucide-eye" class="w-3.5 h-3.5" />
-              <span>Démasquer / Restaurer</span>
+              <span>{{ t('messages.unhideChat', 'Démasquer / Restaurer') }}</span>
             </button>
           </div>
         </div>
@@ -274,7 +274,7 @@
               <!-- Media Attachment (if present) -->
               <div v-if="msg.imageUrl" class="rounded-lg overflow-hidden border border-white/20 my-2 cursor-pointer" @click="openLightbox(msg.imageUrl)">
                 <img :src="msg.imageUrl" class="w-full max-h-48 object-cover hover:scale-105 transition-transform" />
-                <p class="text-[10px] p-1 bg-black/40 text-center">📸 Cliquez pour agrandir la radiographie</p>
+                <p class="text-[10px] p-1 bg-black/40 text-center">{{ t('messages.clickEnlargeRadio', '📸 Cliquez pour agrandir la radiographie') }}</p>
               </div>
 
               <p class="whitespace-pre-line">{{ msg.content }}</p>
@@ -302,7 +302,7 @@
             <input
               v-model="replyText"
               type="text"
-              placeholder="Tapez votre message pour le patient..."
+              :placeholder="t('messages.typeMessage', 'Tapez votre message pour le patient...')"
               class="flex-grow text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-hidden"
               @keyup.enter="sendReply"
             />
@@ -313,7 +313,7 @@
               @click="sendReply"
             >
               <UIcon name="i-lucide-send" class="w-4 h-4" />
-              <span>Envoyer</span>
+              <span>{{ t('messages.send', 'Envoyer') }}</span>
             </button>
           </div>
         </div>
@@ -322,10 +322,7 @@
       <!-- No Thread Selected State -->
       <div v-else class="lg:col-span-8 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-16 text-center shadow-2xs flex flex-col items-center justify-center">
         <UIcon name="i-lucide-messages-square" class="w-16 h-16 text-gray-300 dark:text-gray-700 mb-3" />
-        <h3 class="text-base font-bold text-gray-900 dark:text-white">Sélectionnez une conversation</h3>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
-          Choisissez une conversation à gauche pour consulter les échanges et prendre la main si nécessaire.
-        </p>
+        <h3 class="text-base font-bold text-gray-900 dark:text-white">{{ t('messages.noConversations', 'Sélectionnez une conversation') }}</h3>
       </div>
     </div>
 
@@ -337,7 +334,7 @@
             <div class="flex items-center justify-between">
               <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
                 <UIcon name="i-lucide-message-circle-plus" class="text-primary-500 w-5 h-5" />
-                Nouvelle Conversation Patient
+                {{ t('messages.modalNewChatTitle', 'Nouvelle Conversation Patient') }}
               </h3>
               <UButton color="gray" variant="ghost" icon="i-lucide-x" size="xs" @click="isNewChatModalOpen = false" />
             </div>
@@ -346,41 +343,41 @@
           <div class="space-y-4 text-xs">
             <!-- Patient Selector Dropdown -->
             <div>
-              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Choisir un patient existant :</label>
+              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">{{ t('messages.selectExistingPatient', 'Choisir un patient existant :') }}</label>
               <select
                 v-model="newChatForm.selectedPatientId"
                 class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
                 @change="onSelectExistingPatient"
               >
-                <option value="">-- Saisie manuelle ou choisir un patient --</option>
+                <option value="">{{ t('messages.manualOrChoose', '-- Saisie manuelle ou choisir un patient --') }}</option>
                 <option v-for="p in patientList" :key="p.id" :value="p.id">
-                  {{ p.first_name }} {{ p.last_name }} ({{ p.phone || 'Sans numéro' }})
+                  {{ p.first_name }} {{ p.last_name }} ({{ p.phone || t('messages.noNumber', 'Sans numéro') }})
                 </option>
               </select>
             </div>
 
             <div>
-              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Nom du contact :</label>
+              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">{{ t('messages.contactName', 'Nom du contact :') }}</label>
               <input
                 v-model="newChatForm.name"
                 type="text"
-                placeholder="e.g. Karim Benali"
+                :placeholder="t('messages.placeholderName', 'e.g. Karim Benali')"
                 class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
               />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Téléphone / Chat ID :</label>
+                <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">{{ t('messages.phoneChatId', 'Téléphone / Chat ID :') }}</label>
                 <input
                   v-model="newChatForm.phone"
                   type="text"
-                  placeholder="e.g. 0555123456 ou -1003937847791"
+                  :placeholder="t('messages.placeholderPhone', 'e.g. 0555123456 ou -1003937847791')"
                   class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
                 />
               </div>
               <div>
-                <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Canal :</label>
+                <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">{{ t('messages.channel', 'Canal :') }}</label>
                 <select
                   v-model="newChatForm.platform"
                   class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
@@ -392,11 +389,11 @@
             </div>
 
             <div>
-              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Premier message :</label>
+              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">{{ t('messages.firstMessage', 'Premier message :') }}</label>
               <textarea
                 v-model="newChatForm.initialMessage"
                 rows="3"
-                placeholder="Bonjour Karim, le Dr. Mokhtar vous contacte concernant votre consultation..."
+                :placeholder="t('messages.placeholderFirstMsg', 'Bonjour...')"
                 class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
               ></textarea>
             </div>
@@ -404,9 +401,9 @@
 
           <template #footer>
             <div class="flex justify-end gap-2">
-              <UButton color="gray" variant="ghost" @click="isNewChatModalOpen = false">Annuler</UButton>
+              <UButton color="gray" variant="ghost" @click="isNewChatModalOpen = false">{{ t('common.cancel', 'Annuler') }}</UButton>
               <UButton color="primary" :disabled="!newChatForm.name || !newChatForm.phone" @click="submitNewChat">
-                Démarrer la conversation
+                {{ t('messages.modalNewChatTitle', 'Démarrer la conversation') }}
               </UButton>
             </div>
           </template>
@@ -439,6 +436,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 definePageMeta({ middleware: 'auth' })
 
+const { t } = useI18n()
 const toast = useToast()
 const api = useApi()
 
@@ -777,13 +775,13 @@ function openLightbox(url: string) {
   isLightboxOpen.value = true
 }
 
-const quickChips = [
-  '⚡ Créneau d\'urgence disponible aujourd\'hui',
-  '📅 Proposer un RDV demain à 10h00',
-  '🩻 Demander une radio panoramique',
-  '💰 Envoyer devis transparent en DZD',
-  '📲 Confirmer la réservation'
-]
+const quickChips = computed(() => [
+  t('messages.chipEmergencyToday', "⚡ Créneau d'urgence disponible aujourd'hui"),
+  t('messages.chipApptTomorrow', "📅 Proposer un RDV demain à 10h00"),
+  t('messages.chipAskRadio', "🩻 Demander une radio panoramique"),
+  t('messages.chipSendDzdQuote', "💰 Envoyer devis transparent en DZD"),
+  t('messages.chipConfirmBooking', "📲 Confirmer la réservation")
+])
 
 function insertChip(chip: string) {
   replyText.value = chip.slice(2).trim()
@@ -842,12 +840,12 @@ function getInitials(name: string) {
 
 function getFilterLabel(filter: string) {
   switch(filter) {
-    case 'all': return 'Toutes'
-    case 'unread': return 'Non lus'
-    case 'urgent': return '🚨 Urgences'
-    case 'human': return 'Prise en main'
-    case 'ai': return 'IA Active'
-    case 'archived': return '📁 Masquées'
+    case 'all': return t('messages.filterAll', 'Toutes')
+    case 'unread': return t('messages.filterUnread', 'Non lus')
+    case 'urgent': return `🚨 ${t('messages.filterUrgent', 'Urgences')}`
+    case 'human': return t('messages.filterHuman', 'Prise en main')
+    case 'ai': return t('messages.filterAi', 'IA Active')
+    case 'archived': return `📁 ${t('messages.filterArchived', 'Masquées')}`
     default: return filter
   }
 }

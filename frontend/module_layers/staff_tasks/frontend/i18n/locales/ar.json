@@ -1,40 +1,34 @@
 {
   "staffTasks": {
-    "title": "مهام فريق العمل",
-    "new": "مهمة جديدة",
-    "empty": "لا توجد مهام حالياً",
-    "task": "المهمة",
-    "assignedTo": "المسؤول عن التنفيذ",
-    "dueDate": "تاريخ الإنجاز",
-    "completed": "مكتملة",
-    "pending": "قيد التنفيذ",
-    "add": "New task",
-    "taskTitle": "Task",
-    "details": "Details",
-    "priority": "Priority",
-    "status": "Status",
-    "assignee": "Assigned to",
-    "filterByStatus": "Filter by status",
-    "all": "All",
-    "delete": "Delete",
-    "deleteTitle": "Delete task",
-    "deleteMessage": "Delete this task? This cannot be undone.",
-    "updateFailed": "Could not update the task.",
-    "saveFailed": "Could not save the task.",
-    "deleteFailed": "Could not delete the task.",
+    "title": "مهام الموظفين",
+    "add": "مهمة جديدة",
+    "taskTitle": "مهمة",
+    "details": "التفاصيل",
+    "priority": "الأولوية",
+    "dueDate": "تاريخ الاستحقاق",
+    "status": "الحالة",
+    "assignee": "مسند إلى",
+    "filterByStatus": "التصفية حسب الحالة",
+    "all": "الكل",
+    "delete": "حذف",
+    "deleteTitle": "حذف المهمة",
+    "deleteMessage": "هل تريد حذف هذه المهمة؟ لا يمكن التراجع عن هذا الإجراء.",
+    "updateFailed": "تعذر تحديث المهمة.",
+    "saveFailed": "تعذر حفظ المهمة.",
+    "deleteFailed": "تعذر حذف المهمة.",
     "statuses": {
-      "open": "Open",
-      "claimed": "Claimed",
-      "done": "Done",
-      "cancelled": "Cancelled"
+      "open": "فتح",
+      "claimed": "تم المطالبة به",
+      "done": "تم",
+      "cancelled": "ملغى"
     },
     "priorities": {
-      "low": "Low",
-      "normal": "Normal",
-      "high": "High"
+      "low": "منخفض",
+      "normal": "طبيعي",
+      "high": "عالية"
     }
   },
   "nav": {
-    "staffTasks": "Staff tasks"
+    "staffTasks": "مهام الموظفين"
   }
 }

@@ -1,84 +1,84 @@
 {
   "periodontogram": {
     "tab": {
-      "label": "Periodontogram"
+      "label": "مخطط الأنسجة الداعمة (البريودونتوجرام)"
     },
     "empty": {
-      "title": "No periodontal exams yet",
-      "description": "Open a new session to record probing depths, bleeding, plaque and the rest of the SEPA metrics.",
-      "cta": "Start exam"
+      "title": "لا توجد فحوصات للثة حتى الآن",
+      "description": "افتح جلسة جديدة لتسجيل أعماق الجيوب، النزيف، اللويحة السنية، وبقية مقاييس SEPA.",
+      "cta": "بدء الفحص"
     },
     "session": {
-      "draftBadge": "Draft in progress",
-      "closedBadge": "Closed session",
-      "recordedAt": "Recorded on {date}",
-      "openDraft": "Open new session",
-      "continueDraft": "Continue draft",
-      "closeTitle": "Close periodontal session",
-      "closeDescription": "Once closed, the session is immutable and appears in history. To make corrections you will need to open a new session.",
-      "closeButton": "Close session",
-      "discardTitle": "Discard draft",
-      "discardDescription": "All data entered in this session will be deleted. This action cannot be undone.",
-      "discardButton": "Discard",
-      "cancel": "Cancel",
-      "closeSession": "Close session",
-      "discardDraft": "Discard draft"
+      "draftBadge": "مسودة قيد الإعداد",
+      "closedBadge": "جلسة مغلقة",
+      "recordedAt": "سُجلت في {date}",
+      "openDraft": "فتح جلسة جديدة",
+      "continueDraft": "متابعة المسودة",
+      "closeTitle": "إغلاق جلسة اللثة",
+      "closeDescription": "بمجرد إغلاق الجلسة، تصبح غير قابلة للتعديل وتظهر في السجل. لإجراء تصحيحات، ستحتاج إلى فتح جلسة جديدة.",
+      "closeButton": "إغلاق الجلسة",
+      "discardTitle": "إلغاء المسودة",
+      "discardDescription": "سيتم حذف جميع البيانات التي تم إدخالها في هذه الجلسة. لا يمكن التراجع عن هذا الإجراء.",
+      "discardButton": "تجاهل",
+      "cancel": "إلغاء",
+      "closeSession": "إغلاق الجلسة",
+      "discardDraft": "إلغاء المسودة"
     },
     "indices": {
-      "bop": "Bleeding",
-      "pi": "Plaque",
-      "calMean": "Mean CAL",
-      "deepPockets": "Pockets ≥5mm"
+      "bop": "نزيف",
+      "pi": "ترسبات جيرية (بلاك)",
+      "calMean": "متوسط مستوى الارتباط السريري (Mean CAL)",
+      "deepPockets": "جيوب لثوية ≥5 مم"
     },
     "saveState": {
-      "saving": "Saving…",
-      "dirty": "Unsaved changes",
-      "saved": "Changes saved"
+      "saving": "جاري الحفظ...",
+      "dirty": "تغييرات غير محفوظة",
+      "saved": "تم حفظ التغييرات"
     },
     "history": {
-      "viewingSession": "Viewing session from {date} (read-only).",
-      "returnToCurrent": "Return to current"
+      "viewingSession": "عرض الجلسة من تاريخ {date} (للقراءة فقط).",
+      "returnToCurrent": "العودة إلى الحالي"
     },
     "arch": {
-      "upper": "Upper",
-      "lower": "Lower",
-      "palatal": "Palatal",
-      "lingual": "Lingual",
-      "vestibular": "Vestibular",
-      "probing": "Probing",
-      "margin": "Margin",
-      "bleeding": "Bleeding",
-      "plaque": "Plaque",
-      "probingTitle": "{code} probing (0–15 mm)",
-      "marginTitle": "{code} gingival margin (-5 to 10 mm)",
-      "plaqueTitle": "{code} plaque (click to toggle)",
-      "bleedingTitle": "{code} bleeding (click to toggle)",
-      "implant": "Implant",
-      "implantToggleOn": "Implant (click to remove)",
-      "implantToggleOff": "Click to mark as implant",
-      "mobility": "Mobility",
-      "mobilityTitle": "Click to change mobility (0–3)",
-      "prognosis": "Prognosis",
-      "prognosisTitle": "Good / Fair / Doubtful / Hopeless",
-      "furcaV": "Furca V",
-      "furcaVTitle": "Vestibular furcation (0/I/II/III)",
-      "furcaLP": "Furca L/P",
-      "furcaLPTitle": "Lingual/palatal furcation (0/I/II/III)",
-      "gingivalWidth": "Gingival width",
-      "siteMarkerAria": "Site {code}, probing {depth}"
+      "upper": "علوي",
+      "lower": "سفلي",
+      "palatal": "حنكي (باتجاه الحنك)",
+      "lingual": "لساني",
+      "vestibular": "دهليزي (Vestibular)",
+      "probing": "قياس الجيوب (Probing)",
+      "margin": "الهامش",
+      "bleeding": "نزيف",
+      "plaque": "ترسبات جيرية (بلاك)",
+      "probingTitle": "قياس الجيوب {code} (0-15 مم)",
+      "marginTitle": "{code} حافة اللثة (-5 إلى 10 مم)",
+      "plaqueTitle": "{code} لويحة (اضغط للتبديل)",
+      "bleedingTitle": "{code} نزيف (انقر للتبديل)",
+      "implant": "زرعة سنية",
+      "implantToggleOn": "زرعة سنية (انقر للإزالة)",
+      "implantToggleOff": "انقر لتحديدها كزرعة سنية",
+      "mobility": "حركية",
+      "mobilityTitle": "انقر لتغيير درجة الحركة (0–3)",
+      "prognosis": "التنبؤ الطبي (Prognosis)",
+      "prognosisTitle": "جيد / مقبول / مشكوك فيه / ميئوس منه",
+      "furcaV": "تفرع الجذر (الدرجة الخامسة)",
+      "furcaVTitle": "تشعب جذور دهليزي (0/I/II/III)",
+      "furcaLP": "منطقة تشعب الجذور (Furca L/P)",
+      "furcaLPTitle": "تشعب الجذور اللساني/الحنكي (0/I/II/III)",
+      "gingivalWidth": "عرض اللثة",
+      "siteMarkerAria": "الموقع {code}، عمق الجيب {depth}"
     },
     "chart": {
-      "ariaLabel": "Periodontogram — upper and lower arches"
+      "ariaLabel": "مخطط اللثة — الفك العلوي والفك السفلي"
     },
     "indicesBanner": {
-      "observationsPlaceholder": "Examination notes…",
-      "noteLabel": "Note (optional)"
+      "observationsPlaceholder": "ملاحظات الفحص…",
+      "noteLabel": "ملاحظة (اختياري)"
     },
-    "loading": "Loading periodontogram…",
+    "loading": "جاري تحميل مخطط اللثة...",
     "errors": {
-      "loadFailed": "Could not load the periodontogram.",
-      "saveFailed": "Could not save the change.",
-      "checkConnection": "Check your connection and try again."
+      "loadFailed": "تعذر تحميل مخطط اللثة.",
+      "saveFailed": "تعذر حفظ التغيير.",
+      "checkConnection": "تحقق من اتصالك وحاول مجدداً."
     }
   }
 }

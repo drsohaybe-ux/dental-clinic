@@ -1,40 +1,40 @@
 {
   "nav": {
-    "accountingExport": "Accountant export"
+    "accountingExport": "تصدير للمحاسب"
   },
   "accountingExport": {
-    "title": "Accountant export",
-    "subtitle": "Download the period's invoices and payments to hand off to your accountant.",
-    "period": "Period",
-    "from": "From",
-    "to": "To",
+    "title": "تصدير للمحاسب",
+    "subtitle": "قم بتحميل فواتير ومدفوعات الفترة لتسليمها لمحاسبك.",
+    "period": "الفترة",
+    "from": "من",
+    "to": "إلى",
     "presets": {
-      "currentMonth": "Current month",
-      "previousMonth": "Previous month",
-      "currentQuarter": "Current quarter",
-      "previousQuarter": "Previous quarter",
-      "yearToDate": "Year to date",
-      "custom": "Custom"
+      "currentMonth": "الشهر الحالي",
+      "previousMonth": "الشهر السابق",
+      "currentQuarter": "الربع الحالي",
+      "previousQuarter": "الربع السابق",
+      "yearToDate": "منذ بداية العام حتى الآن",
+      "custom": "مخصص"
     },
     "actions": {
-      "preview": "Preview",
-      "download": "Download (.zip)"
+      "preview": "معاينة",
+      "download": "تنزيل (.zip)"
     },
     "counters": {
-      "invoices": "Invoices",
-      "payments": "Payments",
-      "base": "Base",
-      "total": "Total"
+      "invoices": "الفواتير",
+      "payments": "المدفوعات",
+      "base": "قاعدة",
+      "total": "الإجمالي"
     },
     "cols": {
-      "numero": "Number",
-      "fecha_emision": "Date",
-      "cliente": "Customer",
-      "nif": "Tax ID",
-      "base": "Base",
-      "cuota_iva": "VAT",
-      "total": "Total",
-      "estado": "Status"
+      "numero": "رقم",
+      "fecha_emision": "التاريخ",
+      "cliente": "العميل",
+      "nif": "الرقم الضريبي",
+      "base": "قاعدة",
+      "cuota_iva": "ضريبة القيمة المضافة",
+      "total": "الإجمالي",
+      "estado": "الحالة"
     }
   }
 }

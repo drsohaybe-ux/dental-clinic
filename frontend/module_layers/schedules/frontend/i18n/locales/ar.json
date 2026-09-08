@@ -1,88 +1,88 @@
 {
   "schedules": {
     "nav": {
-      "clinicHours": "Clinic hours",
-      "professionalSchedules": "Professional schedules"
+      "clinicHours": "ساعات عمل العيادة",
+      "professionalSchedules": "جداول المواعيد المهنية"
     },
     "settingsCards": {
-      "clinicHoursTitle": "Clinic hours",
-      "clinicHoursDescription": "Define the clinic's weekly opening hours and special dates (holidays, reduced hours).",
-      "professionalHoursTitle": "Professional schedules",
-      "professionalHoursDescription": "Set individual schedules for each professional and manage vacations or other unavailable periods."
+      "clinicHoursTitle": "ساعات عمل العيادة",
+      "clinicHoursDescription": "حدد ساعات العمل الأسبوعية للعيادة والتواريخ الخاصة (العطلات، ساعات العمل المخفضة).",
+      "professionalHoursTitle": "جداول المواعيد المهنية",
+      "professionalHoursDescription": "قم بتعيين جداول زمنية فردية لكل مهني وإدارة الإجازات أو فترات عدم التوفر الأخرى."
     },
     "clinicHours": {
-      "title": "Clinic hours",
-      "subtitle": "Define when the clinic is open each day of the week.",
-      "weeklyTemplate": "Weekly template",
-      "overrides": "Special dates",
-      "addOverride": "Add special date",
-      "editOverride": "Edit special date",
-      "save": "Save changes",
-      "saved": "Schedule updated",
-      "savedError": "Failed to save schedule"
+      "title": "ساعات عمل العيادة",
+      "subtitle": "حدد مواعيد عمل العيادة لكل يوم من أيام الأسبوع.",
+      "weeklyTemplate": "قالب أسبوعي",
+      "overrides": "تواريخ خاصة",
+      "addOverride": "إضافة تاريخ خاص",
+      "editOverride": "تعديل التاريخ الخاص",
+      "save": "حفظ التغييرات",
+      "saved": "تم تحديث الجدول",
+      "savedError": "فشل حفظ الجدول الزمني"
     },
     "professionalHours": {
-      "title": "Professional schedules",
-      "selectProfessional": "Select a professional",
-      "weeklyTemplate": "Weekly schedule",
-      "overrides": "Absences and special hours",
-      "addOverride": "Add absence",
-      "editOverride": "Edit absence",
-      "save": "Save changes",
-      "saved": "Schedule updated"
+      "title": "جداول المواعيد المهنية",
+      "selectProfessional": "اختر ممارساً صحياً",
+      "weeklyTemplate": "الجدول الأسبوعي",
+      "overrides": "الغيابات وساعات العمل الخاصة",
+      "addOverride": "إضافة غياب",
+      "editOverride": "تعديل الغياب",
+      "save": "حفظ التغييرات",
+      "saved": "تم تحديث الجدول"
     },
     "weekday": {
-      "0": "Monday",
-      "1": "Tuesday",
-      "2": "Wednesday",
-      "3": "Thursday",
-      "4": "Friday",
-      "5": "Saturday",
-      "6": "Sunday",
-      "closed": "Closed",
-      "addShift": "Add shift",
-      "removeShift": "Remove shift",
-      "start": "Start",
-      "end": "End"
+      "0": "الاثنين",
+      "1": "الثلاثاء",
+      "2": "الأربعاء",
+      "3": "الخميس",
+      "4": "الجمعة",
+      "5": "السبت",
+      "6": "الأحد",
+      "closed": "مغلق",
+      "addShift": "إضافة وردية عمل",
+      "removeShift": "حذف النوبة",
+      "start": "بدء",
+      "end": "نهاية"
     },
     "overrides": {
-      "startDate": "Start date",
-      "endDate": "End date",
-      "kind": "Type",
-      "reason": "Reason",
-      "reasonPlaceholder": "For example: Christmas, conference...",
-      "closed": "Closed",
-      "customHours": "Custom hours",
-      "unavailable": "Unavailable",
-      "noOverrides": "No special dates scheduled",
-      "delete": "Delete",
-      "confirmDelete": "Delete this period?",
-      "add": "Add",
-      "save": "Save",
-      "cancel": "Cancel"
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "kind": "النوع",
+      "reason": "السبب",
+      "reasonPlaceholder": "على سبيل المثال: عيد الميلاد، مؤتمر...",
+      "closed": "مغلق",
+      "customHours": "ساعات مخصصة",
+      "unavailable": "غير متاح",
+      "noOverrides": "لا توجد تواريخ خاصة مجدولة",
+      "delete": "حذف",
+      "confirmDelete": "هل تريد حذف هذه الفترة؟",
+      "add": "إضافة",
+      "save": "حفظ",
+      "cancel": "إلغاء"
     },
     "analytics": {
-      "occupancyTitle": "Occupancy by cabinet",
-      "utilizationTitle": "Utilization by professional",
-      "peakHoursTitle": "Peak hours",
-      "bookedMinutes": "Booked minutes",
-      "availableMinutes": "Available minutes",
-      "rate": "Occupancy",
-      "noData": "No data in the selected range"
+      "occupancyTitle": "نسبة الإشغال حسب العيادة",
+      "utilizationTitle": "نسبة الاستخدام حسب المختص",
+      "peakHoursTitle": "ساعات الذروة",
+      "bookedMinutes": "الدقائق المحجوزة",
+      "availableMinutes": "الدقائق المتاحة",
+      "rate": "نسبة الإشغال",
+      "noData": "لا توجد بيانات في النطاق المحدد"
     },
     "availability": {
-      "clinicClosed": "Clinic closed",
-      "professionalOff": "Professional unavailable",
-      "outsideHours": "Outside configured hours",
-      "confirmOutside": "This slot is outside working hours. Create the appointment anyway?",
-      "confirm": "Create anyway",
-      "cancel": "Cancel"
+      "clinicClosed": "العيادة مغلقة",
+      "professionalOff": "الطبيب غير متاح",
+      "outsideHours": "خارج ساعات العمل المحددة",
+      "confirmOutside": "هذا الموعد خارج ساعات العمل. هل ترغب في إنشاء الموعد على أي حال؟",
+      "confirm": "إنشاء على أي حال",
+      "cancel": "إلغاء"
     },
     "onboarding": {
-      "hoursLabel": "Clinic hours",
-      "hoursDescription": "The agenda is currently open 24/7. Set your real opening hours.",
-      "presetSplit": "Mon–Fri 9–14 & 16–20",
-      "presetContinuous": "Mon–Fri 9–18"
+      "hoursLabel": "ساعات عمل العيادة",
+      "hoursDescription": "جدول المواعيد مفتوح حالياً على مدار الساعة طوال أيام الأسبوع. يرجى تحديد ساعات العمل الفعلية.",
+      "presetSplit": "الاثنين - الجمعة 9-14 و 16-20",
+      "presetContinuous": "الاثنين–الجمعة 9–18"
     }
   }
 }

@@ -150,7 +150,7 @@ onMounted(refresh)
       v-if="data"
       class="flex justify-between items-center text-sm pt-4"
     >
-      <span>{{ data.total }} registros</span>
+      <span>{{ data.total }} {{ t('common.records', 'registros') }}</span>
       <div class="flex gap-2">
         <UButton
           :disabled="page <= 1"

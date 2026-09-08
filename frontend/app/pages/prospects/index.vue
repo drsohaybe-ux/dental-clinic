@@ -5,10 +5,10 @@
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
           <UIcon name="i-lucide-user-plus" class="text-primary-500 w-7 h-7" />
-          Prospects & Leads Telegram / WhatsApp
+          {{ t('prospects.title', 'Prospects & Leads Telegram / WhatsApp') }}
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Contacts entrants auto-enregistrés par l'IA n8n en attente de confirmation de consultation.
+          {{ t('prospects.subtitle', "Contacts entrants auto-enregistrés par l'IA n8n en attente de confirmation de consultation.") }}
         </p>
       </div>
 
@@ -19,7 +19,7 @@
           @click="isCreateModalOpen = true"
         >
           <UIcon name="i-lucide-plus" class="w-4 h-4" />
-          <span>Ajouter un Prospect</span>
+          <span>{{ t('prospects.addProspect', 'Ajouter un Prospect') }}</span>
         </button>
       </div>
     </div>
@@ -28,7 +28,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 shadow-2xs">
         <div class="flex items-center justify-between text-xs text-gray-500 font-semibold">
-          <span>Total Prospects</span>
+          <span>{{ t('prospects.totalProspects', 'Total Prospects') }}</span>
           <UIcon name="i-lucide-users" class="w-4 h-4 text-primary-500" />
         </div>
         <p class="text-2xl font-bold text-gray-900 dark:text-white mt-2">{{ leads.length }}</p>
@@ -36,7 +36,7 @@
 
       <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 shadow-2xs">
         <div class="flex items-center justify-between text-xs text-gray-500 font-semibold">
-          <span>Nouveaux Inscrits</span>
+          <span>{{ t('prospects.newLeads', 'Nouveaux Inscrits') }}</span>
           <UIcon name="i-lucide-sparkles" class="w-4 h-4 text-amber-500" />
         </div>
         <p class="text-2xl font-bold text-amber-600 mt-2">{{ countByStage('new') }}</p>
@@ -44,7 +44,7 @@
 
       <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 shadow-2xs">
         <div class="flex items-center justify-between text-xs text-gray-500 font-semibold">
-          <span>Relances Envoyées</span>
+          <span>{{ t('prospects.followupsSent', 'Relances Envoyées') }}</span>
           <UIcon name="i-lucide-send" class="w-4 h-4 text-blue-500" />
         </div>
         <p class="text-2xl font-bold text-blue-600 mt-2">{{ countByStage('Relance Envoyée') }}</p>
@@ -52,7 +52,7 @@
 
       <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 shadow-2xs">
         <div class="flex items-center justify-between text-xs text-gray-500 font-semibold">
-          <span>Convertis en Patients</span>
+          <span>{{ t('prospects.convertedPatients', 'Convertis en Patients') }}</span>
           <UIcon name="i-lucide-check-circle" class="w-4 h-4 text-emerald-500" />
         </div>
         <p class="text-2xl font-bold text-emerald-600 mt-2">{{ countByStage('converted') }}</p>
@@ -68,7 +68,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Rechercher par nom ou numéro..."
+            :placeholder="t('prospects.searchPlaceholder', 'Rechercher par nom ou numéro...')"
             class="w-full pl-9 pr-3 py-1.5 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-hidden"
           />
         </div>
@@ -78,11 +78,11 @@
             v-model="stageFilter"
             class="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-200"
           >
-            <option value="all">Toutes les étapes</option>
-            <option value="new">Nouveau (new)</option>
-            <option value="Relance Envoyée">Relance Envoyée</option>
-            <option value="RDV Fixé">RDV Fixé</option>
-            <option value="converted">Converti en Patient</option>
+            <option value="all">{{ t('prospects.allStages', 'Toutes les étapes') }}</option>
+            <option value="new">{{ t('prospects.stageNew', 'Nouveau (new)') }}</option>
+            <option value="Relance Envoyée">{{ t('prospects.stageFollowup', 'Relance Envoyée') }}</option>
+            <option value="RDV Fixé">{{ t('prospects.stageBooked', 'RDV Fixé') }}</option>
+            <option value="converted">{{ t('prospects.stageConverted', 'Converti en Patient') }}</option>
           </select>
         </div>
       </div>
@@ -92,13 +92,13 @@
         <table class="w-full text-left text-xs">
           <thead class="bg-gray-50 dark:bg-gray-800/80 text-gray-500 font-semibold border-b border-gray-100 dark:border-gray-800">
             <tr>
-              <th class="p-4">Nom du Prospect</th>
-              <th class="p-4">Numéro de Téléphone</th>
-              <th class="p-4">Canal d'origine</th>
-              <th class="p-4">Statut / Étape</th>
-              <th class="p-4">Notes cliniques / IA</th>
-              <th class="p-4">Date de réception</th>
-              <th class="p-4 text-right">Actions</th>
+              <th class="p-4">{{ t('prospects.colName', 'Nom du Prospect') }}</th>
+              <th class="p-4">{{ t('prospects.colPhone', 'Numéro de Téléphone') }}</th>
+              <th class="p-4">{{ t('prospects.colSource', "Canal d'origine") }}</th>
+              <th class="p-4">{{ t('prospects.colStage', 'Statut / Étape') }}</th>
+              <th class="p-4">{{ t('prospects.colNotes', 'Notes cliniques / IA') }}</th>
+              <th class="p-4">{{ t('prospects.colDate', 'Date de réception') }}</th>
+              <th class="p-4 text-right">{{ t('prospects.colActions', 'Actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -136,11 +136,11 @@
                     @click="convertToPatient(lead)"
                   >
                     <UIcon :name="isConvertingId === lead.id ? 'i-lucide-loader-2' : 'i-lucide-user-check'" :class="['w-3.5 h-3.5', isConvertingId === lead.id ? 'animate-spin' : '']" />
-                    <span>Convertir en Patient</span>
+                    <span>{{ t('prospects.btnConvert', 'Convertir en Patient') }}</span>
                   </button>
                   <div v-else class="flex items-center gap-2">
                     <UBadge color="green" variant="subtle" size="xs">
-                      Patient Confirmé
+                      {{ t('prospects.badgeConfirmed', 'Patient Confirmé') }}
                     </UBadge>
                     <UButton
                       v-if="lead.patientId"
@@ -150,7 +150,7 @@
                       size="xs"
                       icon="i-lucide-external-link"
                     >
-                      Voir Fiche
+                      {{ t('prospects.btnViewFile', 'Voir Fiche') }}
                     </UButton>
                   </div>
                 </div>
@@ -169,7 +169,7 @@
             <div class="flex items-center justify-between">
               <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
                 <UIcon name="i-lucide-user-plus" class="text-primary-500 w-5 h-5" />
-                Nouveau Prospect Manuel
+                {{ t('prospects.modalTitle', 'Nouveau Prospect Manuel') }}
               </h3>
               <UButton color="gray" variant="ghost" icon="i-lucide-x" size="xs" @click="isCreateModalOpen = false" />
             </div>
@@ -177,27 +177,27 @@
 
           <div class="space-y-4 text-xs">
             <div>
-              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Nom complet :</label>
+              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">{{ t('prospects.labelFullName', 'Nom complet :') }}</label>
               <input
                 v-model="newLeadForm.name"
                 type="text"
-                placeholder="e.g. Karim Benali"
+                :placeholder="t('prospects.placeholderName', 'e.g. Karim Benali')"
                 class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
               />
             </div>
 
             <div>
-              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Numéro de téléphone :</label>
+              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">{{ t('prospects.labelPhone', 'Numéro de téléphone :') }}</label>
               <input
                 v-model="newLeadForm.phone"
                 type="text"
-                placeholder="e.g. 0555123456"
+                :placeholder="t('prospects.placeholderPhone', 'e.g. 0555123456')"
                 class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
               />
             </div>
 
             <div>
-              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Canal de contact :</label>
+              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">{{ t('prospects.labelChannel', 'Canal de contact :') }}</label>
               <select
                 v-model="newLeadForm.source"
                 class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
@@ -209,11 +209,11 @@
             </div>
 
             <div>
-              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">Notes / Motif :</label>
+              <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1">{{ t('prospects.labelNotes', 'Notes / Motif :') }}</label>
               <textarea
                 v-model="newLeadForm.notes"
                 rows="3"
-                placeholder="Motif de consultation, questions sur les tarifs en DZD..."
+                :placeholder="t('prospects.notesPlaceholder', 'Motif de consultation, questions sur les tarifs en DZD...')"
                 class="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
               ></textarea>
             </div>
@@ -221,8 +221,8 @@
 
           <template #footer>
             <div class="flex justify-end gap-2">
-              <UButton color="gray" variant="ghost" @click="isCreateModalOpen = false">Annuler</UButton>
-              <UButton color="primary" @click="submitNewLead">Enregistrer le Prospect</UButton>
+              <UButton color="gray" variant="ghost" @click="isCreateModalOpen = false">{{ t('prospects.btnCancel', 'Annuler') }}</UButton>
+              <UButton color="primary" @click="submitNewLead">{{ t('prospects.btnSave', 'Enregistrer le Prospect') }}</UButton>
             </div>
           </template>
         </UCard>
@@ -236,6 +236,7 @@ import { ref, computed, onMounted } from 'vue'
 
 definePageMeta({ middleware: 'auth' })
 
+const { t } = useI18n()
 const api = useApi()
 const toast = useToast()
 

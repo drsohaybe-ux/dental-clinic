@@ -14,7 +14,7 @@ const open = ref(false)
     :aria-label="t('help.openHelp', 'Aide')"
     @click="open = true"
   >
-    <span class="hidden sm:inline">Aide</span>
+    <span class="hidden sm:inline">{{ t('help.openHelp', 'Aide') }}</span>
   </UButton>
 
   <USlideover
@@ -28,7 +28,7 @@ const open = ref(false)
           <!-- Top Header with Close Button -->
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-              Assistance & Support IA
+              {{ t('help.title', 'Assistance & Support IA') }}
             </span>
             <UButton
               variant="ghost"
@@ -49,24 +49,24 @@ const open = ref(false)
                 </div>
                 <div>
                   <h3 class="font-bold text-sm text-white">
-                    Responsable Technique IA
+                    {{ t('help.techLead', 'Responsable Technique IA') }}
                   </h3>
                   <div class="flex items-center gap-1.5 mt-0.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span class="text-[11px] font-medium text-emerald-400">Disponible & Connecté</span>
+                    <span class="text-[11px] font-medium text-emerald-400">{{ t('help.statusConnected', 'Disponible & Connecté') }}</span>
                   </div>
                 </div>
               </div>
             </div>
             <p class="text-xs text-gray-300 leading-relaxed pt-1">
-              Une question, un blocage, ou besoin d'ajouter un nouveau docteur ou cabinet ? Vous pouvez me joindre directement ci-dessous.
+              {{ t('help.desc', "Une question, un blocage, ou besoin d'ajouter un nouveau docteur ou cabinet ? Vous pouvez me joindre directement ci-dessous.") }}
             </p>
           </div>
 
           <!-- Section: CONTACT DIRECT -->
           <div>
             <h4 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-3">
-              CONTACT DIRECT
+              {{ t('help.directContact', 'CONTACT DIRECT') }}
             </h4>
 
             <div class="space-y-3">
@@ -83,10 +83,10 @@ const open = ref(false)
                   </div>
                   <div>
                     <h5 class="font-bold text-sm text-gray-900 dark:text-white">
-                      WhatsApp Direct
+                      {{ t('help.whatsappDirect', 'WhatsApp Direct') }}
                     </h5>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      Réponse rapide en message ou appel vocal
+                      {{ t('help.whatsappDesc', 'Réponse rapide en message ou appel vocal') }}
                     </p>
                   </div>
                 </div>
@@ -104,10 +104,10 @@ const open = ref(false)
                   </div>
                   <div>
                     <h5 class="font-bold text-sm text-gray-900 dark:text-white">
-                      Appel Téléphonique
+                      {{ t('help.phoneCall', 'Appel Téléphonique') }}
                     </h5>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      Assistance d'urgence en direct
+                      {{ t('help.phoneDesc', "Assistance d'urgence en direct") }}
                     </p>
                   </div>
                 </div>
@@ -120,24 +120,24 @@ const open = ref(false)
           <div class="border border-gray-100 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl p-4 shadow-2xs">
             <div class="flex items-center gap-2 text-xs font-bold text-gray-900 dark:text-white mb-2.5">
               <UIcon name="i-lucide-info" class="w-4 h-4 text-[#0084ff] shrink-0" />
-              <span>Ce que je gère pour vous à distance :</span>
+              <span>{{ t('help.featuresTitle', 'Ce que je gère pour vous à distance :') }}</span>
             </div>
             <ul class="text-xs text-gray-600 dark:text-gray-300 space-y-2 pl-1">
               <li class="flex items-start gap-2">
                 <span class="text-[#0084ff] font-bold">•</span>
-                <span>Mise à jour des tarifs et soins en DZD</span>
+                <span>{{ t('help.feature1', 'Mise à jour des tarifs et soins en DZD') }}</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="text-[#0084ff] font-bold">•</span>
-                <span>Ajout de nouveaux praticiens (jusqu'à 5 docteurs)</span>
+                <span>{{ t('help.feature2', "Ajout de nouveaux praticiens (jusqu'à 5 docteurs)") }}</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="text-[#0084ff] font-bold">•</span>
-                <span>Optimisation des prompts et messages automatiques</span>
+                <span>{{ t('help.feature3', 'Optimisation des prompts et messages automatiques') }}</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="text-[#0084ff] font-bold">•</span>
-                <span>Maintenance des flux n8n et synchronisation WhatsApp</span>
+                <span>{{ t('help.feature4', 'Maintenance des flux n8n et synchronisation WhatsApp') }}</span>
               </li>
             </ul>
           </div>
@@ -146,7 +146,7 @@ const open = ref(false)
         <!-- Footer -->
         <div class="pt-6 text-center">
           <p class="text-[11px] text-gray-400 dark:text-gray-500 font-medium">
-            DentalPin AI Portal • Cabinet Dentaire Dr. Mokhtar
+            {{ t('help.portalFooter', 'DentalPin AI Portal • Cabinet Dentaire Dr. Mokhtar') }}
           </p>
         </div>
       </div>

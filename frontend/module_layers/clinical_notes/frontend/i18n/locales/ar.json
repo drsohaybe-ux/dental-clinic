@@ -1,133 +1,124 @@
 {
   "clinicalNotes": {
-    "title": "الملاحظات السريرية",
-    "new": "ملاحظة سريرية جديدة",
-    "empty": "لا توجد ملاحظات سريرية مسجلة",
-    "date": "التاريخ",
-    "doctor": "الطبيب",
-    "content": "نص الملاحظة السريرية",
-    "save": "حفظ الملاحظة",
-    "edit": "تعديل",
-    "delete": "حذف",
     "types": {
-      "administrative": "Administrative",
-      "diagnosis": "Diagnosis",
-      "treatment": "Treatment",
-      "treatment_plan": "Plan",
-      "appointment_clinical": "Clinical",
-      "appointment_administrative": "Administrative"
+      "administrative": "إداري",
+      "diagnosis": "التشخيص",
+      "treatment": "علاج",
+      "treatment_plan": "خطة العلاج",
+      "appointment_clinical": "سريري",
+      "appointment_administrative": "إداري"
     },
     "appointment": {
-      "addByType": "Add {label} note",
-      "empty": "No notes on this appointment yet. Use the buttons above to add one."
+      "addByType": "إضافة ملاحظة لـ {label}",
+      "empty": "لا توجد ملاحظات على هذا الموعد بعد. استخدم الأزرار أعلاه لإضافة ملاحظة."
     },
     "feed": {
-      "filterLabel": "Filters",
-      "filterAll": "All",
-      "filterClear": "Clear filters",
-      "filterStatus": "Showing {n} of {total} types",
-      "addAdministrative": "Administrative note",
-      "loadMore": "Load more",
+      "filterLabel": "عوامل التصفية",
+      "filterAll": "الكل",
+      "filterClear": "مسح الفلاتر",
+      "filterStatus": "عرض {n} من إجمالي {total} من الأنواع",
+      "addAdministrative": "ملاحظة إدارية",
+      "loadMore": "تحميل المزيد",
       "empty": {
-        "title": "No notes yet",
-        "help": "Administrative, diagnosis and treatment notes will show up here in chronological order."
+        "title": "لا توجد ملاحظات بعد",
+        "help": "ستظهر الملاحظات الإدارية والتشخيصية وملاحظات العلاج هنا بترتيب زمني."
       }
     },
     "diagnosisSidebar": {
-      "title": "Notes",
-      "addNote": "Add note",
-      "empty": "No notes in this category."
+      "title": "ملاحظات",
+      "addNote": "إضافة ملاحظة",
+      "empty": "لا توجد ملاحظات في هذه الفئة."
     },
     "treatmentButton": {
-      "title": "Treatment notes",
-      "add": "Add note",
-      "empty": "No notes on this treatment yet.",
-      "aria": "Treatment notes ({n})"
+      "title": "ملاحظات العلاج",
+      "add": "إضافة ملاحظة",
+      "empty": "لا توجد ملاحظات على هذه المعالجة بعد.",
+      "aria": "ملاحظات العلاج ({n})"
     },
     "timeline": {
-      "addPlanNote": "Plan note",
-      "empty": "No notes yet.",
-      "emptyForFilter": "No notes match the filter.",
+      "addPlanNote": "ملاحظة الخطة",
+      "empty": "لا توجد ملاحظات بعد.",
+      "emptyForFilter": "لا توجد ملاحظات تطابق عامل التصفية.",
       "source": {
-        "plan": "Plan",
-        "treatment": "Treatment",
-        "visit": "Visit"
+        "plan": "خطة العلاج",
+        "treatment": "علاج",
+        "visit": "زيارة"
       }
     },
     "byPlan": {
-      "empty": "This patient has no plan-linked clinical notes yet.",
-      "planNotesLabel": "Plan notes",
-      "unknownTreatment": "Treatment",
-      "noNotesForTreatment": "No notes on this treatment yet."
+      "empty": "لا يملك هذا المريض ملاحظات سريرية مرتبطة بخطة علاجية حتى الآن.",
+      "planNotesLabel": "ملاحظات الخطة",
+      "unknownTreatment": "علاج",
+      "noNotesForTreatment": "لا توجد ملاحظات على هذه المعالجة بعد."
     },
     "composer": {
-      "placeholder": "Write the note…",
-      "templates": "Templates",
-      "attach": "Attach photo or document",
-      "bindToTooth": "Attach to tooth {n}"
+      "placeholder": "اكتب الملاحظة...",
+      "templates": "القوالب",
+      "attach": "إرفاق صورة أو مستند",
+      "bindToTooth": "إرفاق بالسن {n}"
     },
     "linked": {
-      "tooth": "Tooth {n}",
-      "treatment": "Treatment",
-      "treatmentOnTooth": "{label} (tooth {n})",
-      "plan": "Plan",
-      "planNamed": "Plan: {label}"
+      "tooth": "السن {n}",
+      "treatment": "علاج",
+      "treatmentOnTooth": "{label} (السن {n})",
+      "plan": "خطة العلاج",
+      "planNamed": "الخطة: {label}"
     },
     "actions": {
-      "showMore": "Show more",
-      "showLess": "Show less",
-      "openLinked": "Open context"
+      "showMore": "عرض المزيد",
+      "showLess": "عرض أقل",
+      "openLinked": "فتح السياق"
     },
     "author": {
-      "unknown": "Unknown author"
+      "unknown": "مؤلف غير معروف"
     },
     "time": {
-      "justNow": "just now",
-      "minutesAgo": "{n} min ago",
-      "hoursAgo": "{n} h ago",
-      "daysAgo": "{n} d ago"
+      "justNow": "الآن",
+      "minutesAgo": "منذ {n} دقيقة",
+      "hoursAgo": "منذ {n} ساعة",
+      "daysAgo": "منذ {n} يوم"
     },
     "toasts": {
-      "saved": "Note saved",
-      "deleted": "Note deleted",
-      "saveFailed": "Could not save the note"
+      "saved": "تم حفظ الملاحظة",
+      "deleted": "تم حذف الملاحظة",
+      "saveFailed": "تعذر حفظ الملاحظة"
     },
     "confirms": {
-      "delete": "Delete this note? Recovery requires contacting support."
+      "delete": "هل تريد حذف هذه الملاحظة؟ استعادتها تتطلب التواصل مع الدعم الفني."
     },
     "templates": {
       "endo": {
-        "singleVisit": "Endodontics (single visit)",
-        "multiVisit": "Endodontics (multi visit)"
+        "singleVisit": "علاج عصب (جلسة واحدة)",
+        "multiVisit": "علاج عصب (زيارات متعددة)"
       },
       "perio": {
-        "scaling": "Scaling / RAR"
+        "scaling": "تنظيف الجير / كشط وتنعيم الجذور"
       },
       "implant": {
-        "placement": "Implant placement"
+        "placement": "إجراء زرعة سنية"
       },
       "diagnosis": {
-        "caries": "Caries",
-        "periapical": "Periapical lesion"
+        "caries": "تسوس",
+        "periapical": "آفة حول ذروة السن"
       },
       "admin": {
-        "phoneCall": "Patient phone call",
-        "reschedule": "Reschedule request"
+        "phoneCall": "اتصال هاتفي مع المريض",
+        "reschedule": "طلب إعادة جدولة"
       },
       "general": {
-        "followUp": "General follow-up"
+        "followUp": "متابعة عامة"
       }
     },
     "templateBodies": {
-      "endo_single_visit": "Diagnosis: \nAnesthesia: \nCanals located: \nWorking length: \nObturation: \nPost-op: ",
-      "endo_multi_visit": "Session: \nCanals worked: \nIntracanal medication: \nNext appointment: ",
-      "perio_scaling": "Quadrants treated: \nProbing depth: \nBleeding on probing: \nHygiene instructions: ",
-      "implant_placement": "Implant (brand / diameter / length): \nFinal torque (Ncm): \nPrimary stability: \nGraft: \nPost-op: ",
-      "diagnosis_caries": "Finding: caries \nDepth: \nSymptoms: \nVitality test: \nSuggested treatment: ",
-      "diagnosis_periapical": "Periapical lesion \nTooth: \nX-ray: \nTests (percussion, palpation): \nDiagnosis: ",
-      "admin_phone_call": "Patient call: \nReason: \nAction taken: \nFollow-up: ",
-      "admin_reschedule": "Reschedule request: \nCurrent date: \nNew proposal: ",
-      "general_follow_up": "Findings: \nProcedure performed: \nPatient instructions: "
+      "endo_single_visit": "التشخيص: \nالتخدير: \nالأقنية المكتشفة: \nطول العمل: \nالحشو (Obturation): \nمتابعة ما بعد الإجراء: ",
+      "endo_multi_visit": "الجلسة: \nالقنوات المعالجة: \nدواء داخل القناة: \nالموعد القادم: ",
+      "perio_scaling": "الأرباع المعالجة: \nعمق السبر: \nالنزف عند السبر: \nإرشادات العناية الفموية: ",
+      "implant_placement": "الزرعة السنية (العلامة التجارية / القطر / الطول): \nعزم الدوران النهائي (Ncm): \nالثبات الأولي: \nالطعم العظمي: \nما بعد الجراحة: ",
+      "diagnosis_caries": "التشخيص: تسوس \nالعمق: \nالأعراض: \nاختبار الحيوية: \nالعلاج المقترح: ",
+      "diagnosis_periapical": "آفة ذروية \nالسن: \nصورة الأشعة: \nالاختبارات (القرع، الجس): \nالتشخيص: ",
+      "admin_phone_call": "اتصال المريض: \nالسبب: \nالإجراء المتخذ: \nالمتابعة: ",
+      "admin_reschedule": "طلب إعادة جدولة: \nالتاريخ الحالي: \nالمقترح الجديد: ",
+      "general_follow_up": "الملاحظات السريرية: \nالإجراء المُنفذ: \nتعليمات المريض: "
     }
   }
 }

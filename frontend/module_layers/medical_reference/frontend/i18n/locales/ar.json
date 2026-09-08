@@ -1,35 +1,35 @@
 {
   "medicalReference": {
-    "settingsLabel": "Medical Reference Lists",
-    "settingsDescription": "Manage the allergy, medication, and disease lists used across patient records.",
-    "title": "Medical Reference Lists",
-    "description": "These lists power the searchable dropdowns in patient medical history. Deactivating an item removes it from future searches without affecting existing patient records.",
+    "settingsLabel": "قوائم المراجع الطبية",
+    "settingsDescription": "إدارة قوائم الحساسية والأدوية والأمراض المستخدمة في سجلات المرضى.",
+    "title": "قوائم المراجع الطبية",
+    "description": "تُغذي هذه القوائم القوائم المنسدلة القابلة للبحث في التاريخ الطبي للمريض. إلغاء تنشيط عنصر ما يزيله من عمليات البحث المستقبلية دون التأثير على سجلات المرضى الحالية.",
     "tabs": {
-      "allergies": "Allergies",
-      "medications": "Medications",
-      "diseases": "Diseases",
-      "surgeries": "Surgeries",
-      "interactions": "Interactions",
-      "contraindications": "Contraindications"
+      "allergies": "الحساسية",
+      "medications": "الأدوية",
+      "diseases": "الأمراض",
+      "surgeries": "العمليات الجراحية",
+      "interactions": "التفاعلات",
+      "contraindications": "موانع الاستخدام"
     },
-    "name": "Name",
-    "status": "Status",
-    "active": "Active",
-    "inactive": "Inactive",
-    "showInactive": "Show inactive",
-    "newItemPlaceholder": "New item name…",
-    "addSuccess": "Added",
-    "addError": "Could not add item",
-    "updateError": "Could not update item",
-    "deactivateError": "Could not deactivate item",
-    "itemCount": "{count} items",
-    "medicationA": "Medication A",
-    "medicationB": "Medication B",
-    "riskNote": "Risk",
-    "riskNotePlaceholder": "Describe the risk…",
+    "name": "الاسم",
+    "status": "الحالة",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "showInactive": "إظهار غير النشط",
+    "newItemPlaceholder": "اسم عنصر جديد...",
+    "addSuccess": "تمت الإضافة",
+    "addError": "تعذر إضافة العنصر",
+    "updateError": "تعذر تحديث العنصر",
+    "deactivateError": "تعذر إلغاء تفعيل العنصر",
+    "itemCount": "{count} عنصر",
+    "medicationA": "الدواء أ",
+    "medicationB": "الدواء ب",
+    "riskNote": "خطر",
+    "riskNotePlaceholder": "صف المخاطر...",
     "flags": {
-      "interaction": "{a} + {b} interaction",
-      "contraindication": "{a}: contraindicated with {b}"
+      "interaction": "تفاعل {a} + {b}",
+      "contraindication": "{a}: مضاد استطباب مع {b}"
     }
   }
 }

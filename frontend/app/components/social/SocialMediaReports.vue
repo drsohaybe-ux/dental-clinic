@@ -10,7 +10,7 @@
           name="i-lucide-file-text"
           class="w-4 h-4 text-gray-400"
         />
-        <span>Studio de Contenu & Validation</span>
+        <span>{{ t('social.tabStudio', 'Studio de Contenu & Validation') }}</span>
       </NuxtLink>
 
       <NuxtLink
@@ -21,9 +21,9 @@
           name="i-lucide-bar-chart-3"
           class="w-4 h-4 text-[#0084ff] dark:text-[#38bdf8]"
         />
-        <span>Rapports & Statistiques Réseaux</span>
+        <span>{{ t('social.tabReports', 'Rapports & Statistiques Réseaux') }}</span>
         <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-          Sync n8n
+          {{ t('social.syncN8n', 'Sync n8n') }}
         </span>
       </NuxtLink>
     </div>
@@ -32,22 +32,22 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
-          <span>Performance & Analytics Réseaux Sociaux</span>
+          <span>{{ t('socialReports.title', 'Performance & Analytics Réseaux Sociaux') }}</span>
           <span
             v-if="isDemoMode"
             class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800"
           >
-            Mode Aperçu / Démo
+            {{ t('socialReports.modeDemo', 'Mode Aperçu / Démo') }}
           </span>
           <span
             v-else
             class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800"
           >
-            Données Réelles
+            {{ t('socialReports.modeReal', 'Données Réelles') }}
           </span>
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Mesurez la croissance de vos abonnés, votre portée quotidienne et les conversions vers les prises de rendez-vous.
+          {{ t('socialReports.subtitle', 'Mesurez la croissance de vos abonnés, votre portée quotidienne et les conversions vers les prises de rendez-vous.') }}
         </p>
       </div>
 
@@ -68,7 +68,7 @@
             :name="isDemoMode ? 'i-lucide-sparkles' : 'i-lucide-database'"
             class="w-3.5 h-3.5"
           />
-          <span>{{ isDemoMode ? 'Mode Démo (Actif)' : 'Mode Réel (Actif)' }}</span>
+          <span>{{ isDemoMode ? t('socialReports.btnDemoActive', 'Mode Démo (Actif)') : t('socialReports.btnRealActive', 'Mode Réel (Actif)') }}</span>
         </button>
 
         <!-- n8n Config Modal Button -->
@@ -81,7 +81,7 @@
             name="i-lucide-settings"
             class="w-3.5 h-3.5 text-gray-500"
           />
-          <span>Connexion n8n</span>
+          <span>{{ t('socialReports.btnN8nConnect', 'Connexion n8n') }}</span>
         </button>
 
         <!-- Export CSV Button -->
@@ -95,7 +95,7 @@
             name="i-lucide-download"
             class="w-3.5 h-3.5 text-gray-500"
           />
-          <span>Exporter CSV</span>
+          <span>{{ t('socialReports.btnExportCsv', 'Exporter CSV') }}</span>
         </button>
 
         <!-- Refresh / Sync Button -->
@@ -110,7 +110,7 @@
             class="w-3.5 h-3.5"
             :class="{ 'animate-spin': isLoading || isSyncing }"
           />
-          <span>{{ isSyncing ? 'Synchronisation...' : 'Actualiser' }}</span>
+          <span>{{ isSyncing ? t('common.syncing', 'Synchronisation...') : t('common.refresh', 'Actualiser') }}</span>
         </button>
       </div>
     </div>
@@ -129,10 +129,10 @@
         </div>
         <div>
           <h2 class="text-sm font-bold text-amber-900 dark:text-amber-200">
-            Aperçu Interactif (Mode Démo)
+            {{ t('socialReports.demoBannerTitle', 'Aperçu Interactif (Mode Démo)') }}
           </h2>
           <p class="text-xs text-amber-700/90 dark:text-amber-400 mt-0.5">
-            Votre workflow n8n n'a pas encore transmis de données en direct. Cet écran affiche une simulation complète et réaliste pour tester l'ensemble du rapport.
+            {{ t('socialReports.demoBannerDesc', "Votre workflow n8n n'a pas encore transmis de données en direct. Cet écran affiche une simulation complète et réaliste pour tester l'ensemble du rapport.") }}
           </p>
         </div>
       </div>
@@ -142,14 +142,14 @@
           class="px-3 py-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors shadow-2xs"
           @click="seedBackendDemoData"
         >
-          Enregistrer dans la BD
+          {{ t('socialReports.btnSaveToDb', 'Enregistrer dans la BD') }}
         </button>
         <button
           type="button"
           class="px-3 py-1.5 text-xs font-semibold bg-white dark:bg-gray-800 text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800 rounded-lg hover:bg-amber-50 transition-colors shadow-2xs"
           @click="isN8nModalOpen = true"
         >
-          Guide n8n
+          {{ t('socialReports.btnGuideN8n', 'Guide n8n') }}
         </button>
       </div>
     </div>
@@ -167,10 +167,10 @@
       </div>
       <div class="max-w-md mx-auto">
         <h3 class="text-lg font-bold text-gray-900 dark:text-white">
-          En attente de la première synchronisation n8n
+          {{ t('socialReports.emptyTitle', 'En attente de la première synchronisation n8n') }}
         </h3>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Aucune donnée réelle n'a encore été enregistrée dans la base PostgreSQL. Vous pouvez activer le mode Démo pour visualiser immédiatement les fonctionnalités ou connecter votre workflow n8n.
+          {{ t('socialReports.emptyDesc', "Aucune donnée réelle n'a encore été enregistrée dans la base PostgreSQL. Vous pouvez activer le mode Démo pour visualiser immédiatement les fonctionnalités ou connecter votre workflow n8n.") }}
         </p>
       </div>
       <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
@@ -179,21 +179,21 @@
           class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-sm transition-colors"
           @click="toggleDemoMode"
         >
-          Activer le Mode Démo (Recommandé)
+          {{ t('socialReports.btnEnableDemo', 'Activer le Mode Démo (Recommandé)') }}
         </button>
         <button
           type="button"
           class="px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 shadow-2xs transition-colors"
           @click="seedBackendDemoData"
         >
-          Injecter 30 Jours de Test
+          {{ t('socialReports.btnInjectTestData', 'Injecter 30 Jours de Test') }}
         </button>
         <button
           type="button"
           class="px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 shadow-2xs transition-colors"
           @click="isN8nModalOpen = true"
         >
-          Instructions n8n
+          {{ t('socialReports.btnN8nInstructions', 'Instructions n8n') }}
         </button>
       </div>
     </div>
@@ -205,7 +205,7 @@
         <!-- Platform Selector -->
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            Plateforme :
+            {{ t('socialReports.platformLabel', 'Plateforme :') }}
           </span>
           <div class="inline-flex p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <button
@@ -218,7 +218,7 @@
               ]"
               @click="activePlatform = 'all'"
             >
-              Tous les Réseaux
+              {{ t('socialReports.allNetworks', 'Tous les Réseaux') }}
             </button>
             <button
               type="button"
@@ -258,7 +258,7 @@
         <!-- Date Range Selector -->
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            Période :
+            {{ t('socialReports.periodLabel', 'Période :') }}
           </span>
           <div class="inline-flex p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <button
@@ -285,7 +285,7 @@
         <div class="p-5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Abonnés Totaux
+              {{ t('socialReports.totalFollowers', 'Abonnés Totaux') }}
             </span>
             <span
               v-if="summaryMetrics.followerGrowth > 0"
@@ -304,7 +304,7 @@
             {{ summaryMetrics.totalFollowers.toLocaleString() }}
           </div>
           <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            Communauté cumulée active
+            {{ t('socialReports.activeCommunity', 'Communauté cumulée active') }}
           </p>
         </div>
 
@@ -312,17 +312,17 @@
         <div class="p-5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Portée Globale
+              {{ t('socialReports.globalReach', 'Portée Globale') }}
             </span>
             <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-              Comptes Uniques
+              {{ t('socialReports.uniqueAccounts', 'Comptes Uniques') }}
             </span>
           </div>
           <div class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-3">
             {{ summaryMetrics.totalReach.toLocaleString() }}
           </div>
           <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            ~{{ summaryMetrics.avgDailyReach.toLocaleString() }} comptes touchés / jour
+            {{ t('socialReports.reachPerDay', { count: summaryMetrics.avgDailyReach.toLocaleString() }) }}
           </p>
         </div>
 
@@ -330,17 +330,17 @@
         <div class="p-5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Visites du Profil
+              {{ t('socialReports.profileVisits', 'Visites du Profil') }}
             </span>
             <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400">
-              Intention
+              {{ t('socialReports.intent', 'Intention') }}
             </span>
           </div>
           <div class="text-3xl font-extrabold text-purple-600 dark:text-purple-400 mt-3">
             {{ summaryMetrics.totalProfileViews.toLocaleString() }}
           </div>
           <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            Consultations de la bio & coordonnées
+            {{ t('socialReports.bioViews', 'Consultations de la bio & coordonnées') }}
           </p>
         </div>
 
@@ -348,17 +348,17 @@
         <div class="p-5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Clics Site & Rendez-vous
+              {{ t('socialReports.siteBookingClicks', 'Clics Site & Rendez-vous') }}
             </span>
             <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
-              Conversions
+              {{ t('socialReports.conversions', 'Conversions') }}
             </span>
           </div>
           <div class="text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-3">
             {{ summaryMetrics.totalWebsiteClicks.toLocaleString() }}
           </div>
           <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            Taux de conversion : {{ summaryMetrics.conversionRate }}%
+            {{ t('socialReports.conversionRateLabel', { rate: summaryMetrics.conversionRate }) }}
           </p>
         </div>
       </div>
@@ -370,21 +370,21 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-800 pb-3">
             <div>
               <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <span>Évolution Quotidienne de la Portée & des Visites</span>
+                <span>{{ t('socialReports.chartGrowthTitle', 'Évolution Quotidienne de la Portée & des Visites') }}</span>
               </h2>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                Corrélation entre la portée des publications et l'intérêt direct des patients.
+                {{ t('socialReports.chartGrowthSubtitle', "Corrélation entre la portée des publications et l'intérêt direct des patients.") }}
               </p>
             </div>
             <!-- Chart Legend -->
             <div class="flex items-center gap-4 text-xs font-medium">
               <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded-full bg-[#0084ff]" />
-                <span class="text-gray-600 dark:text-gray-300">Portée Quotidienne</span>
+                <span class="text-gray-600 dark:text-gray-300">{{ t('socialReports.dailyReach', 'Portée Quotidienne') }}</span>
               </div>
               <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded-full bg-[#a855f7]" />
-                <span class="text-gray-600 dark:text-gray-300">Visites Profil</span>
+                <span class="text-gray-600 dark:text-gray-300">{{ t('socialReports.profileVisitsShort', 'Visites Profil') }}</span>
               </div>
             </div>
           </div>
@@ -499,14 +499,14 @@
               v-else
               class="flex items-center justify-center h-full text-xs text-gray-400"
             >
-              Collecte de données en cours...
+              {{ t('socialReports.collectingData', 'Collecte de données en cours...') }}
             </div>
           </div>
 
           <!-- Chart X-Axis Labels -->
           <div class="flex justify-between text-[11px] text-gray-400 dark:text-gray-500 pt-1 border-t border-gray-100 dark:border-gray-800">
             <span>{{ chartTrendPoints[0]?.date || '' }}</span>
-            <span>Milieu de période</span>
+            <span>{{ t('socialReports.midPeriod', 'Milieu de période') }}</span>
             <span>{{ chartTrendPoints[chartTrendPoints.length - 1]?.date || '' }}</span>
           </div>
         </div>
@@ -515,10 +515,10 @@
         <div class="p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xs space-y-4 flex flex-col justify-between">
           <div>
             <h2 class="text-base font-bold text-gray-900 dark:text-white">
-              Entonnoir de Conversion Patient
+              {{ t('socialReports.funnelTitle', 'Entonnoir de Conversion Patient') }}
             </h2>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Du premier contact visuel jusqu'à la réservation de consultation.
+              {{ t('socialReports.funnelSubtitle', "Du premier contact visuel jusqu'à la réservation de consultation.") }}
             </p>
           </div>
 
@@ -526,8 +526,8 @@
             <!-- Stage 1: Reach -->
             <div class="p-3 rounded-lg bg-blue-50/60 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40">
               <div class="flex items-center justify-between text-xs font-semibold text-blue-900 dark:text-blue-300">
-                <span>1. Portée Visuelle</span>
-                <span>{{ summaryMetrics.totalReach.toLocaleString() }} comptes</span>
+                <span>{{ t('socialReports.funnelStep1', '1. Portée Visuelle') }}</span>
+                <span>{{ t('socialReports.funnelAccounts', { count: summaryMetrics.totalReach.toLocaleString() }) }}</span>
               </div>
               <div class="w-full bg-blue-200 dark:bg-blue-900/60 h-2 rounded-full mt-2 overflow-hidden">
                 <div class="bg-blue-600 h-full rounded-full w-full" />
@@ -537,8 +537,8 @@
             <!-- Stage 2: Profile Views -->
             <div class="p-3 rounded-lg bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40">
               <div class="flex items-center justify-between text-xs font-semibold text-purple-900 dark:text-purple-300">
-                <span>2. Visites Profil / Intérêt</span>
-                <span>{{ summaryMetrics.totalProfileViews.toLocaleString() }} visites</span>
+                <span>{{ t('socialReports.funnelStep2', '2. Visites Profil / Intérêt') }}</span>
+                <span>{{ t('socialReports.funnelVisits', { count: summaryMetrics.totalProfileViews.toLocaleString() }) }}</span>
               </div>
               <div class="w-full bg-purple-200 dark:bg-purple-900/60 h-2 rounded-full mt-2 overflow-hidden">
                 <div
@@ -551,8 +551,8 @@
             <!-- Stage 3: Website / Bio Clicks -->
             <div class="p-3 rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40">
               <div class="flex items-center justify-between text-xs font-semibold text-amber-900 dark:text-amber-300">
-                <span>3. Clics Lien RDV / WhatsApp</span>
-                <span>{{ summaryMetrics.totalWebsiteClicks.toLocaleString() }} clics</span>
+                <span>{{ t('socialReports.funnelStep3', '3. Clics Lien RDV / WhatsApp') }}</span>
+                <span>{{ t('socialReports.funnelClicks', { count: summaryMetrics.totalWebsiteClicks.toLocaleString() }) }}</span>
               </div>
               <div class="w-full bg-amber-200 dark:bg-amber-900/60 h-2 rounded-full mt-2 overflow-hidden">
                 <div
@@ -565,8 +565,8 @@
             <!-- Stage 4: Estimated Appointments -->
             <div class="p-3 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40">
               <div class="flex items-center justify-between text-xs font-semibold text-emerald-900 dark:text-emerald-300">
-                <span>4. RDV Estimés au Fauteuil</span>
-                <span>~{{ Math.round(summaryMetrics.totalWebsiteClicks * 0.35) }} patients</span>
+                <span>{{ t('socialReports.funnelStep4', '4. RDV Estimés au Fauteuil') }}</span>
+                <span>{{ t('socialReports.funnelPatients', { count: Math.round(summaryMetrics.totalWebsiteClicks * 0.35) }) }}</span>
               </div>
               <div class="w-full bg-emerald-200 dark:bg-emerald-900/60 h-2 rounded-full mt-2 overflow-hidden">
                 <div class="bg-emerald-600 h-full rounded-full w-2/5" />
@@ -576,9 +576,9 @@
 
           <!-- Bottom Summary Indicator -->
           <div class="pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs">
-            <span class="text-gray-500 dark:text-gray-400">Efficacité Globale</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ t('socialReports.globalEfficiency', 'Efficacité Globale') }}</span>
             <span class="font-bold text-emerald-600 dark:text-emerald-400">
-              {{ summaryMetrics.conversionRate }}% de conversion
+              {{ t('socialReports.conversionRateText', { rate: summaryMetrics.conversionRate }) }}
             </span>
           </div>
         </div>
@@ -598,7 +598,7 @@
               </div>
               <div>
                 <h3 class="text-sm font-bold text-gray-900 dark:text-white">
-                  Instagram Performance
+                  {{ t('socialReports.instagramPerformance', 'Instagram Performance') }}
                 </h3>
                 <p class="text-xs text-gray-400">
                   @dr_mokhtar_dental
@@ -609,24 +609,24 @@
               <div class="text-base font-bold text-gray-900 dark:text-white">
                 {{ platformBreakdown.instagram.followers.toLocaleString() }}
               </div>
-              <span class="text-[11px] text-gray-400">Abonnés</span>
+              <span class="text-[11px] text-gray-400">{{ t('socialReports.followers', 'Abonnés') }}</span>
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3 pt-2">
             <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-              <span class="text-[11px] text-gray-400 font-medium">Portée Période</span>
+              <span class="text-[11px] text-gray-400 font-medium">{{ t('socialReports.periodReach', 'Portée Période') }}</span>
               <div class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
                 {{ platformBreakdown.instagram.reach.toLocaleString() }}
               </div>
-              <span class="text-[10px] text-gray-400">{{ platformBreakdown.instagram.reachPct }}% du total</span>
+              <span class="text-[10px] text-gray-400">{{ t('socialReports.pctOfTotal', { pct: platformBreakdown.instagram.reachPct }) }}</span>
             </div>
             <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-              <span class="text-[11px] text-gray-400 font-medium">Clics RDV</span>
+              <span class="text-[11px] text-gray-400 font-medium">{{ t('socialReports.bookingClicks', 'Clics RDV') }}</span>
               <div class="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">
                 {{ platformBreakdown.instagram.clicks.toLocaleString() }}
               </div>
-              <span class="text-[10px] text-gray-400">{{ platformBreakdown.instagram.clicksPct }}% du total</span>
+              <span class="text-[10px] text-gray-400">{{ t('socialReports.pctOfTotal', { pct: platformBreakdown.instagram.clicksPct }) }}</span>
             </div>
           </div>
         </div>
@@ -643,7 +643,7 @@
               </div>
               <div>
                 <h3 class="text-sm font-bold text-gray-900 dark:text-white">
-                  Facebook Performance
+                  {{ t('socialReports.facebookPerformance', 'Facebook Performance') }}
                 </h3>
                 <p class="text-xs text-gray-400">
                   Cabinet Dentaire Dr. Mokhtar
@@ -654,24 +654,24 @@
               <div class="text-base font-bold text-gray-900 dark:text-white">
                 {{ platformBreakdown.facebook.followers.toLocaleString() }}
               </div>
-              <span class="text-[11px] text-gray-400">Abonnés</span>
+              <span class="text-[11px] text-gray-400">{{ t('socialReports.followers', 'Abonnés') }}</span>
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3 pt-2">
             <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-              <span class="text-[11px] text-gray-400 font-medium">Portée Période</span>
+              <span class="text-[11px] text-gray-400 font-medium">{{ t('socialReports.periodReach', 'Portée Période') }}</span>
               <div class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
                 {{ platformBreakdown.facebook.reach.toLocaleString() }}
               </div>
-              <span class="text-[10px] text-gray-400">{{ platformBreakdown.facebook.reachPct }}% du total</span>
+              <span class="text-[10px] text-gray-400">{{ t('socialReports.pctOfTotal', { pct: platformBreakdown.facebook.reachPct }) }}</span>
             </div>
             <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-              <span class="text-[11px] text-gray-400 font-medium">Clics RDV</span>
+              <span class="text-[11px] text-gray-400 font-medium">{{ t('socialReports.bookingClicks', 'Clics RDV') }}</span>
               <div class="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">
                 {{ platformBreakdown.facebook.clicks.toLocaleString() }}
               </div>
-              <span class="text-[10px] text-gray-400">{{ platformBreakdown.facebook.clicksPct }}% du total</span>
+              <span class="text-[10px] text-gray-400">{{ t('socialReports.pctOfTotal', { pct: platformBreakdown.facebook.clicksPct }) }}</span>
             </div>
           </div>
         </div>
@@ -682,15 +682,15 @@
         <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h3 class="text-base font-bold text-gray-900 dark:text-white">
-              Journal Quotidien des Métriques
+              {{ t('socialReports.dailyLogTitle', 'Journal Quotidien des Métriques') }}
             </h3>
             <p class="text-xs text-gray-500 dark:text-gray-400">
-              Historique détaillé des instantanés quotidiens synchronisés avec n8n.
+              {{ t('socialReports.dailyLogSubtitle', 'Historique détaillé des instantanés quotidiens synchronisés avec n8n.') }}
             </p>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs text-gray-500">
-              {{ filteredRecords.length }} enregistrements
+              {{ t('socialReports.recordCount', { count: filteredRecords.length }) }}
             </span>
           </div>
         </div>
@@ -700,25 +700,25 @@
             <thead class="bg-gray-50/60 dark:bg-gray-800/40 text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800">
               <tr>
                 <th class="px-5 py-3">
-                  Date
+                  {{ t('socialReports.thDate', 'Date') }}
                 </th>
                 <th class="px-5 py-3">
-                  Réseau
+                  {{ t('socialReports.thNetwork', 'Réseau') }}
                 </th>
                 <th class="px-5 py-3">
-                  Abonnés
+                  {{ t('socialReports.thFollowers', 'Abonnés') }}
                 </th>
                 <th class="px-5 py-3">
-                  Portée Quotidienne
+                  {{ t('socialReports.thDailyReach', 'Portée Quotidienne') }}
                 </th>
                 <th class="px-5 py-3">
-                  Visites Profil
+                  {{ t('socialReports.thProfileVisits', 'Visites Profil') }}
                 </th>
                 <th class="px-5 py-3">
-                  Clics RDV / Bio
+                  {{ t('socialReports.thClicks', 'Clics RDV / Bio') }}
                 </th>
                 <th class="px-5 py-3">
-                  Enregistrements
+                  {{ t('socialReports.thSaves', 'Enregistrements') }}
                 </th>
               </tr>
             </thead>
@@ -791,7 +791,7 @@
           v-if="totalPages > 1"
           class="px-5 py-3 bg-gray-50/50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs text-gray-500"
         >
-          <span>Page {{ currentPage }} sur {{ totalPages }}</span>
+          <span>{{ t('socialReports.pagination', { current: currentPage, total: totalPages }) }}</span>
           <div class="flex items-center gap-1">
             <button
               type="button"
@@ -799,7 +799,7 @@
               class="px-2.5 py-1 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 disabled:opacity-40"
               @click="currentPage = Math.max(1, currentPage - 1)"
             >
-              Précédent
+              {{ t('common.previous', 'Précédent') }}
             </button>
             <button
               type="button"
@@ -807,7 +807,7 @@
               class="px-2.5 py-1 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 disabled:opacity-40"
               @click="currentPage = Math.min(totalPages, currentPage + 1)"
             >
-              Suivant
+              {{ t('common.next', 'Suivant') }}
             </button>
           </div>
         </div>
@@ -828,10 +828,10 @@
             </div>
             <div>
               <h3 class="text-base font-bold text-gray-900 dark:text-white">
-                Configuration de Synchronisation n8n
+                {{ t('socialReports.modalN8nTitle', 'Configuration de Synchronisation n8n') }}
               </h3>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                Connectez votre workflow scheduled quotidien pour alimenter ce rapport automatiquement.
+                {{ t('socialReports.modalN8nSubtitle', 'Connectez votre workflow scheduled quotidien pour alimenter ce rapport automatiquement.') }}
               </p>
             </div>
           </div>
@@ -852,18 +852,18 @@
           <!-- Architecture Choice Card -->
           <div class="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 space-y-2">
             <h4 class="font-bold text-xs uppercase text-blue-900 dark:text-blue-300">
-              Deux Méthodes de Synchronisation Prises en Charge :
+              {{ t('socialReports.modalMethodsTitle', 'Deux Méthodes de Synchronisation Prises en Charge :') }}
             </h4>
             <ul class="text-xs text-blue-800/90 dark:text-blue-300/90 space-y-1 list-disc list-inside">
-              <li><strong>Option 1 (Direct PostgreSQL) :</strong> Votre workflow n8n utilise le nœud Postgres Upsert pour écrire directement dans la table <code>social_media_insights</code>.</li>
-              <li><strong>Option 2 (Webhook HTTP) :</strong> Votre workflow envoie une requête POST vers le webhook du tableau de bord.</li>
+              <li>{{ t('socialReports.modalOption1') }}</li>
+              <li>{{ t('socialReports.modalOption2') }}</li>
             </ul>
           </div>
 
           <!-- Webhook URL Box -->
           <div>
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-              URL du Webhook d'Ingestion :
+              {{ t('socialReports.modalWebhookLabel', "URL du Webhook d'Ingestion :") }}
             </label>
             <div class="flex items-center gap-2">
               <input
@@ -875,9 +875,9 @@
               <button
                 type="button"
                 class="px-3 py-2 text-xs font-semibold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg transition-colors shrink-0"
-                @click="copyToClipboard(webhookUrl, 'URL du webhook copiée !')"
+                @click="copyToClipboard(webhookUrl, t('socialReports.toastWebhookCopied', 'URL du webhook copiée !'))"
               >
-                Copier
+                {{ t('socialReports.btnCopy', 'Copier') }}
               </button>
             </div>
           </div>
@@ -886,14 +886,14 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="text-xs font-bold text-gray-700 dark:text-gray-300">
-                Structure de la Table PostgreSQL (<code>social_media_insights</code>) :
+                {{ t('socialReports.modalSqlLabel', 'Structure de la Table PostgreSQL (social_media_insights) :') }}
               </label>
               <button
                 type="button"
                 class="text-[11px] font-semibold text-[#0084ff] hover:underline"
-                @click="copyToClipboard(sqlSchemaCode, 'Code SQL copié !')"
+                @click="copyToClipboard(sqlSchemaCode, t('socialReports.toastSqlCopied', 'Code SQL copié !'))"
               >
-                Copier SQL
+                {{ t('socialReports.btnCopySql', 'Copier SQL') }}
               </button>
             </div>
             <pre class="p-3 bg-gray-950 text-emerald-400 font-mono text-[11px] rounded-lg overflow-x-auto"><code>{{ sqlSchemaCode }}</code></pre>
@@ -903,14 +903,14 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="text-xs font-bold text-gray-700 dark:text-gray-300">
-                Format du Payload JSON n8n :
+                {{ t('socialReports.modalJsonLabel', 'Format du Payload JSON n8n :') }}
               </label>
               <button
                 type="button"
                 class="text-[11px] font-semibold text-[#0084ff] hover:underline"
-                @click="copyToClipboard(samplePayload, 'Payload JSON copié !')"
+                @click="copyToClipboard(samplePayload, t('socialReports.toastJsonCopied', 'Payload JSON copié !'))"
               >
-                Copier JSON
+                {{ t('socialReports.btnCopyJson', 'Copier JSON') }}
               </button>
             </div>
             <pre class="p-3 bg-gray-950 text-gray-300 font-mono text-[11px] rounded-lg overflow-x-auto"><code>{{ samplePayload }}</code></pre>
@@ -924,14 +924,14 @@
             class="px-3.5 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg hover:bg-amber-100 transition-colors"
             @click="seedBackendDemoData"
           >
-            Tester en injectant des données
+            {{ t('socialReports.btnTestInject', 'Tester en injectant des données') }}
           </button>
           <button
             type="button"
             class="px-4 py-1.5 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg transition-colors shadow-2xs"
             @click="isN8nModalOpen = false"
           >
-            Fermer
+            {{ t('common.close', 'Fermer') }}
           </button>
         </div>
       </div>
@@ -961,17 +961,18 @@ const {
   exportToCsv
 } = useSocialInsights()
 
+const { t } = useI18n()
 const toast = useToast()
 const isN8nModalOpen = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = 10
 
-const dateRangeOptions = [
-  { key: '7d', label: '7 Jours' },
-  { key: '30d', label: '30 Jours' },
-  { key: '90d', label: '90 Jours' },
-  { key: 'all', label: 'Tout' }
-]
+const dateRangeOptions = computed(() => [
+  { key: '7d', label: t('socialReports.period7d', '7 Jours') },
+  { key: '30d', label: t('socialReports.period30d', '30 Jours') },
+  { key: '90d', label: t('socialReports.period90d', '90 Jours') },
+  { key: 'all', label: t('socialReports.periodAll', 'Tout') }
+])
 
 // Pagination for historical logs table
 const totalPages = computed(() => {
@@ -1098,8 +1099,8 @@ function fallbackCopyText(text: string, title: string) {
     })
   } catch {
     toast.add({
-      title: 'Impossible de copier',
-      description: 'Veuillez copier le texte manuellement.',
+      title: t('socialReports.toastCopyError', 'Impossible de copier'),
+      description: t('socialReports.toastCopyErrorDesc', 'Veuillez copier le texte manuellement.'),
       color: 'neutral'
     })
   }

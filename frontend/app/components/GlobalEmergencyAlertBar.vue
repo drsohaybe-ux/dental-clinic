@@ -12,10 +12,10 @@
         <div class="min-w-0">
           <div class="flex items-center gap-2">
             <h3 class="font-bold text-xs sm:text-sm tracking-wide flex items-center gap-1.5">
-              ALERTE URGENCE DENTAIRE (DR. MOKHTAR)
+              {{ t('emergencyAlert.title', 'ALERTE URGENCE DENTAIRE (DR. MOKHTAR)') }}
             </h3>
             <span class="text-[10px] bg-white text-rose-700 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
-              Priorité Maximale
+              {{ t('emergencyAlert.maxPriority', 'Priorité Maximale') }}
             </span>
           </div>
           <p class="text-xs text-rose-100 mt-0.5 truncate">
@@ -31,12 +31,12 @@
           @click="openEmergencyChat"
         >
           <UIcon name="i-lucide-message-circle" class="w-4 h-4" />
-          <span>Ouvrir la Messagerie</span>
+          <span>{{ t('emergencyAlert.openMessages', 'Ouvrir la Messagerie') }}</span>
         </button>
         <button
           type="button"
           class="p-1.5 hover:bg-white/20 text-white rounded-lg transition-colors"
-          title="Masquer l'alerte"
+          :title="t('emergencyAlert.dismiss', 'Masquer l\'alerte')"
           @click="dismissEmergency"
         >
           <UIcon name="i-lucide-x" class="w-4 h-4" />
@@ -49,6 +49,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 
+const { t } = useI18n()
 const { activeEmergency, hasActiveAlert, startGlobalSync, dismissEmergency, openEmergencyChat } = useEmergencyAlert()
 
 onMounted(() => {

@@ -1,54 +1,50 @@
 {
   "labOrders": {
-    "title": "طلبيات معمل الأسنان",
-    "new": "طلب معمل جديد",
-    "lab": "اسم المعمل",
+    "title": "طلبات العمل المخبري",
+    "add": "طلب مختبر جديد",
     "patient": "المريض",
-    "appliance": "نوع التركيبة / العمل",
-    "shade": "درجة لون السن (Shade)",
+    "lab": "المختبر",
+    "loading": "جاري التحميل...",
+    "selectPatient": "اختر المريض",
+    "selectLab": "اختر المختبر",
+    "workType": "نوع العمل",
+    "tooth": "السن / المرجع",
+    "impressionType": "طبعة سنية",
+    "antagonistInfo": "معلومات السن المقابل",
+    "shade": "درجة اللون",
     "sentDate": "تاريخ الإرسال",
-    "dueDate": "تاريخ الاستلام المطلوب",
-    "status": "حالة الطلب",
-    "cost": "التكلفة",
-    "add": "New lab order",
-    "loading": "Loading…",
-    "selectPatient": "Select patient",
-    "selectLab": "Select laboratory",
-    "workType": "Work type",
-    "tooth": "Tooth / reference",
-    "impressionType": "Impression",
-    "antagonistInfo": "Antagonist information",
-    "expectedDate": "Expected date",
-    "notes": "Notes",
-    "save": "Send order",
-    "cancel": "Cancel",
-    "noLabsHint": "Create a lab contact first in Contacts.",
+    "expectedDate": "التاريخ المتوقع",
+    "status": "الحالة",
+    "notes": "ملاحظات",
+    "save": "إرسال الطلب",
+    "cancel": "إلغاء",
+    "noLabsHint": "يرجى إنشاء جهة اتصال للمختبر أولاً في قسم جهات الاتصال.",
     "workTypes": {
-      "crown": "Crown",
-      "bridge": "Bridge",
-      "denture": "Denture",
-      "implant": "Implant",
-      "veneer": "Veneer",
-      "orthodontic": "Orthodontic",
-      "repair": "Repair",
-      "other": "Other"
+      "crown": "تاج (تلبيسة)",
+      "bridge": "جسر",
+      "denture": "طقم أسنان",
+      "implant": "زرعة سنية",
+      "veneer": "قشرة تجميلية (فينير)",
+      "orthodontic": "تقويم الأسنان",
+      "repair": "إصلاح",
+      "other": "أخرى"
     },
     "impressionTypes": {
-      "alginate": "Alginate",
-      "pvs_silicone": "PVS / silicone",
-      "digital_scan": "Digital scan",
-      "other": "Other"
+      "alginate": "ألجينات",
+      "pvs_silicone": "بولي فينيل سيلوكسان (PVS) / سيليكون",
+      "digital_scan": "مسح رقمي",
+      "other": "أخرى"
     },
     "statuses": {
-      "sent": "Sent",
-      "in_progress": "In progress",
-      "ready": "Ready",
-      "received": "Received",
-      "cancelled": "Cancelled"
+      "sent": "تم الإرسال",
+      "in_progress": "قيد التنفيذ",
+      "ready": "جاهز",
+      "received": "تم الاستلام",
+      "cancelled": "ملغى"
     }
   },
   "nav": {
-    "labOrdersForm": "New lab order",
-    "labOrdersStatus": "Lab orders"
+    "labOrdersForm": "طلب مختبر جديد",
+    "labOrdersStatus": "طلبات المختبر"
   }
 }

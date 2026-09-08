@@ -1,130 +1,129 @@
 {
   "recalls": {
-    "title": "المتابعات الدورية (Recalls)",
-    "subtitle": "إدارة مواعيد المتابعة الدورية للوقاية والعلاج",
-    "patient": "المريض",
-    "due": "تاريخ الاستحقاق",
-    "reason": "سبب المتابعة",
-    "status": "الحالة",
-    "contacted": "تم التواصل",
-    "scheduled": "تم حجز موعد",
-    "dismissed": "تم الإلغاء",
-    "call": "اتصال بالمريض",
-    "filter": "تصفية المتابعات",
-    "callList": "Call list",
-    "noRecallsThisMonth": "No pending recalls this month",
+    "title": "المتابعات الدورية",
+    "callList": "قائمة الاتصال",
+    "noRecallsThisMonth": "لا توجد متابعات دورية معلقة لهذا الشهر",
     "filters": {
-      "month": "Month",
-      "reason": "Reason",
-      "professional": "Professional",
-      "status": "Status",
-      "priority": "Priority",
-      "overdue": "Show overdue",
-      "any": "Any",
-      "thisMonth": "This month"
+      "month": "شهر",
+      "reason": "السبب",
+      "professional": "مهني",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "overdue": "عرض المتأخرات",
+      "any": "أي",
+      "thisMonth": "هذا الشهر"
     },
     "counters": {
-      "due_this_week": "Due this week",
-      "due_this_month": "Due this month",
-      "overdue": "Overdue",
-      "scheduled_this_month": "Scheduled this month",
-      "completed_this_month": "Completed this month",
-      "conversion_rate": "Conversion"
+      "due_this_week": "مستحق هذا الأسبوع",
+      "due_this_month": "المستحقات لهذا الشهر",
+      "overdue": "متأخر عن الموعد",
+      "scheduled_this_month": "المجدولة هذا الشهر",
+      "completed_this_month": "تم إنجازه هذا الشهر",
+      "conversion_rate": "التحويل"
     },
-    "setRecall": "Set recall",
-    "setRecallShort": "Recall",
-    "history": "Recall history",
-    "viewAll": "View all",
-    "pillNext": "Next recall: {month} · {reason}",
-    "pillNone": "No active recall",
+    "setRecall": "ضبط المتابعة الدورية",
+    "setRecallShort": "متابعة دورية",
+    "history": "تاريخ المتابعات الدورية",
+    "viewAll": "عرض الكل",
+    "pillNext": "المتابعة الدورية القادمة: {month} · {reason}",
+    "pillNone": "لا توجد متابعة دورية نشطة",
     "reasons": {
-      "hygiene": "Hygiene",
-      "checkup": "Check-up",
-      "ortho_review": "Ortho review",
-      "implant_review": "Implant review",
-      "post_op": "Post-op",
-      "treatment_followup": "Treatment follow-up",
-      "other": "Other"
+      "hygiene": "تنظيف الأسنان (Hygiene)",
+      "checkup": "فحص دوري",
+      "ortho_review": "مراجعة تقويمية",
+      "implant_review": "مراجعة الزرعة السنية",
+      "post_op": "ما بعد العمل الجراحي",
+      "treatment_followup": "متابعة العلاج",
+      "other": "أخرى"
     },
     "priority": {
-      "low": "Low",
-      "normal": "Normal",
-      "high": "High"
+      "low": "منخفض",
+      "normal": "طبيعي",
+      "high": "عالية"
+    },
+    "status": {
+      "pending": "معلق",
+      "contacted_no_answer": "لا يوجد رد",
+      "contacted_scheduled": "مجدول",
+      "contacted_declined": "مرفوض",
+      "done": "تم",
+      "cancelled": "ملغى",
+      "needs_review": "بحاجة إلى مراجعة"
     },
     "actions": {
-      "call": "Call",
-      "logAttempt": "Log attempt",
-      "noAnswer": "No answer",
-      "book": "Book appointment",
-      "snooze": "Snooze",
-      "cancel": "Cancel",
-      "markDone": "Mark done",
-      "exportCsv": "Export CSV",
-      "save": "Save"
+      "call": "اتصال",
+      "logAttempt": "تسجيل المحاولة",
+      "noAnswer": "لا يوجد رد",
+      "book": "حجز موعد",
+      "snooze": "تأجيل التنبيه",
+      "cancel": "إلغاء",
+      "markDone": "تحديد كمكتمل",
+      "exportCsv": "تصدير ملف CSV",
+      "save": "حفظ"
     },
     "closeoutPrompt": {
-      "title": "Schedule a recall?",
-      "subtitle": "The patient just finished — when should we call them back?",
-      "skip": "Not now"
+      "title": "هل ترغب بجدولة متابعة دورية؟",
+      "subtitle": "لقد انتهى المريض للتو - متى يجب علينا الاتصال به للمتابعة؟",
+      "skip": "ليس الآن"
     },
     "modal": {
-      "title": "Set recall",
-      "subtitle": "Flag the patient for a future call-back",
-      "patient": "Patient",
-      "reason": "Reason",
-      "when": "When",
-      "month": "Target month",
-      "targetMonth": "Target month",
-      "preciseDate": "Pick a specific day",
-      "priority": "Priority",
-      "assigned": "Assigned professional",
-      "note": "Internal note",
-      "notePlaceholder": "Optional detail (e.g. 'Review filling on 47')",
-      "optional": "optional",
-      "duplicateGuard": "A pending recall already exists for this patient and reason. It will be updated."
+      "title": "ضبط المتابعة الدورية",
+      "subtitle": "تحديد المريض لإعادة الاتصال لاحقاً",
+      "patient": "المريض",
+      "reason": "السبب",
+      "when": "متى",
+      "month": "الشهر المستهدف",
+      "targetMonth": "الشهر المستهدف",
+      "preciseDate": "اختر يوماً محدداً",
+      "priority": "الأولوية",
+      "assigned": "الممارس المعين",
+      "note": "ملاحظة داخلية",
+      "notePlaceholder": "تفاصيل اختيارية (مثلاً: 'مراجعة حشوة السن 47')",
+      "optional": "اختياري",
+      "duplicateGuard": "توجد بالفعل متابعة دورية معلقة لهذا المريض ولنفس السبب. سيتم تحديثها."
     },
     "doNotContact": {
-      "cannotSchedule": "This patient is flagged \"Do not contact\". Recalls cannot be scheduled. Update the demographics preference to re-enable contact."
+      "cannotSchedule": "تم وضع علامة \"عدم الاتصال\" على هذا المريض. لا يمكن جدولة متابعات دورية. يرجى تحديث تفضيلات البيانات الديموغرافية لإعادة تفعيل الاتصال."
     },
-    "activeRecallHint": "Active recall · tap to manage",
+    "activeRecallHint": "متابعة دورية نشطة · اضغط للإدارة",
     "logAttempt": {
-      "channel": "Channel",
-      "outcome": "Outcome",
-      "note": "Note",
-      "submit": "Log attempt"
+      "channel": "القناة",
+      "outcome": "النتيجة",
+      "note": "ملاحظة",
+      "submit": "تسجيل المحاولة"
     },
     "channel": {
-      "phone": "Phone",
-      "whatsapp": "WhatsApp",
-      "sms": "SMS",
-      "email": "Email"
+      "phone": "رقم الهاتف",
+      "whatsapp": "واتساب",
+      "sms": "رسالة نصية",
+      "email": "البريد الإلكتروني"
     },
     "outcome": {
-      "no_answer": "No answer",
-      "voicemail": "Voicemail",
-      "scheduled": "Appointment scheduled",
-      "declined": "Declined",
-      "wrong_number": "Wrong number"
+      "no_answer": "لا يوجد رد",
+      "voicemail": "بريد صوتي",
+      "scheduled": "تم حجز الموعد",
+      "declined": "مرفوض",
+      "wrong_number": "رقم خاطئ"
     },
-    "snoozePrompt": "Snooze for how many months?",
+    "snoozePrompt": "تأجيل لمدة كم شهر؟",
     "settings": {
-      "title": "Recalls",
-      "description": "Default intervals + treatment-category mapping",
-      "intervals": "Default intervals (months)",
-      "categoryMap": "Treatment → reason",
-      "categoryKeyPlaceholder": "catalog category key",
-      "autoSuggest": "Suggest a recall when a treatment is completed",
-      "autoLink": "Link a scheduled appointment to a pending recall",
-      "saved": "Settings saved"
+      "title": "المتابعات الدورية",
+      "description": "الفواصل الزمنية الافتراضية + تعيين فئات العلاج",
+      "intervals": "الفترات الزمنية الافتراضية (بالأشهر)",
+      "categoryMap": "المعالجة ← السبب",
+      "categoryKeyPlaceholder": "مفتاح فئة الكتالوج",
+      "autoSuggest": "اقتراح موعد متابعة دورية عند اكتمال العلاج",
+      "autoLink": "ربط موعد مجدول بمتابعة دورية معلقة",
+      "saved": "تم حفظ الإعدادات"
     },
     "dashboard": {
-      "title": "Recalls"
+      "title": "المتابعات الدورية"
     },
     "suggestion": {
-      "title": "Suggested recall",
-      "body": "After this treatment we suggest a recall in {month} ({reason}).",
-      "create": "Create recall",
-      "dismiss": "Dismiss"
+      "title": "متابعة دورية مقترحة",
+      "body": "بعد هذا العلاج نقترح متابعة دورية بعد {month} ({reason}).",
+      "create": "إنشاء متابعة دورية",
+      "dismiss": "إغلاق"
     }
   }
 }
