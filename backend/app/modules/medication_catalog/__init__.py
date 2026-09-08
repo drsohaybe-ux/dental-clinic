@@ -39,7 +39,7 @@ class MedicationCatalogModule(BaseModule):
         # dentists read it (prescriptions will consume this list).
         "role_permissions": {
             "admin": ["*"],
-            "dentist": ["read"],
+            "dentist": ["read", "write"],
         },
         "frontend": {
             "layer_path": "frontend",

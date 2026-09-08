@@ -17,8 +17,12 @@ import type { ReferenceItem, ReferenceKind } from '../composables/useMedicalRefe
 interface ExtendedItem extends ReferenceItem {
   dci?: string | null
   dosage?: string | null
+  dose?: string | null
+  unit?: string | null
+  form?: string | null
   is_dental?: boolean
   is_nomenclature?: boolean
+  requires_prescription?: boolean
 }
 
 interface AlgerianNomenclatureItem {
@@ -26,6 +30,8 @@ interface AlgerianNomenclatureItem {
   brand_name: string
   dci: string
   dosage?: string | null
+  dose?: string | null
+  unit?: string | null
   standard_form: string
   is_dental: boolean
   requires_prescription: boolean
@@ -60,6 +66,7 @@ const { search, create } = useMedicalReference()
 const items = ref<ExtendedItem[]>([])
 const isLoading = ref(false)
 const isCreating = ref(false)
+const searchQuery = ref('')
 
 // Quick add to clinic catalog state
 const isAddingToCatalog = ref(false)
@@ -88,8 +95,12 @@ onMounted(async () => {
               is_active: true,
               dci: n.dci,
               dosage: n.dosage,
+              dose: n.dose,
+              unit: n.unit,
+              form: n.standard_form,
               is_dental: n.is_dental,
-              is_nomenclature: true
+              is_nomenclature: true,
+              requires_prescription: n.requires_prescription
             })
           }
         }
@@ -135,22 +146,64 @@ const selected = computed<ExtendedItem | undefined>({
     // If selected item is from nomenclature (not yet in medical_reference_medication),
     // ensure a clinic ReferenceMedication is created so reference_id is valid!
     if (item.is_nomenclature || item.id.startsWith('nom-')) {
+      // 1. Check if already known in local items
+      const existing = items.value.find(
+        i => !i.is_nomenclature && i.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+      )
+      if (existing && existing.id && !existing.id.startsWith('nom-')) {
+        item.id = existing.id
+        item.is_nomenclature = false
+        emit('update:modelValue', existing.name)
+        emit('update:referenceId', existing.id)
+        return
+      }
+
       isCreating.value = true
-      create(props.kind, { name: item.name }).then((created) => {
-        isCreating.value = false
-        if (created) {
-          item.id = created.id
+      // 2. Check server first to prevent duplicate 409 error toasts
+      search(props.kind, item.name).then((matches) => {
+        const exact = matches.find(m => m.name.trim().toLowerCase() === item.name.trim().toLowerCase())
+        if (exact) {
+          item.id = exact.id
           item.is_nomenclature = false
-          emit('update:modelValue', created.name)
-          emit('update:referenceId', created.id)
-        } else {
+          emit('update:modelValue', exact.name)
+          emit('update:referenceId', exact.id)
+          isCreating.value = false
+          return
+        }
+
+        create(props.kind, { name: item.name }).then((created) => {
+          isCreating.value = false
+          if (created) {
+            item.id = created.id
+            item.is_nomenclature = false
+            emit('update:modelValue', created.name)
+            emit('update:referenceId', created.id)
+          } else {
+            emit('update:modelValue', item.name)
+            emit('update:referenceId', null)
+          }
+        }).catch(() => {
+          isCreating.value = false
           emit('update:modelValue', item.name)
           emit('update:referenceId', null)
-        }
+        })
       }).catch(() => {
-        isCreating.value = false
-        emit('update:modelValue', item.name)
-        emit('update:referenceId', null)
+        create(props.kind, { name: item.name }).then((created) => {
+          isCreating.value = false
+          if (created) {
+            item.id = created.id
+            item.is_nomenclature = false
+            emit('update:modelValue', created.name)
+            emit('update:referenceId', created.id)
+          } else {
+            emit('update:modelValue', item.name)
+            emit('update:referenceId', null)
+          }
+        }).catch(() => {
+          isCreating.value = false
+          emit('update:modelValue', item.name)
+          emit('update:referenceId', null)
+        })
       })
       return
     }
@@ -160,45 +213,63 @@ const selected = computed<ExtendedItem | undefined>({
   }
 })
 
-// Dynamic search when typing in medications
+// Dynamic search when typing in medications or reference items
 let searchDebounce: ReturnType<typeof setTimeout> | undefined
-function handleSearchTerm(term: string) {
-  if (props.kind !== 'medications') return
+watch(searchQuery, (term) => {
   clearTimeout(searchDebounce)
   if (!term || term.trim().length < 2) return
 
   searchDebounce = setTimeout(async () => {
+    const trimmed = term.trim()
     try {
-      const res = await api.get<ApiResponse<AlgerianNomenclatureItem[]>>(
-        `/api/v1/medication_catalog/nomenclature?q=${encodeURIComponent(term.trim())}&limit=30`
-      )
-      const existingIds = new Set(items.value.map(i => i.id))
-      const existingNames = new Set(items.value.map(i => i.name.trim().toLowerCase()))
+      if (props.kind === 'medications') {
+        const res = await api.get<ApiResponse<AlgerianNomenclatureItem[]>>(
+          `/api/v1/medication_catalog/nomenclature?q=${encodeURIComponent(trimmed)}&limit=30`
+        )
+        const existingIds = new Set(items.value.map(i => i.id))
+        const existingNames = new Set(items.value.map(i => i.name.trim().toLowerCase()))
 
-      const newBatch: ExtendedItem[] = []
-      for (const n of res.data || []) {
-        const fullName = n.dosage ? `${n.brand_name} ${n.dosage}`.trim() : n.brand_name.trim()
-        const fakeId = `nom-${n.id}`
-        if (!existingIds.has(fakeId) && !existingNames.has(fullName.toLowerCase())) {
-          newBatch.push({
-            id: fakeId,
-            name: fullName,
-            is_active: true,
-            dci: n.dci,
-            dosage: n.dosage,
-            is_dental: n.is_dental,
-            is_nomenclature: true
-          })
+        const newBatch: ExtendedItem[] = []
+        for (const n of res.data || []) {
+          const fullName = n.dosage ? `${n.brand_name} ${n.dosage}`.trim() : n.brand_name.trim()
+          const fakeId = `nom-${n.id}`
+          if (!existingIds.has(fakeId) && !existingNames.has(fullName.toLowerCase())) {
+            newBatch.push({
+              id: fakeId,
+              name: fullName,
+              is_active: true,
+              dci: n.dci,
+              dosage: n.dosage,
+              dose: n.dose,
+              unit: n.unit,
+              form: n.standard_form,
+              is_dental: n.is_dental,
+              is_nomenclature: true,
+              requires_prescription: n.requires_prescription
+            })
+          }
+        }
+        if (newBatch.length > 0) {
+          items.value = [...items.value, ...newBatch]
         }
       }
-      if (newBatch.length > 0) {
-        items.value = [...items.value, ...newBatch]
+
+      // Also search clinic reference items on server
+      const serverItems = await search(props.kind, trimmed)
+      if (serverItems && serverItems.length > 0) {
+        const existingIds = new Set(items.value.map(i => i.id))
+        const toAdd: ExtendedItem[] = serverItems
+          .filter(si => !existingIds.has(si.id))
+          .map(si => ({ ...si, is_nomenclature: false }))
+        if (toAdd.length > 0) {
+          items.value = [...items.value, ...toAdd]
+        }
       }
     } catch {
       // Silently fall back
     }
   }, 250)
-}
+})
 
 async function handleCreate(name: string) {
   const trimmed = name.trim()
@@ -217,9 +288,13 @@ async function quickAddToClinicCatalog() {
   if (!medName) return
   isAddingToCatalog.value = true
   try {
+    const matched = items.value.find(i => i.name.trim().toLowerCase() === medName.toLowerCase())
     await api.post('/api/v1/medication_catalog/quick-add', {
       name: medName,
-      requires_prescription: true,
+      dose: matched?.dose || null,
+      unit: matched?.unit || null,
+      form: matched?.form || 'tablet',
+      requires_prescription: matched?.requires_prescription ?? true,
       is_active: true
     })
     addedToCatalog.value = true
@@ -240,17 +315,17 @@ async function quickAddToClinicCatalog() {
   <div class="space-y-1 w-full">
     <USelectMenu
       v-model="selected"
+      v-model:search-term="searchQuery"
       :items="items"
       :loading="isLoading || isCreating"
       :disabled="disabled"
       label-key="name"
       create-item="always"
-      searchable
+      :search-input="true"
       :virtualize="true"
       :filter-fields="['name', 'dci']"
       :placeholder="placeholder"
       @create="handleCreate"
-      @update:search-term="handleSearchTerm"
     >
       <template #item="{ item }">
         <div class="flex items-center justify-between w-full py-0.5">

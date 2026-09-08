@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .models import MEDICATION_FORMS
 
@@ -105,4 +105,25 @@ class QuickAddMedicationPayload(BaseModel):
     form: MedicationForm = "tablet"
     requires_prescription: bool = True
     is_active: bool = True
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def _clamp_name(cls, v: str) -> str:
+        if isinstance(v, str):
+            v = v.strip()[:150]
+        return v
+
+    @field_validator("dose", mode="before")
+    @classmethod
+    def _clamp_dose(cls, v: str | None) -> str | None:
+        if isinstance(v, str):
+            v = v.strip()[:50]
+        return v or None
+
+    @field_validator("unit", mode="before")
+    @classmethod
+    def _clamp_unit(cls, v: str | None) -> str | None:
+        if isinstance(v, str):
+            v = v.strip()[:20]
+        return v or None
 

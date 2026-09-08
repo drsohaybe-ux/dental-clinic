@@ -397,3 +397,88 @@ async def test_router_seed_endpoint():
     assert response.data.total == 4636
     assert response.data.seeded == 0
     mock_db.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_seeder_force_refresh_deletes_existing():
+    """Verify that force_refresh=True deletes existing rows to prevent primary key collision."""
+    mock_db = AsyncMock()
+    mock_db.add_all = MagicMock()
+    mock_count_result = MagicMock()
+    mock_count_result.scalar.return_value = 100
+    mock_db.execute.return_value = mock_count_result
+
+    summary = await seed_algerian_nomenclature(mock_db, force_refresh=True)
+    assert summary["seeded"] == 4636
+    assert summary["total"] == 4636
+    # Verify execute was called at least twice (count + delete)
+    assert mock_db.execute.await_count >= 2
+
+
+def test_field_lengths_strictly_within_db_limits():
+    """All 4,636 records must fit within the PostgreSQL column VARCHAR lengths."""
+    records = load_nomenclature_records()
+    for r in records:
+        assert len(r.get("brand_name", "")) <= 200, f"brand_name too long: {r['brand_name']}"
+        assert len(r.get("dci", "")) <= 250, f"dci too long: {r['dci']}"
+        if r.get("dosage"):
+            assert len(r["dosage"]) <= 350, f"dosage too long: {r['dosage']}"
+        if r.get("dose"):
+            assert len(r["dose"]) <= 50, f"dose too long: {r['dose']}"
+        if r.get("unit"):
+            assert len(r["unit"]) <= 20, f"unit too long: {r['unit']}"
+        if r.get("packaging"):
+            assert len(r["packaging"]) <= 500, f"packaging too long: {r['packaging']}"
+        if r.get("laboratory"):
+            assert len(r["laboratory"]) <= 200, f"laboratory too long: {r['laboratory']}"
+        if r.get("price"):
+            assert len(r["price"]) <= 150, f"price too long: {r['price']}"
+
+
+@pytest.mark.asyncio
+async def test_quick_add_clamps_overflowing_fields():
+    """quick_add_to_catalog must safely clamp fields exceeding MedicationCatalogItem limits."""
+    mock_db = AsyncMock()
+    mock_db.add = MagicMock()
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = None
+    mock_db.execute.return_value = mock_result
+
+    clinic_id = uuid4()
+    payload = QuickAddMedicationPayload(
+        name="A" * 200,  # exceeds 150
+        dose="1" * 80,   # exceeds 50
+        unit="mg" * 20,  # exceeds 20
+        form="tablet",
+    )
+
+    item, created = await MedicationCatalogService.quick_add_to_catalog(mock_db, clinic_id, payload)
+    assert created is True
+    assert len(item.name) <= 150
+    assert len(item.dose) <= 50
+    assert len(item.unit) <= 20
+
+
+def test_role_permissions_grants_dentist_write():
+    """Dentists must have write permission to manage clinic medication catalog."""
+    manifest = MedicationCatalogModule.manifest
+    role_perms = manifest.get("role_permissions", {})
+    assert "write" in role_perms.get("dentist", []), "Dentist must have write permission"
+
+
+@pytest.mark.asyncio
+async def test_search_nomenclature_db_empty_result_does_not_fallback():
+    """When DB has records, a non-matching query returns empty list without reading JSON."""
+    mock_db = AsyncMock()
+    mock_count = MagicMock()
+    mock_count.scalar.return_value = 4636  # DB is seeded
+
+    mock_rows = MagicMock()
+    mock_rows.scalars.return_value.all.return_value = []
+
+    # First call: count, second call: select
+    mock_db.execute.side_effect = [mock_count, mock_rows]
+
+    results = await MedicationCatalogService.search_nomenclature(mock_db, q="nonexistentdrugxyz", limit=10)
+    assert results == []
+    assert mock_db.execute.await_count == 2

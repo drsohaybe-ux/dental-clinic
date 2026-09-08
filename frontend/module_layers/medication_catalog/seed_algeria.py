@@ -39,6 +39,12 @@ async def seed_algerian_nomenclature(db: AsyncSession, force_refresh: bool = Fal
     if existing_count > 0 and not force_refresh:
         return {"seeded": 0, "total": existing_count}
 
+    if force_refresh and existing_count > 0:
+        from sqlalchemy import delete
+
+        await db.execute(delete(AlgerianMedication))
+        await db.flush()
+
     raw_items = load_nomenclature_records()
     total_raw = len(raw_items)
 

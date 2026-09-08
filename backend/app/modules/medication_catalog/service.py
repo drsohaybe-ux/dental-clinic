@@ -145,34 +145,36 @@ class MedicationCatalogService:
         Falls back to local cached dataset if table has not yet been seeded.
         """
         limit = min(max(1, limit), 100)
-        try:
-            stmt = select(AlgerianMedication).where(AlgerianMedication.is_active.is_(True))
-            if is_dental is not None:
-                stmt = stmt.where(AlgerianMedication.is_dental == is_dental)
-            if q:
-                query_norm = q.strip().lower()
-                stmt = stmt.where(
-                    or_(
-                        func.lower(AlgerianMedication.brand_name).contains(query_norm),
-                        func.lower(AlgerianMedication.dci).contains(query_norm),
-                    )
-                )
-                stmt = stmt.order_by(
-                    func.lower(AlgerianMedication.brand_name).startswith(query_norm).desc(),
-                    AlgerianMedication.is_dental.desc(),
-                    AlgerianMedication.brand_name.asc(),
-                )
-            else:
-                stmt = stmt.order_by(
-                    AlgerianMedication.is_dental.desc(),
-                    AlgerianMedication.brand_name.asc(),
-                )
-            stmt = stmt.limit(limit)
-            rows = list((await db.execute(stmt)).scalars().all())
-            if rows:
-                return rows
-        except Exception:
-            pass
+        if db is not None:
+            try:
+                count_stmt = select(func.count(AlgerianMedication.id))
+                db_count = (await db.execute(count_stmt)).scalar() or 0
+                if db_count > 0:
+                    stmt = select(AlgerianMedication).where(AlgerianMedication.is_active.is_(True))
+                    if is_dental is not None:
+                        stmt = stmt.where(AlgerianMedication.is_dental == is_dental)
+                    if q:
+                        query_norm = q.strip().lower()
+                        stmt = stmt.where(
+                            or_(
+                                func.lower(AlgerianMedication.brand_name).contains(query_norm),
+                                func.lower(AlgerianMedication.dci).contains(query_norm),
+                            )
+                        )
+                        stmt = stmt.order_by(
+                            func.lower(AlgerianMedication.brand_name).startswith(query_norm).desc(),
+                            AlgerianMedication.is_dental.desc(),
+                            AlgerianMedication.brand_name.asc(),
+                        )
+                    else:
+                        stmt = stmt.order_by(
+                            AlgerianMedication.is_dental.desc(),
+                            AlgerianMedication.brand_name.asc(),
+                        )
+                    stmt = stmt.limit(limit)
+                    return list((await db.execute(stmt)).scalars().all())
+            except Exception:
+                pass
 
         from .seed_algeria import load_nomenclature_records
 
@@ -241,12 +243,19 @@ class MedicationCatalogService:
         if existing is not None:
             return existing, False
 
+        from .models import MEDICATION_FORMS
+
+        clean_name = payload.name.strip()[:150]
+        clean_dose = payload.dose.strip()[:50] if payload.dose else None
+        clean_unit = payload.unit.strip()[:20] if payload.unit else None
+        clean_form = payload.form if payload.form in MEDICATION_FORMS else "tablet"
+
         item = MedicationCatalogItem(
             clinic_id=clinic_id,
-            name=payload.name.strip(),
-            dose=payload.dose,
-            unit=payload.unit,
-            form=payload.form,
+            name=clean_name,
+            dose=clean_dose,
+            unit=clean_unit,
+            form=clean_form,
             requires_prescription=payload.requires_prescription,
             is_active=payload.is_active,
         )

@@ -63,23 +63,31 @@ def map_forme(f: str | None) -> str:
     return "other"
 
 
+def clean_str(s: str | None) -> str:
+    if not s:
+        return ""
+    return re.sub(r"\s+", " ", str(s)).strip()
+
+
 def parse_dose_unit(d: str | None) -> tuple[str | None, str | None]:
     if not d:
         return None, None
-    s = d.strip()
+    s = clean_str(d)
     m_compound = re.match(r"^([\d.,]+)\s*[A-Za-z%]+\s*/\s*([\d.,]+)\s*([A-Za-z%]+)", s)
     if m_compound:
         return f"{m_compound.group(1)}/{m_compound.group(2)}".replace(",", "."), m_compound.group(3).lower()
     m = re.match(r"^([\d.,]+(?:/[\d.,]+)?)\s*([A-Za-z/%]+(?:/[A-Za-z]+)?)", s)
     if m:
         return m.group(1).replace(",", "."), m.group(2).lower()
-    return s, None
+    if len(s) <= 50:
+        return s, None
+    return None, None
 
 
 def check_dental(brand: str | None, dci: str | None, forme: str | None) -> bool:
-    brand_u = (brand or "").upper()
-    dci_u = (dci or "").upper()
-    forme_u = (forme or "").upper()
+    brand_u = clean_str(brand).upper()
+    dci_u = clean_str(dci).upper()
+    forme_u = clean_str(forme).upper()
     if any(b in brand_u for b in DENTAL_BRANDS):
         return True
     if any(d in dci_u for d in DENTAL_DCIS):
@@ -100,17 +108,17 @@ def main():
     NAMESPACE = uuid.UUID("7b420042-45e0-47b2-84da-5fbf6ec25f20")
 
     for r in raw_records:
-        reg_num = (r.get("NUM_ENREGISTREMENT") or "").strip()
-        code = (r.get("CODE") or "").strip()
-        brand = (r.get("NOM_DE_MARQUE") or "").strip()
-        dci = (r.get("DENOMINATION_COMMUNE_INTERNATIONALE") or "").strip()
-        raw_forme = (r.get("FORME") or "").strip()
-        raw_dosage = (r.get("DOSAGE") or "").strip()
-        cond = (r.get("COND") or "").strip()
-        lab = (r.get("LABORATOIRES_DETENTEUR_DE_LA_DECISION_DENREGISTREMENT") or "").strip()
-        country = (r.get("PAYS_DU_LABORATOIRE_DETENTEUR_DE_LA_DECISION_DENREGISTREMENT") or "").strip()
-        price = (r.get("PRIX_PORTE_SUR_LA_DECISION_DENREGISTREMENT") or "").strip()
-        remb = (r.get("REMBOURSEMENT") or "").strip()
+        reg_num = clean_str(r.get("NUM_ENREGISTREMENT"))
+        code = clean_str(r.get("CODE"))
+        brand = clean_str(r.get("NOM_DE_MARQUE"))
+        dci = clean_str(r.get("DENOMINATION_COMMUNE_INTERNATIONALE"))
+        raw_forme = clean_str(r.get("FORME"))
+        raw_dosage = clean_str(r.get("DOSAGE"))
+        cond = clean_str(r.get("COND"))
+        lab = clean_str(r.get("LABORATOIRES_DETENTEUR_DE_LA_DECISION_DENREGISTREMENT"))
+        country = clean_str(r.get("PAYS_DU_LABORATOIRE_DETENTEUR_DE_LA_DECISION_DENREGISTREMENT"))
+        price = clean_str(r.get("PRIX_PORTE_SUR_LA_DECISION_DENREGISTREMENT"))
+        remb = clean_str(r.get("REMBOURSEMENT"))
 
         unique_key = f"{reg_num}|{code}|{brand}|{raw_dosage}|{raw_forme}"
         item_id = str(uuid.uuid5(NAMESPACE, unique_key))

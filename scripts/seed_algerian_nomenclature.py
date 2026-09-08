@@ -16,13 +16,17 @@ import time
 # Ensure backend/ is on sys.path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
-from app.database import async_session_maker
-from app.modules.medication_catalog.seed_algeria import seed_algerian_nomenclature
-
-
 async def run_seed(force: bool = False) -> None:
     start = time.time()
     print("Starting Algerian National Medication Nomenclature seeder...")
+    try:
+        from app.database import async_session_maker
+        from app.modules.medication_catalog.seed_algeria import seed_algerian_nomenclature
+    except Exception as exc:
+        print(f"Error loading database configuration: {exc}", file=sys.stderr)
+        print("Please ensure DATABASE_URL and SECRET_KEY environment variables are set.", file=sys.stderr)
+        sys.exit(1)
+
     async with async_session_maker() as db:
         summary = await seed_algerian_nomenclature(db, force_refresh=force)
         await db.commit()

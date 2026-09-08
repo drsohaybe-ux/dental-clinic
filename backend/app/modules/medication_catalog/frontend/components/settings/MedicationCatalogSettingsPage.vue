@@ -163,11 +163,20 @@ const nomenclatureDentalOnly = ref(true)
 const nomenclatureResults = ref<AlgerianMedication[]>([])
 const nomenclatureLoading = ref(false)
 const addingIds = ref<Set<string>>(new Set())
+const catalogNames = ref<Set<string>>(new Set())
 
-function openNomenclatureModal() {
+async function openNomenclatureModal() {
   showNomenclatureModal.value = true
   nomenclatureSearch.value = ''
   nomenclatureDentalOnly.value = true
+  try {
+    const allItems = await medsApi.list({ page: 1, page_size: 100 })
+    for (const it of allItems.data) {
+      catalogNames.value.add(it.name.trim().toLowerCase())
+    }
+  } catch {
+    // Fall back to items on current page
+  }
   searchNomenclatureList()
 }
 
@@ -193,10 +202,14 @@ async function searchNomenclatureList() {
 function isInCatalog(item: AlgerianMedication): boolean {
   const fullName = item.dosage ? `${item.brand_name} ${item.dosage}`.trim().toLowerCase() : item.brand_name.trim().toLowerCase()
   const brandOnly = item.brand_name.trim().toLowerCase()
-  return items.value.some((i) => {
-    const n = i.name.trim().toLowerCase()
-    return n === fullName || n === brandOnly
-  })
+  return (
+    catalogNames.value.has(fullName)
+    || catalogNames.value.has(brandOnly)
+    || items.value.some((i) => {
+      const n = i.name.trim().toLowerCase()
+      return n === fullName || n === brandOnly
+    })
+  )
 }
 
 async function addFromNomenclature(item: AlgerianMedication) {
@@ -211,6 +224,8 @@ async function addFromNomenclature(item: AlgerianMedication) {
       requires_prescription: item.requires_prescription,
       is_active: true
     })
+    catalogNames.value.add(name.toLowerCase())
+    catalogNames.value.add(item.brand_name.trim().toLowerCase())
     await load()
   } catch (e) {
     console.error('Failed to add medication:', e)
