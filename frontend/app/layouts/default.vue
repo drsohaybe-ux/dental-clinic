@@ -106,7 +106,7 @@ function isActive(to: string): boolean {
             alt="I SmilE"
             width="32"
             height="32"
-            class="shrink-0 rounded-lg shadow-xs ring-1 ring-border-subtle object-cover"
+            class="shrink-0 h-8 w-8 object-contain"
           >
           <span
             v-if="!isSidebarCollapsed"
@@ -209,7 +209,7 @@ function isActive(to: string): boolean {
                 alt="I SmilE"
                 width="32"
                 height="32"
-                class="shrink-0 rounded-lg shadow-xs ring-1 ring-border-subtle object-cover"
+                class="shrink-0 h-8 w-8 object-contain"
               >
               <span class="font-pacifico text-xl text-primary-600 dark:text-primary-400 truncate">I SmilE</span>
             </NuxtLink>

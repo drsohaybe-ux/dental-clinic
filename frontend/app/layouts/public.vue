@@ -14,7 +14,7 @@
           alt="I SmilE"
           width="28"
           height="28"
-          class="shrink-0 rounded-lg shadow-xs ring-1 ring-border-subtle object-cover"
+          class="shrink-0 h-7 w-7 object-contain"
         >
         <span class="font-pacifico text-xl text-primary-600 dark:text-primary-400">I SmilE</span>
       </div>

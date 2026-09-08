@@ -110,7 +110,7 @@ watch(() => formState.password, () => {
         alt="I SmilE"
         width="56"
         height="56"
-        class="mx-auto mb-3 rounded-xl shadow-xs ring-1 ring-border-subtle object-cover"
+        class="mx-auto mb-3 h-14 w-14 object-contain"
       >
       <h1 class="font-pacifico text-3xl text-primary-600 dark:text-primary-400">
         I SmilE

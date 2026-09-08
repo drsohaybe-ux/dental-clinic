@@ -206,7 +206,7 @@ async function onSubmit() {
           alt="I SmilE"
           width="44"
           height="44"
-          class="shrink-0 rounded-lg shadow-xs ring-1 ring-border-subtle object-cover"
+          class="shrink-0 h-11 w-11 object-contain"
         >
         <div>
           <span class="font-pacifico text-xl text-primary-600 dark:text-primary-400 block leading-tight">

@@ -59,7 +59,7 @@ async function onSubmit() {
         alt="I SmilE"
         width="56"
         height="56"
-        class="mx-auto mb-3 rounded-xl shadow-xs ring-1 ring-border-subtle object-cover"
+        class="mx-auto mb-3 h-14 w-14 object-contain"
       >
       <div class="font-pacifico text-2xl text-primary-600 dark:text-primary-400 mb-1">
         I SmilE
