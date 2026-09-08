@@ -71,7 +71,10 @@ export default defineNuxtConfig({
     head: {
       title: 'DentalPin',
       link: [
-        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap' }
       ]
     }
   },
@@ -155,7 +158,8 @@ export default defineNuxtConfig({
       { code: 'de', name: 'Deutsch', file: 'de.json' },
       { code: 'hu', name: 'Magyar', file: 'hu.json' },
       { code: 'pl', name: 'Polski', file: 'pl.json' },
-      { code: 'it', name: 'Italiano', file: 'it.json' }
+      { code: 'it', name: 'Italiano', file: 'it.json' },
+      { code: 'ar', name: 'العربية', file: 'ar.json', dir: 'rtl' }
     ],
     defaultLocale: 'en',
     lazy: true,

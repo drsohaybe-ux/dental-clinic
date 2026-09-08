@@ -7,6 +7,11 @@
   --font-sans: 'Inter Variable', 'Inter', -apple-system, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif;
 }
 
+html[lang="ar"],
+[dir="rtl"] {
+  font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 /* ============================================================================
    DentalPin Design Tokens
    Source of truth: /docs/technical/design-system.md

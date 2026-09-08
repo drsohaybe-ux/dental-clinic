@@ -1,0 +1,27 @@
+{
+  "expenses": {
+    "title": "المصروفات والنفقات",
+    "new": "تسجيل مصروف جديد",
+    "category": "بند المصروف",
+    "amount": "المبلغ",
+    "date": "التاريخ",
+    "receipt": "الفاتورة / الإيصال",
+    "notes": "ملاحظات",
+    "add": "Add expense",
+    "description": "Description",
+    "filterByCategory": "Filter by category",
+    "delete": "Delete",
+    "deleteTitle": "Delete expense",
+    "deleteMessage": "Delete this expense? This cannot be undone.",
+    "categories": {
+      "rent": "Rent",
+      "utilities": "Utilities",
+      "salaries": "Salaries",
+      "supplies": "Supplies",
+      "equipment": "Equipment",
+      "insurance": "Insurance",
+      "maintenance": "Maintenance",
+      "other": "Other"
+    }
+  }
+}
