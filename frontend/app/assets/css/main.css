@@ -5,6 +5,11 @@
 
 @theme static {
   --font-sans: 'Inter Variable', 'Inter', -apple-system, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-pacifico: 'Pacifico', cursive;
+}
+
+.font-pacifico {
+  font-family: 'Pacifico', cursive;
 }
 
 html[lang="ar"],

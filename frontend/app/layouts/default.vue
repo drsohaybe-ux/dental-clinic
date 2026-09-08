@@ -99,20 +99,20 @@ function isActive(to: string): boolean {
         <NuxtLink
           to="/"
           class="flex items-center gap-2 overflow-hidden"
-          aria-label="DentalPin"
+          aria-label="I SmilE"
         >
           <img
-            src="/logo-icon.svg"
-            alt=""
+            src="/logo.png"
+            alt="I SmilE"
             width="32"
             height="32"
-            class="shrink-0"
+            class="shrink-0 rounded-lg shadow-xs ring-1 ring-border-subtle object-cover"
           >
           <span
             v-if="!isSidebarCollapsed"
-            class="text-h2 text-default truncate"
+            class="font-pacifico text-xl text-primary-600 dark:text-primary-400 truncate"
           >
-            DentalPin
+            I SmilE
           </span>
         </NuxtLink>
       </div>
@@ -201,17 +201,17 @@ function isActive(to: string): boolean {
             <NuxtLink
               to="/"
               class="flex items-center gap-2 overflow-hidden"
-              aria-label="DentalPin"
+              aria-label="I SmilE"
               @click="mobileNavOpen = false"
             >
               <img
-                src="/logo-icon.svg"
-                alt=""
+                src="/logo.png"
+                alt="I SmilE"
                 width="32"
                 height="32"
-                class="shrink-0"
+                class="shrink-0 rounded-lg shadow-xs ring-1 ring-border-subtle object-cover"
               >
-              <span class="text-h2 text-default truncate">DentalPin</span>
+              <span class="font-pacifico text-xl text-primary-600 dark:text-primary-400 truncate">I SmilE</span>
             </NuxtLink>
             <UButton
               variant="ghost"

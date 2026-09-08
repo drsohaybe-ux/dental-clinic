@@ -22,7 +22,7 @@ useHead(() => ({
 }))
 
 useSeoMeta({
-  title: 'DentalPin',
+  title: 'I SmilE',
   description: t('app.tagline')
 })
 </script>

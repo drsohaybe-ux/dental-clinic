@@ -54,10 +54,6 @@ export default defineNuxtConfig({
     }
   ],
 
-  routeRules: {
-    '/copilot/**': { ssr: false }
-  },
-
   devtools: {
     // Vite devtools full-page reloads (optimizeDeps discovery and the
     // devtools client itself) abort Playwright `goto` mid-navigation
@@ -69,12 +65,13 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: 'DentalPin',
+      title: 'I SmilE',
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap' }
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Pacifico&display=swap' }
       ]
     }
   },
@@ -107,6 +104,10 @@ export default defineNuxtConfig({
   },
   srcDir: 'app',
   serverDir: 'server',
+
+  routeRules: {
+    '/copilot/**': { ssr: false }
+  },
 
   // Restart dev server when the backend rewrites `modules.json` on
   // module install/uninstall. `extends` is evaluated once at config

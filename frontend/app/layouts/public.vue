@@ -8,19 +8,22 @@
 <template>
   <div class="min-h-screen bg-[var(--ui-bg)] flex flex-col">
     <header class="border-b border-[var(--ui-border)] bg-[var(--ui-bg-elevated)]">
-      <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-2">
-        <UIcon
-          name="i-lucide-tooth"
-          class="w-6 h-6 text-[var(--ui-primary)]"
-        />
-        <span class="font-semibold tracking-tight">DentalPin</span>
+      <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-2.5">
+        <img
+          src="/logo.png"
+          alt="I SmilE"
+          width="28"
+          height="28"
+          class="shrink-0 rounded-lg shadow-xs ring-1 ring-border-subtle object-cover"
+        >
+        <span class="font-pacifico text-xl text-primary-600 dark:text-primary-400">I SmilE</span>
       </div>
     </header>
     <main class="flex-1">
       <slot />
     </main>
     <footer class="border-t border-[var(--ui-border)] py-4 text-center text-xs text-[var(--ui-text-muted)]">
-      <span>DentalPin · {{ new Date().getFullYear() }}</span>
+      <span>I SmilE · {{ new Date().getFullYear() }}</span>
     </footer>
   </div>
 </template>
