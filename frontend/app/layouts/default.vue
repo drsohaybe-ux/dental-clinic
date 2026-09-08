@@ -102,7 +102,7 @@ function isActive(to: string): boolean {
           aria-label="I SmilE"
         >
           <img
-            src="/logo.png?v=2"
+            src="/logo.png?v=3"
             alt="I SmilE"
             width="32"
             height="32"
@@ -205,7 +205,7 @@ function isActive(to: string): boolean {
               @click="mobileNavOpen = false"
             >
               <img
-                src="/logo.png?v=2"
+                src="/logo.png?v=3"
                 alt="I SmilE"
                 width="32"
                 height="32"

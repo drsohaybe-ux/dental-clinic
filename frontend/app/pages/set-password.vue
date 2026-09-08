@@ -55,7 +55,7 @@ async function onSubmit() {
   <div class="w-full max-w-[440px] p-4 sm:p-6">
     <div class="text-center mb-6">
       <img
-        src="/logo.png?v=2"
+        src="/logo.png?v=3"
         alt="I SmilE"
         width="56"
         height="56"

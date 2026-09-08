@@ -106,7 +106,7 @@ watch(() => formState.password, () => {
     <!-- Brand -->
     <div class="text-center mb-6">
       <img
-        src="/logo.png?v=2"
+        src="/logo.png?v=3"
         alt="I SmilE"
         width="56"
         height="56"

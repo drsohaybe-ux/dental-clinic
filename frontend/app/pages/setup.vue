@@ -202,7 +202,7 @@ async function onSubmit() {
     <div class="flex items-start justify-between gap-3 mb-6">
       <div class="flex items-center gap-3">
         <img
-          src="/logo.png?v=2"
+          src="/logo.png?v=3"
           alt="I SmilE"
           width="44"
           height="44"
