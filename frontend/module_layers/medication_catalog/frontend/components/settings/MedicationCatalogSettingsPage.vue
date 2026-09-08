@@ -2,6 +2,7 @@
 import { PERMISSIONS } from '~~/app/config/permissions'
 import {
   useMedicationCatalog,
+  type AlgerianMedication,
   type MedicationCatalogItem,
   type MedicationForm
 } from '../../composables/useMedicationCatalog'
@@ -99,9 +100,45 @@ const form = ref({
   is_active: true
 })
 
+// Auto-suggestions from Algerian nomenclature in Add Modal
+const nameSuggestions = ref<AlgerianMedication[]>([])
+const showNameSuggestions = ref(false)
+const isSearchingNomenclature = ref(false)
+let nameSearchDebounce: ReturnType<typeof setTimeout> | undefined
+
+watch(() => form.value.name, (val) => {
+  if (editingId.value) return
+  clearTimeout(nameSearchDebounce)
+  if (!val || val.trim().length < 2) {
+    nameSuggestions.value = []
+    showNameSuggestions.value = false
+    return
+  }
+  nameSearchDebounce = setTimeout(async () => {
+    isSearchingNomenclature.value = true
+    try {
+      nameSuggestions.value = await medsApi.searchNomenclature(val.trim(), undefined, 8)
+      showNameSuggestions.value = nameSuggestions.value.length > 0
+    } finally {
+      isSearchingNomenclature.value = false
+    }
+  }, 200)
+})
+
+function selectSuggestion(sug: AlgerianMedication) {
+  form.value.name = sug.dosage ? `${sug.brand_name} ${sug.dosage}`.trim() : sug.brand_name.trim()
+  form.value.dose = sug.dose ?? ''
+  form.value.unit = sug.unit ?? ''
+  form.value.form = sug.standard_form
+  form.value.requires_prescription = sug.requires_prescription
+  showNameSuggestions.value = false
+}
+
 function openAdd() {
   editingId.value = null
   form.value = { name: '', dose: '', unit: '', form: 'tablet', requires_prescription: true, is_active: true }
+  nameSuggestions.value = []
+  showNameSuggestions.value = false
   showModal.value = true
 }
 
@@ -115,7 +152,71 @@ function openEdit(item: MedicationCatalogItem) {
     requires_prescription: item.requires_prescription,
     is_active: item.is_active
   }
+  showNameSuggestions.value = false
   showModal.value = true
+}
+
+// --- Algerian Nomenclature Explorer Modal -----------------------------------
+const showNomenclatureModal = ref(false)
+const nomenclatureSearch = ref('')
+const nomenclatureDentalOnly = ref(true)
+const nomenclatureResults = ref<AlgerianMedication[]>([])
+const nomenclatureLoading = ref(false)
+const addingIds = ref<Set<string>>(new Set())
+
+function openNomenclatureModal() {
+  showNomenclatureModal.value = true
+  nomenclatureSearch.value = ''
+  nomenclatureDentalOnly.value = true
+  searchNomenclatureList()
+}
+
+let nomSearchDebounce: ReturnType<typeof setTimeout> | undefined
+watch([nomenclatureSearch, nomenclatureDentalOnly], () => {
+  clearTimeout(nomSearchDebounce)
+  nomSearchDebounce = setTimeout(searchNomenclatureList, 250)
+})
+
+async function searchNomenclatureList() {
+  nomenclatureLoading.value = true
+  try {
+    nomenclatureResults.value = await medsApi.searchNomenclature(
+      nomenclatureSearch.value.trim() || undefined,
+      nomenclatureDentalOnly.value ? true : undefined,
+      50
+    )
+  } finally {
+    nomenclatureLoading.value = false
+  }
+}
+
+function isInCatalog(item: AlgerianMedication): boolean {
+  const fullName = item.dosage ? `${item.brand_name} ${item.dosage}`.trim().toLowerCase() : item.brand_name.trim().toLowerCase()
+  const brandOnly = item.brand_name.trim().toLowerCase()
+  return items.value.some((i) => {
+    const n = i.name.trim().toLowerCase()
+    return n === fullName || n === brandOnly
+  })
+}
+
+async function addFromNomenclature(item: AlgerianMedication) {
+  const name = item.dosage ? `${item.brand_name} ${item.dosage}`.trim() : item.brand_name.trim()
+  addingIds.value.add(item.id)
+  try {
+    await medsApi.quickAdd({
+      name,
+      dose: item.dose || null,
+      unit: item.unit || null,
+      form: item.standard_form,
+      requires_prescription: item.requires_prescription,
+      is_active: true
+    })
+    await load()
+  } catch (e) {
+    console.error('Failed to add medication:', e)
+  } finally {
+    addingIds.value.delete(item.id)
+  }
 }
 
 // useApi intentionally rethrows 409s — surface the duplicate-name
@@ -213,6 +314,15 @@ const columns = computed(() => [
         </p>
       </div>
       <div class="flex gap-2">
+        <UButton
+          v-if="canWrite"
+          variant="outline"
+          color="primary"
+          icon="i-lucide-book-open"
+          @click="openNomenclatureModal"
+        >
+          {{ t('medications.nomenclatureBtn') }}
+        </UButton>
         <UButton
           v-if="canWrite"
           variant="outline"
@@ -322,10 +432,51 @@ const columns = computed(() => [
           <h2 class="text-h3 text-default">
             {{ editingId ? t('medications.edit') : t('medications.add') }}
           </h2>
-          <UInput
-            v-model="form.name"
-            :placeholder="t('medications.name')"
-          />
+          <div class="relative">
+            <UInput
+              v-model="form.name"
+              :placeholder="t('medications.name')"
+              :loading="isSearchingNomenclature"
+              autocomplete="off"
+            />
+            <!-- Autocomplete suggestions from Algerian nomenclature -->
+            <div
+              v-if="showNameSuggestions && nameSuggestions.length > 0"
+              class="absolute z-50 mt-1 w-full bg-surface-elevated border border-default rounded-md shadow-lg max-h-60 overflow-y-auto"
+            >
+              <div
+                v-for="sug in nameSuggestions"
+                :key="sug.id"
+                class="p-2 cursor-pointer hover:bg-surface-muted border-b border-muted flex items-center justify-between text-sm"
+                @mousedown.prevent="selectSuggestion(sug)"
+              >
+                <div>
+                  <div class="font-medium text-default flex items-center gap-1.5">
+                    <span>{{ sug.brand_name }}</span>
+                    <span
+                      v-if="sug.dosage"
+                      class="text-xs text-subtle font-normal"
+                    >{{ sug.dosage }}</span>
+                    <UBadge
+                      v-if="sug.is_dental"
+                      size="xs"
+                      color="primary"
+                      variant="subtle"
+                    >
+                      {{ t('medications.dentalTag') }}
+                    </UBadge>
+                  </div>
+                  <div class="text-xs text-subtle truncate max-w-xs">
+                    {{ sug.dci }} • {{ t(`medications.forms.${sug.standard_form}`) }}
+                  </div>
+                </div>
+                <UIcon
+                  name="i-lucide-plus"
+                  class="text-subtle text-xs"
+                />
+              </div>
+            </div>
+          </div>
           <div class="flex gap-2">
             <UInput
               v-model="form.dose"
@@ -401,6 +552,125 @@ const columns = computed(() => [
             >
               {{ t('medications.delete') }}
             </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Algerian Nomenclature Explorer Modal -->
+    <UModal v-model:open="showNomenclatureModal">
+      <template #content>
+        <div class="p-6 space-y-4 max-w-4xl max-h-[85vh] flex flex-col">
+          <div class="flex items-start justify-between">
+            <div>
+              <h2 class="text-h3 text-default flex items-center gap-2">
+                <UIcon
+                  name="i-lucide-book-open"
+                  class="text-primary"
+                />
+                {{ t('medications.nomenclatureTitle') }}
+              </h2>
+              <p class="text-ui text-subtle">
+                {{ t('medications.nomenclatureSubtitle') }}
+              </p>
+            </div>
+            <UButton
+              variant="ghost"
+              icon="i-lucide-x"
+              @click="showNomenclatureModal = false"
+            />
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <UInput
+              v-model="nomenclatureSearch"
+              :placeholder="t('medications.searchNomenclature')"
+              icon="i-lucide-search"
+              class="flex-1"
+            />
+            <div class="flex items-center gap-2">
+              <USwitch v-model="nomenclatureDentalOnly" />
+              <span class="text-ui text-subtle">{{ t('medications.dentalOnly') }}</span>
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-y-auto min-h-[300px] border border-default rounded-lg divide-y divide-default">
+            <div
+              v-if="nomenclatureLoading"
+              class="p-8 text-center text-subtle flex items-center justify-center gap-2"
+            >
+              <UIcon
+                name="i-lucide-loader-2"
+                class="animate-spin"
+              />
+              {{ t('common.loading') }}
+            </div>
+            <div
+              v-else-if="nomenclatureResults.length === 0"
+              class="p-8 text-center text-subtle"
+            >
+              {{ t('medications.emptyNomenclature') }}
+            </div>
+            <div
+              v-for="item in nomenclatureResults"
+              v-else
+              :key="item.id"
+              class="p-3 flex items-center justify-between hover:bg-surface-muted gap-4"
+            >
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium text-default">{{ item.brand_name }}</span>
+                  <UBadge
+                    v-if="item.dosage"
+                    size="xs"
+                    variant="outline"
+                  >
+                    {{ item.dosage }}
+                  </UBadge>
+                  <UBadge
+                    v-if="item.is_dental"
+                    size="xs"
+                    color="primary"
+                    variant="subtle"
+                  >
+                    {{ t('medications.dentalTag') }}
+                  </UBadge>
+                  <UBadge
+                    size="xs"
+                    variant="subtle"
+                  >
+                    {{ t(`medications.forms.${item.standard_form}`) }}
+                  </UBadge>
+                </div>
+                <div class="text-xs text-subtle">
+                  <span class="font-medium">DCI :</span> {{ item.dci }}
+                  <span v-if="item.laboratory"> • {{ item.laboratory }}</span>
+                  <span v-if="item.price"> • {{ item.price }}</span>
+                </div>
+              </div>
+
+              <div>
+                <UBadge
+                  v-if="isInCatalog(item)"
+                  color="success"
+                  variant="subtle"
+                  class="flex items-center gap-1"
+                >
+                  <UIcon name="i-lucide-check" />
+                  {{ t('medications.alreadyInCatalog') }}
+                </UBadge>
+                <UButton
+                  v-else
+                  size="xs"
+                  variant="outline"
+                  icon="i-lucide-plus"
+                  :loading="addingIds.has(item.id)"
+                  @click="addFromNomenclature(item)"
+                >
+                  {{ t('medications.addToCatalog') }}
+                </UButton>
+              </div>
+            </div>
           </div>
         </div>
       </template>

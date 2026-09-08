@@ -77,3 +77,34 @@ class MedicationCatalogItem(Base, TimestampMixin):
     # the clinic still stocks/uses it (inactive items stay for history).
     requires_prescription: Mapped[bool] = mapped_column(Boolean, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class AlgerianMedication(Base, TimestampMixin):
+    """Algerian National Medication Nomenclature (Nomenclature Nationale des Médicaments).
+
+    Shared reference dataset (~4,636 items) containing all medications registered
+    with the Algerian Ministry of Health (DCI, brand name, dosage, pharmaceutical form,
+    registration number, laboratory, and dental tagging).
+    """
+
+    __tablename__ = "algerian_medications"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    code: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    registration_number: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    brand_name: Mapped[str] = mapped_column(String(200), index=True)
+    dci: Mapped[str] = mapped_column(String(250), index=True)
+    form: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    standard_form: Mapped[str] = mapped_column(String(50), default="tablet")
+    dosage: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    dose: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    packaging: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    laboratory: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    price: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    reimbursement: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    is_dental: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    requires_prescription: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+

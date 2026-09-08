@@ -66,3 +66,43 @@ class MedicationCatalogResponse(BaseModel):
 class MedicationSeedSummary(BaseModel):
     created: int
     skipped: int
+
+
+class AlgerianMedicationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    code: str | None = None
+    registration_number: str | None = None
+    brand_name: str
+    dci: str
+    form: str | None = None
+    standard_form: str = "tablet"
+    dosage: str | None = None
+    dose: str | None = None
+    unit: str | None = None
+    packaging: str | None = None
+    laboratory: str | None = None
+    country: str | None = None
+    price: str | None = None
+    reimbursement: str | None = None
+    is_dental: bool = False
+    requires_prescription: bool = True
+    is_active: bool = True
+
+
+class NomenclatureSeedSummary(BaseModel):
+    seeded: int
+    total: int
+
+
+class QuickAddMedicationPayload(BaseModel):
+    """Payload to add a medication to clinic catalog from nomenclature or on-the-fly."""
+
+    name: str = Field(min_length=1, max_length=150)
+    dose: str | None = Field(default=None, max_length=50)
+    unit: str | None = Field(default=None, max_length=20)
+    form: MedicationForm = "tablet"
+    requires_prescription: bool = True
+    is_active: bool = True
+

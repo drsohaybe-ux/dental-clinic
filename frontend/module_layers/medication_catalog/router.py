@@ -12,14 +12,18 @@ from app.core.schemas import ApiResponse, PaginatedApiResponse
 from app.database import get_db
 
 from .schemas import (
+    AlgerianMedicationResponse,
     MedicationCatalogCreate,
     MedicationCatalogResponse,
     MedicationCatalogUpdate,
     MedicationSeedSummary,
+    NomenclatureSeedSummary,
+    QuickAddMedicationPayload,
 )
 from .service import MedicationCatalogService
 
 router = APIRouter()
+
 
 
 @router.get("/", response_model=PaginatedApiResponse[MedicationCatalogResponse])
@@ -44,7 +48,54 @@ async def list_medications(
     )
 
 
+@router.get("/nomenclature", response_model=ApiResponse[list[AlgerianMedicationResponse]])
+async def search_nomenclature(
+    ctx: Annotated[ClinicContext, Depends(get_clinic_context)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    q: str | None = Query(default=None, max_length=150),
+    is_dental: bool | None = Query(default=None),
+    limit: int = Query(default=30, ge=1, le=100),
+) -> ApiResponse[list[AlgerianMedicationResponse]]:
+    """Search Algerian National Nomenclature with dental ranking and auto-suggestions."""
+    items = await MedicationCatalogService.search_nomenclature(
+        db, q=q, is_dental=is_dental, limit=limit
+    )
+    return ApiResponse(data=[AlgerianMedicationResponse.model_validate(i) for i in items])
+
+
+@router.post("/nomenclature/seed", response_model=ApiResponse[NomenclatureSeedSummary])
+async def seed_nomenclature_endpoint(
+    ctx: Annotated[ClinicContext, Depends(get_clinic_context)],
+    _: Annotated[None, Depends(require_permission("medication_catalog.write"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    force: bool = Query(default=False),
+) -> ApiResponse[NomenclatureSeedSummary]:
+    """Seed or refresh the Algerian National Medication Nomenclature table (~4,636 records)."""
+    from .seed_algeria import seed_algerian_nomenclature
+
+    summary = await seed_algerian_nomenclature(db, force_refresh=force)
+    await db.commit()
+    return ApiResponse(data=NomenclatureSeedSummary(**summary))
+
+
+@router.post(
+    "/quick-add",
+    response_model=ApiResponse[MedicationCatalogResponse],
+    status_code=status.HTTP_201_CREATED,
+)
+async def quick_add_medication(
+    payload: QuickAddMedicationPayload,
+    ctx: Annotated[ClinicContext, Depends(get_clinic_context)],
+    _: Annotated[None, Depends(require_permission("medication_catalog.write"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ApiResponse[MedicationCatalogResponse]:
+    """Idempotently add a medication to the clinic catalog in one click."""
+    item, _ = await MedicationCatalogService.quick_add_to_catalog(db, ctx.clinic_id, payload)
+    return ApiResponse(data=MedicationCatalogResponse.model_validate(item))
+
+
 @router.get("/{item_id}", response_model=ApiResponse[MedicationCatalogResponse])
+
 async def get_medication(
     item_id: UUID,
     ctx: Annotated[ClinicContext, Depends(get_clinic_context)],

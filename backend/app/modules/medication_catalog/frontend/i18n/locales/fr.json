@@ -41,6 +41,16 @@
     "settingsLabel": "Médicaments",
     "settingsDescription": "Formulaire de la clinique utilisé par les ordonnances (distinct de la liste de référence du dossier patient).",
     "duplicateName": "Un médicament portant ce nom existe déjà.",
-    "allForms": "Toutes les formes"
+    "allForms": "Toutes les formes",
+    "nomenclatureBtn": "Nomenclature Algérienne",
+    "nomenclatureTitle": "Nomenclature Nationale des Médicaments (Algérie)",
+    "nomenclatureSubtitle": "Base officielle de ~4 600 médicaments enregistrés en Algérie. Ajoutez n'importe quel médicament à votre catalogue en 1 clic.",
+    "searchNomenclature": "Rechercher par marque ou DCI (ex: Augmentin, Paracétamol, Septanest)…",
+    "dentalOnly": "Dentaire uniquement",
+    "addToCatalog": "Ajouter au catalogue",
+    "alreadyInCatalog": "Au catalogue",
+    "emptyNomenclature": "Aucun médicament trouvé dans la nomenclature.",
+    "addedToCatalogSuccess": "Médicament ajouté au catalogue clinique avec succès.",
+    "dentalTag": "Dentaire"
   }
 }

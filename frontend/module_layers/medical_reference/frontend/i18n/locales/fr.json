@@ -30,6 +30,10 @@
     "flags": {
       "interaction": "Interaction {a} + {b}",
       "contraindication": "{a} : contre-indiqué avec {b}"
-    }
+    },
+    "addToClinicCatalog": "+ Ajouter au catalogue clinique",
+    "inClinicCatalog": "Au catalogue clinique",
+    "addedToClinicCatalog": "Ajouté au catalogue de la clinique",
+    "dental": "Dentaire"
   }
 }

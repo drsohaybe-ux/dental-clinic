@@ -41,6 +41,16 @@
     "settingsLabel": "Medications",
     "settingsDescription": "Clinic formulary used by prescriptions (distinct from the patient medical-history reference list).",
     "duplicateName": "A medication with this name already exists.",
-    "allForms": "All forms"
+    "allForms": "All forms",
+    "nomenclatureBtn": "Algerian Nomenclature",
+    "nomenclatureTitle": "Algerian National Medication Nomenclature",
+    "nomenclatureSubtitle": "Official database of ~4,600 registered Algerian medications. Add any medication to your clinic catalog in one click.",
+    "searchNomenclature": "Search by brand or INN (e.g. Augmentin, Paracetamol, Septanest)…",
+    "dentalOnly": "Dental only",
+    "addToCatalog": "Add to catalog",
+    "alreadyInCatalog": "In catalog",
+    "emptyNomenclature": "No medications found in nomenclature.",
+    "addedToCatalogSuccess": "Medication added to clinic catalog successfully.",
+    "dentalTag": "Dental"
   }
 }

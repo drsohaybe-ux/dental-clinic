@@ -30,6 +30,10 @@
     "flags": {
       "interaction": "{a} + {b} interaction",
       "contraindication": "{a}: contraindicated with {b}"
-    }
+    },
+    "addToClinicCatalog": "+ Add to clinic catalog",
+    "inClinicCatalog": "In clinic catalog",
+    "addedToClinicCatalog": "Added to clinic catalog",
+    "dental": "Dental"
   }
 }

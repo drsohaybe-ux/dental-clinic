@@ -15,7 +15,7 @@ from fastapi import APIRouter
 
 from app.core.plugins import BaseModule
 
-from .models import MedicationCatalogItem
+from .models import AlgerianMedication, MedicationCatalogItem
 from .router import router
 
 
@@ -51,7 +51,7 @@ class MedicationCatalogModule(BaseModule):
     }
 
     def get_models(self) -> list:
-        return [MedicationCatalogItem]
+        return [MedicationCatalogItem, AlgerianMedication]
 
     def get_router(self) -> APIRouter:
         return router
