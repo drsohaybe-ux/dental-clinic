@@ -10,7 +10,7 @@
     <header class="border-b border-[var(--ui-border)] bg-[var(--ui-bg-elevated)]">
       <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-2.5">
         <img
-          src="/logo.png"
+          src="/logo.png?v=2"
           alt="I SmilE"
           width="28"
           height="28"
