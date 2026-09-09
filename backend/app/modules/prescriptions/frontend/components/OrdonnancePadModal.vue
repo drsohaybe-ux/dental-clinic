@@ -218,7 +218,7 @@ watch(
       doctorNameAr.value = rx.doctor_name_ar || 'الدكتور جراح أسنان'
       doctorSpecialtyAr.value = rx.doctor_specialty_ar || 'جراح أسنان'
       city.value = rx.city || getDefaultCity()
-      prescriptionDate.value = rx.prescription_date || new Date().toISOString().split('T')[0] ?? ''
+      prescriptionDate.value = rx.prescription_date || new Date().toISOString().split('T')[0]
       notes.value = rx.notes || ''
       items.value = rx.items && rx.items.length > 0 ? rx.items.map((it, idx) => ({ ...it, order: idx + 1 })) : []
     } else {

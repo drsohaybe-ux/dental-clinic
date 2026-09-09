@@ -10,6 +10,6 @@ export default defineNuxtConfig({
       { code: 'fr', file: 'fr.json' },
       { code: 'ar', file: 'ar.json' }
     ],
-    langDir: 'i18n/locales'
+    langDir: 'locales'
   }
 })
