@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Recall } from '../composables/useRecalls'
+import RecallRow from './RecallRow.vue'
 
 interface Props {
   items: Recall[]

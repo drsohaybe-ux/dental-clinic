@@ -64,6 +64,72 @@ async function bookAppointment() {
   )
 }
 
+const api = useApi()
+const { currentClinic } = useClinic()
+const isNavigatingMessage = ref(false)
+
+const REASON_ARABIC_MAP: Record<string, string> = {
+  checkup: 'فحص دوري',
+  hygiene: 'تنظيف وتلميع الأسنان',
+  prosthesis_check: 'فحص ومتابعة التركيبات',
+  post_op: 'متابعة ما بعد العلاج',
+  orthodontic_review: 'مراجعة التقويم',
+  ortho_review: 'مراجعة التقويم',
+  implant_review: 'فحص ومتابعة زراعة الأسنان',
+  treatment_followup: 'متابعة العلاج'
+}
+
+function buildArabicRecallMessage(): string {
+  const p = patient.value
+  const patientName = p ? `${p.first_name || ''} ${p.last_name || ''}`.trim() : ''
+  const rawClinic = currentClinic.value?.name?.trim() || ''
+  const clinicName = rawClinic ? rawClinic.replace(/^Cabinet\s+Dentaire\s+/i, '') : 'د. مختار'
+  const reasonLabel = (props.recall.reason && REASON_ARABIC_MAP[props.recall.reason]) || 'فحص الأسنان'
+
+  if (patientName) {
+    return `السلام عليكم ${patientName}، معكم عيادة طب الأسنان ${clinicName}. نود تذكيركم بموعد الفحص والمتابعة الدورية (${reasonLabel}). هل يناسبكم تحديد موعد هذا الأسبوع؟`
+  }
+  return `السلام عليكم، معكم عيادة طب الأسنان ${clinicName}. نود تذكيركم بموعد الفحص والمتابعة الدورية (${reasonLabel}). هل يناسبكم تحديد موعد هذا الأسبوع؟`
+}
+
+async function sendMessageToPatient() {
+  if (isNavigatingMessage.value) return
+  isNavigatingMessage.value = true
+
+  const p = patient.value
+  const patientName = p ? `${p.first_name || ''} ${p.last_name || ''}`.trim() : ''
+  const phone = p?.phone || ''
+  const presetMessage = buildArabicRecallMessage()
+
+  let platform = 'whatsapp'
+  try {
+    const res = await api.get<{ platform?: string }>(`/api/v1/omnichannel_bridge/chats/last-platform`, {
+      params: {
+        phone: phone || undefined,
+        patient_id: props.recall.patient_id || undefined
+      }
+    })
+    if (res?.platform === 'telegram' || res?.platform === 'whatsapp') {
+      platform = res.platform
+    }
+  } catch {
+    platform = 'whatsapp'
+  }
+
+  await navigateTo({
+    path: '/messages',
+    query: {
+      patientId: props.recall.patient_id,
+      phone: phone || undefined,
+      name: patientName || undefined,
+      message: presetMessage,
+      platform,
+      recallId: props.recall.id
+    }
+  })
+  isNavigatingMessage.value = false
+}
+
 async function snooze() {
   if (isBusy.value) return
   isBusy.value = true
@@ -175,6 +241,16 @@ async function onAttemptLogged() {
       >
         {{ t('recalls.actions.call') }}
       </UButton>
+      <UButton
+        v-if="callable"
+        icon="i-lucide-message-square"
+        size="sm"
+        color="primary"
+        variant="soft"
+        :loading="isNavigatingMessage"
+        :title="t('recalls.actions.sendMessage', 'Envoyer un message')"
+        @click="sendMessageToPatient"
+      />
       <UButton
         icon="i-lucide-phone-off"
         size="sm"

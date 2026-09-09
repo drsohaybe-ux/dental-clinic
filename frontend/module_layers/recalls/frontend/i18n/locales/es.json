@@ -52,6 +52,7 @@
     },
     "actions": {
       "call": "Llamar",
+      "sendMessage": "Enviar mensaje",
       "logAttempt": "Registrar intento",
       "noAnswer": "No contesta",
       "book": "Agendar cita",

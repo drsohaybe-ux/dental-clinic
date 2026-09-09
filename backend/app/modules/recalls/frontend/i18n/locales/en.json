@@ -52,6 +52,7 @@
     },
     "actions": {
       "call": "Call",
+      "sendMessage": "Send message",
       "logAttempt": "Log attempt",
       "noAnswer": "No answer",
       "book": "Book appointment",

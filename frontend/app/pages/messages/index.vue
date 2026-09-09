@@ -432,13 +432,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 definePageMeta({ middleware: 'auth' })
 
 const { t } = useI18n()
 const toast = useToast()
 const api = useApi()
+const route = useRoute()
 
 interface ChatThread {
   id: string
@@ -756,11 +757,84 @@ async function syncLiveThreads() {
   } catch {}
 }
 
+function applyQueryParams() {
+  const queryPhone = typeof route.query.phone === 'string' ? route.query.phone.trim() : ''
+  const queryPatientId = typeof route.query.patientId === 'string' ? route.query.patientId.trim() : ''
+  const queryName = typeof route.query.name === 'string' ? route.query.name.trim() : ''
+  const queryMessage = typeof route.query.message === 'string' ? route.query.message.trim() : ''
+  const queryPlatform = (route.query.platform === 'telegram' ? 'telegram' : 'whatsapp') as 'telegram' | 'whatsapp'
+
+  if (!queryPhone && !queryPatientId && !queryName && !queryMessage) {
+    return
+  }
+
+  // Populate preset Arabic message into composer
+  if (queryMessage) {
+    replyText.value = queryMessage
+  }
+
+  const cleanPhone = queryPhone.replace(/\D/g, '')
+
+  // Unhide if was hidden
+  if (queryPhone) {
+    hiddenThreads.value.delete(`thread-${queryPhone}`)
+  }
+  if (cleanPhone) {
+    hiddenThreads.value.delete(`thread-${cleanPhone}`)
+  }
+  saveHiddenThreads()
+
+  // Find existing thread
+  let thread = threads.value.find(t => {
+    if (queryPatientId && t.patientId && t.patientId === queryPatientId) {
+      return true
+    }
+    if (cleanPhone) {
+      const tClean = (t.phone || '').replace(/\D/g, '')
+      if (tClean && (tClean === cleanPhone || tClean.endsWith(cleanPhone) || cleanPhone.endsWith(tClean))) {
+        return true
+      }
+    }
+    return false
+  })
+
+  if (thread) {
+    activeFilter.value = 'all'
+    selectedThread.value = thread
+  } else if (queryPhone || queryName) {
+    // Create new thread pre-filled with patient details
+    thread = {
+      id: `thread-${cleanPhone || queryPatientId || Date.now()}`,
+      name: queryName || queryPhone || 'Patient',
+      phone: queryPhone,
+      platform: queryPlatform,
+      patientId: queryPatientId || undefined,
+      lastMessage: queryMessage || t('messages.newConversation', 'Nouvelle conversation'),
+      lastTime: 'À l\'instant',
+      isHumanActive: true,
+      hasRadio: false,
+      messages: []
+    }
+    threads.value.unshift(thread)
+    activeFilter.value = 'all'
+    selectedThread.value = thread
+  }
+}
+
 onMounted(() => {
   loadHiddenThreads()
+  applyQueryParams()
   syncLiveThreads()
   syncTimer = setInterval(syncLiveThreads, 3000) // 3-second live sync loop
 })
+
+watch(
+  () => route.query,
+  () => {
+    applyQueryParams()
+  },
+  { deep: true }
+)
 
 onUnmounted(() => {
   if (syncTimer) clearInterval(syncTimer)
@@ -928,6 +1002,17 @@ function sendReply() {
   }).catch((err) => {
     console.warn('Doctor reply webhook notice:', err)
   })
+
+  // 3. If originating from a recall reminder, auto-log contact attempt
+  if (route.query.recallId) {
+    const recallId = String(route.query.recallId)
+    const channel = thread.platform === 'whatsapp' ? 'whatsapp' : 'phone'
+    api.post(`/api/v1/recalls/${recallId}/attempts`, {
+      channel,
+      outcome: 'scheduled',
+      note: `Message envoyé depuis la messagerie (${thread.platform})`
+    }).catch(() => {})
+  }
 
   replyText.value = ''
   toast.add({ title: 'Message envoyé au patient 🚀', color: 'green' })

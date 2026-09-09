@@ -52,6 +52,7 @@
     },
     "actions": {
       "call": "Appeler",
+      "sendMessage": "Envoyer un message",
       "logAttempt": "Enregistrer la tentative",
       "noAnswer": "Pas de réponse",
       "book": "Prendre rendez-vous",

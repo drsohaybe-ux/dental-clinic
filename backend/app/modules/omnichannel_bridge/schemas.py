@@ -13,6 +13,7 @@ class ChatStatusResponse(BaseModel):
     is_human_active: bool = False
     patient_id: Optional[str] = None
     has_active_booking: bool = False
+    platform: str = "whatsapp"
 
 
 # --- 2. Inbound Message ---

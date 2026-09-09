@@ -81,7 +81,7 @@ async def get_chat_status(
 ):
     """
     Checks if a human doctor has taken over the chat, finds the patient ID,
-    and checks for active bookings.
+    detects the last communication platform used, and checks for active bookings.
     """
     clean = normalize_phone(phone)
     patient = await find_patient_by_phone(db, phone)
@@ -101,11 +101,105 @@ async def get_chat_status(
     # Check active booking (has patient and status active)
     has_active_booking = bool(patient and patient.status == "active")
 
+    # Detect last platform patient was contacted on
+    platform = "whatsapp"
+    msg_clauses = [
+        ChatMessage.phone == phone,
+        ChatMessage.phone == clean,
+        ChatMessage.phone.ilike(f"%{clean}%"),
+    ]
+    if patient:
+        msg_clauses.append(ChatMessage.patient_id == patient.id)
+    msg_stmt = (
+        select(ChatMessage.platform)
+        .where(or_(*msg_clauses))
+        .order_by(desc(ChatMessage.sent_at))
+        .limit(1)
+    )
+    msg_res = await db.execute(msg_stmt)
+    last_p = msg_res.scalars().first()
+    if last_p and last_p.lower() in ["telegram", "whatsapp"]:
+        platform = last_p.lower()
+    else:
+        lead_stmt = (
+            select(PatientLead.source)
+            .where(or_(PatientLead.phone == phone, PatientLead.phone == clean))
+            .order_by(desc(PatientLead.created_at))
+            .limit(1)
+        )
+        lead_res = await db.execute(lead_stmt)
+        lead_src = lead_res.scalars().first()
+        if lead_src and lead_src.lower() in ["telegram", "whatsapp"]:
+            platform = lead_src.lower()
+
     return ChatStatusResponse(
         is_human_active=is_human,
         patient_id=str(patient.id) if patient else None,
         has_active_booking=has_active_booking,
+        platform=platform,
     )
+
+
+# --- 1b. GET /chats/last-platform ---
+@router.get("/chats/last-platform")
+async def get_patient_last_platform(
+    phone: Optional[str] = Query(None),
+    patient_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Finds the last communication platform ('whatsapp' or 'telegram') the patient contacted on.
+    Defaults to 'whatsapp'.
+    """
+    platform = "whatsapp"
+    pid: Optional[UUID] = None
+    if patient_id:
+        try:
+            pid = UUID(patient_id)
+        except Exception:
+            pid = None
+
+    clean = normalize_phone(phone) if phone else ""
+
+    clauses = []
+    if pid:
+        clauses.append(ChatMessage.patient_id == pid)
+    if phone:
+        clauses.append(ChatMessage.phone == phone)
+    if clean:
+        clauses.append(ChatMessage.phone == clean)
+        clauses.append(ChatMessage.phone.ilike(f"%{clean}%"))
+
+    if clauses:
+        stmt = (
+            select(ChatMessage.platform)
+            .where(or_(*clauses))
+            .order_by(desc(ChatMessage.sent_at))
+            .limit(1)
+        )
+        res = await db.execute(stmt)
+        last_msg = res.scalars().first()
+        if last_msg and last_msg.lower() in ["telegram", "whatsapp"]:
+            return {"platform": last_msg.lower()}
+
+    lead_clauses = []
+    if phone:
+        lead_clauses.append(PatientLead.phone == phone)
+    if clean:
+        lead_clauses.append(PatientLead.phone == clean)
+    if lead_clauses:
+        lead_stmt = (
+            select(PatientLead.source)
+            .where(or_(*lead_clauses))
+            .order_by(desc(PatientLead.created_at))
+            .limit(1)
+        )
+        lead_res = await db.execute(lead_stmt)
+        lead_src = lead_res.scalars().first()
+        if lead_src and lead_src.lower() in ["telegram", "whatsapp"]:
+            return {"platform": lead_src.lower()}
+
+    return {"platform": platform}
 
 
 # --- 2. POST /messages/inbound ---

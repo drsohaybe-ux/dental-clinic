@@ -12,7 +12,8 @@ export default defineEventHandler(async (event) => {
     return {
       is_human_active: false,
       patient_id: null,
-      has_active_booking: false
+      has_active_booking: false,
+      platform: 'whatsapp'
     }
   }
 })

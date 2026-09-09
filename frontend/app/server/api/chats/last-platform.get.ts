@@ -4,15 +4,12 @@ export default defineEventHandler(async (event) => {
   const backendBase = config.apiBaseUrlServer || config.public.apiBaseUrl || 'https://dental-api-2z19.onrender.com'
 
   try {
-    const res = await $fetch(`${backendBase}/api/v1/omnichannel_bridge/chats/status`, {
+    const res = await $fetch<{ platform: string }>(`${backendBase}/api/v1/omnichannel_bridge/chats/last-platform`, {
       params: query
     })
     return res
   } catch (err: any) {
     return {
-      is_human_active: false,
-      patient_id: null,
-      has_active_booking: false,
       platform: 'whatsapp'
     }
   }
