@@ -34,7 +34,7 @@ const note = ref('')
 const isSubmitting = ref(false)
 
 const channelOptions = computed(() =>
-  (['phone', 'whatsapp', 'sms', 'email'] as RecallChannel[]).map(c => ({
+  (['phone', 'whatsapp', 'telegram', 'sms', 'email'] as RecallChannel[]).map(c => ({
     value: c,
     label: t(`recalls.channel.${c}`)
   }))

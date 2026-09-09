@@ -308,6 +308,7 @@
             />
             <button
               type="button"
+              data-test="send-reply-button"
               class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
               :disabled="!replyText.trim()"
               @click="sendReply"
@@ -440,6 +441,20 @@ const { t } = useI18n()
 const toast = useToast()
 const api = useApi()
 const route = useRoute()
+const router = useRouter()
+
+function normalizePhone(phone: string): string {
+  let digits = (phone || '').replace(/\D/g, '')
+  if (digits.startsWith('00213') && digits.length > 11) {
+    digits = digits.slice(5)
+  } else if (digits.startsWith('213') && digits.length > 9) {
+    digits = digits.slice(3)
+  }
+  if (digits.startsWith('0') && digits.length > 8) {
+    digits = digits.slice(1)
+  }
+  return digits
+}
 
 interface ChatThread {
   id: string
@@ -671,7 +686,7 @@ async function submitNewChat() {
       timestamp: new Date().toISOString()
     }
 
-    api.post('/api/v1/omnichannel_bridge/messages/outbound', payload).catch(() => {})
+    api.post('/api/v1/omnichannel_bridge/messages/outbound', payload, { silent: true }).catch(() => {})
 
     $fetch('https://sohaybe2004.app.n8n.cloud/webhook-test/doctor-reply', {
       method: 'POST',
@@ -705,11 +720,11 @@ let syncTimer: any = null
 
 async function syncLiveThreads() {
   try {
-    const liveThreads = await api.get<any[]>('/api/v1/omnichannel_bridge/conversations')
+    const liveThreads = await api.get<any[]>('/api/v1/omnichannel_bridge/conversations', { silent: true })
     if (Array.isArray(liveThreads) && liveThreads.length > 0) {
       liveThreads.forEach(live => {
-        const cleanLive = (live.phone || '').replace(/\D/g, '')
-        const existingIdx = threads.value.findIndex(t => (t.phone || '').replace(/\D/g, '') === cleanLive)
+        const cleanLive = normalizePhone(live.phone)
+        const existingIdx = threads.value.findIndex(t => normalizePhone(t.phone) === cleanLive)
         const mapped: ChatThread = {
           id: live.id || `thread-${live.phone}`,
           name: live.name || live.phone,
@@ -773,7 +788,7 @@ function applyQueryParams() {
     replyText.value = queryMessage
   }
 
-  const cleanPhone = queryPhone.replace(/\D/g, '')
+  const cleanPhone = normalizePhone(queryPhone)
 
   // Unhide if was hidden
   if (queryPhone) {
@@ -790,8 +805,8 @@ function applyQueryParams() {
       return true
     }
     if (cleanPhone) {
-      const tClean = (t.phone || '').replace(/\D/g, '')
-      if (tClean && (tClean === cleanPhone || tClean.endsWith(cleanPhone) || cleanPhone.endsWith(tClean))) {
+      const tClean = normalizePhone(t.phone)
+      if (tClean && tClean === cleanPhone) {
         return true
       }
     }
@@ -799,6 +814,18 @@ function applyQueryParams() {
   })
 
   if (thread) {
+    if (queryPatientId && !thread.patientId) {
+      thread.patientId = queryPatientId
+    }
+    if (queryName && (!thread.name || thread.name === thread.phone)) {
+      thread.name = queryName
+    }
+    if (route.query.platform === 'telegram' || route.query.platform === 'whatsapp') {
+      thread.platform = queryPlatform
+    }
+    hiddenThreads.value.delete(thread.id)
+    saveHiddenThreads()
+
     activeFilter.value = 'all'
     selectedThread.value = thread
   } else if (queryPhone || queryName) {
@@ -815,6 +842,8 @@ function applyQueryParams() {
       hasRadio: false,
       messages: []
     }
+    hiddenThreads.value.delete(thread.id)
+    saveHiddenThreads()
     threads.value.unshift(thread)
     activeFilter.value = 'all'
     selectedThread.value = thread
@@ -825,7 +854,9 @@ onMounted(() => {
   loadHiddenThreads()
   applyQueryParams()
   syncLiveThreads()
-  syncTimer = setInterval(syncLiveThreads, 3000) // 3-second live sync loop
+  if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+    syncTimer = setInterval(syncLiveThreads, 3000)
+  }
 })
 
 watch(
@@ -965,7 +996,7 @@ function toggleTakeover() {
   } catch {}
 }
 
-function sendReply() {
+async function sendReply() {
   if (!selectedThread.value || !replyText.value.trim()) return
   const text = replyText.value.trim()
   const thread = selectedThread.value
@@ -993,7 +1024,7 @@ function sendReply() {
   }
 
   // 1. Write to PostgreSQL database
-  api.post('/api/v1/omnichannel_bridge/messages/outbound', payload).catch(() => {})
+  api.post('/api/v1/omnichannel_bridge/messages/outbound', payload, { silent: true }).catch(() => {})
 
   // 2. Trigger n8n Doctor Reply Webhook for Telegram
   $fetch('https://sohaybe2004.app.n8n.cloud/webhook-test/doctor-reply', {
@@ -1003,18 +1034,25 @@ function sendReply() {
     console.warn('Doctor reply webhook notice:', err)
   })
 
-  // 3. If originating from a recall reminder, auto-log contact attempt
-  if (route.query.recallId) {
-    const recallId = String(route.query.recallId)
-    const channel = thread.platform === 'whatsapp' ? 'whatsapp' : 'phone'
-    api.post(`/api/v1/recalls/${recallId}/attempts`, {
-      channel,
-      outcome: 'scheduled',
-      note: `Message envoyé depuis la messagerie (${thread.platform})`
-    }).catch(() => {})
-  }
-
   replyText.value = ''
   toast.add({ title: 'Message envoyé au patient 🚀', color: 'green' })
+
+  // 3. If originating from a recall reminder, auto-log contact attempt and clean query params
+  if (route.query.recallId) {
+    const recallId = String(route.query.recallId)
+    const channel = thread.platform === 'whatsapp' ? 'whatsapp' : (thread.platform === 'telegram' ? 'telegram' : 'sms')
+    api.post(`/api/v1/recalls/${recallId}/attempts`, {
+      channel,
+      outcome: 'voicemail',
+      note: `Message de rappel envoyé depuis la messagerie (${thread.platform})`
+    }, { silent: true }).catch(() => {})
+
+    const newQuery = { ...route.query }
+    delete newQuery.recallId
+    delete newQuery.message
+    delete (route.query as any).recallId
+    delete (route.query as any).message
+    router.replace({ path: route.path, query: newQuery }).catch(() => {})
+  }
 }
 </script>

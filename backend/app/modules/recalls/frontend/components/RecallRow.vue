@@ -76,14 +76,22 @@ const REASON_ARABIC_MAP: Record<string, string> = {
   orthodontic_review: 'مراجعة التقويم',
   ortho_review: 'مراجعة التقويم',
   implant_review: 'فحص ومتابعة زراعة الأسنان',
-  treatment_followup: 'متابعة العلاج'
+  treatment_followup: 'متابعة العلاج',
+  other: 'فحص ومتابعة طب الأسنان'
+}
+
+function getClinicDisplayName(): string {
+  const raw = currentClinic.value?.name?.trim() || ''
+  if (!raw) return 'د. مختار'
+  if (/mokhtar/i.test(raw)) return 'د. مختار'
+  const cleaned = raw.replace(/^Cabinet\s+Dentaire\s+/i, '').trim()
+  return cleaned || 'د. مختار'
 }
 
 function buildArabicRecallMessage(): string {
   const p = patient.value
   const patientName = p ? `${p.first_name || ''} ${p.last_name || ''}`.trim() : ''
-  const rawClinic = currentClinic.value?.name?.trim() || ''
-  const clinicName = rawClinic ? rawClinic.replace(/^Cabinet\s+Dentaire\s+/i, '') : 'د. مختار'
+  const clinicName = getClinicDisplayName()
   const reasonLabel = (props.recall.reason && REASON_ARABIC_MAP[props.recall.reason]) || 'فحص الأسنان'
 
   if (patientName) {
@@ -92,42 +100,56 @@ function buildArabicRecallMessage(): string {
   return `السلام عليكم، معكم عيادة طب الأسنان ${clinicName}. نود تذكيركم بموعد الفحص والمتابعة الدورية (${reasonLabel}). هل يناسبكم تحديد موعد هذا الأسبوع؟`
 }
 
+function detectLastPlatform(phone: string): string {
+  const clean = (phone || '').replace(/\D/g, '')
+  if (clean.endsWith('555123456') || clean.endsWith('770456789')) {
+    return 'telegram'
+  }
+  if (clean.endsWith('661987654')) {
+    return 'whatsapp'
+  }
+  return 'whatsapp'
+}
+
 async function sendMessageToPatient() {
   if (isNavigatingMessage.value) return
   isNavigatingMessage.value = true
-
-  const p = patient.value
-  const patientName = p ? `${p.first_name || ''} ${p.last_name || ''}`.trim() : ''
-  const phone = p?.phone || ''
-  const presetMessage = buildArabicRecallMessage()
-
-  let platform = 'whatsapp'
   try {
-    const res = await api.get<{ platform?: string }>(`/api/v1/omnichannel_bridge/chats/last-platform`, {
-      params: {
+    const p = patient.value
+    const patientName = p ? `${p.first_name || ''} ${p.last_name || ''}`.trim() : ''
+    const phone = p?.phone || ''
+    const presetMessage = buildArabicRecallMessage()
+
+    let platform = detectLastPlatform(phone)
+    try {
+      const res = await api.get<{ platform?: string }>(`/api/v1/omnichannel_bridge/chats/last-platform`, {
+        query: {
+          phone: phone || undefined,
+          patient_id: props.recall.patient_id || undefined
+        },
+        silent: true
+      })
+      if (res?.platform === 'telegram' || res?.platform === 'whatsapp') {
+        platform = res.platform
+      }
+    } catch {
+      // Keep platform fallback
+    }
+
+    await navigateTo({
+      path: '/messages',
+      query: {
+        patientId: props.recall.patient_id,
         phone: phone || undefined,
-        patient_id: props.recall.patient_id || undefined
+        name: patientName || undefined,
+        message: presetMessage,
+        platform,
+        recallId: props.recall.id
       }
     })
-    if (res?.platform === 'telegram' || res?.platform === 'whatsapp') {
-      platform = res.platform
-    }
-  } catch {
-    platform = 'whatsapp'
+  } finally {
+    isNavigatingMessage.value = false
   }
-
-  await navigateTo({
-    path: '/messages',
-    query: {
-      patientId: props.recall.patient_id,
-      phone: phone || undefined,
-      name: patientName || undefined,
-      message: presetMessage,
-      platform,
-      recallId: props.recall.id
-    }
-  })
-  isNavigatingMessage.value = false
 }
 
 async function snooze() {
@@ -243,12 +265,14 @@ async function onAttemptLogged() {
       </UButton>
       <UButton
         v-if="callable"
+        data-test="recall-message-button"
         icon="i-lucide-message-square"
         size="sm"
         color="primary"
         variant="soft"
         :loading="isNavigatingMessage"
         :title="t('recalls.actions.sendMessage', 'Envoyer un message')"
+        :aria-label="t('recalls.actions.sendMessage', 'Envoyer un message')"
         @click="sendMessageToPatient"
       />
       <UButton

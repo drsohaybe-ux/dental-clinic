@@ -52,6 +52,7 @@
     },
     "actions": {
       "call": "Telefonar",
+      "sendMessage": "Enviar mensagem",
       "logAttempt": "Registar tentativa",
       "noAnswer": "Sem resposta",
       "book": "Marcar consulta",
@@ -95,6 +96,7 @@
     "channel": {
       "phone": "Telefone",
       "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
       "sms": "SMS",
       "email": "Email"
     },

@@ -32,7 +32,7 @@ Status = Literal[
     "needs_review",
 ]
 
-Channel = Literal["phone", "whatsapp", "sms", "email"]
+Channel = Literal["phone", "whatsapp", "telegram", "sms", "email"]
 
 Outcome = Literal[
     "no_answer",

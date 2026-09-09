@@ -96,6 +96,7 @@
     "channel": {
       "phone": "Teléfono",
       "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
       "sms": "SMS",
       "email": "Email"
     },

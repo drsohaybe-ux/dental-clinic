@@ -1,10 +1,39 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import RecallRow from '~/../module_layers/recalls/frontend/components/RecallRow.vue'
 import MessagesPage from '~/pages/messages/index.vue'
 
 describe('Recall Message Button & Omnichannel Messaging Integration', () => {
+  let activeWrapper: any = null
+
+  beforeEach(() => {
+    useCookie('access_token').value = 'mock-jwt-token'
+    const authUser = useState<any>('auth:user', () => null)
+    authUser.value = {
+      id: 'doc-1',
+      email: 'doctor@dentalpin.dz',
+      first_name: 'Mokhtar',
+      last_name: 'Dentiste'
+    }
+  })
+
+  afterEach(async () => {
+    if (activeWrapper) {
+      activeWrapper.unmount()
+      activeWrapper = null
+    }
+    try {
+      localStorage.removeItem('dental_hidden_threads')
+    } catch {}
+    try {
+      const router = useRouter()
+      await router.push({ path: '/', query: {} })
+      await router.isReady()
+    } catch {}
+    await flushPromises()
+  })
+
   const sampleRecall = {
     id: 'recall-test-1',
     clinic_id: 'clinic-1',
@@ -29,6 +58,7 @@ describe('Recall Message Button & Omnichannel Messaging Integration', () => {
     const wrapper = await mountSuspended(RecallRow, {
       props: { recall: sampleRecall }
     })
+    activeWrapper = wrapper
 
     expect(wrapper.exists()).toBe(true)
 
@@ -66,6 +96,7 @@ describe('Recall Message Button & Omnichannel Messaging Integration', () => {
     const wrapper = await mountSuspended(RecallRow, {
       props: { recall: noContactRecall }
     })
+    activeWrapper = wrapper
 
     const buttons = wrapper.findAll('button, a')
     const messageBtn = buttons.find(b => b.html().includes('i-lucide-message-square'))
@@ -80,6 +111,7 @@ describe('Recall Message Button & Omnichannel Messaging Integration', () => {
       { reason: 'post_op', expectedArabic: 'متابعة ما بعد العلاج' },
       { reason: 'orthodontic_review', expectedArabic: 'مراجعة التقويم' },
       { reason: 'ortho_review', expectedArabic: 'مراجعة التقويم' },
+      { reason: 'other', expectedArabic: 'فحص ومتابعة طب الأسنان' },
       { reason: 'unknown_custom_reason', expectedArabic: 'فحص الأسنان' }
     ]
 
@@ -91,7 +123,8 @@ describe('Recall Message Button & Omnichannel Messaging Integration', () => {
       orthodontic_review: 'مراجعة التقويم',
       ortho_review: 'مراجعة التقويم',
       implant_review: 'فحص ومتابعة زراعة الأسنان',
-      treatment_followup: 'متابعة العلاج'
+      treatment_followup: 'متابعة العلاج',
+      other: 'فحص ومتابعة طب الأسنان'
     }
 
     for (const testCase of reasonsToTest) {
@@ -110,6 +143,7 @@ describe('Recall Message Button & Omnichannel Messaging Integration', () => {
 
   it('mounts the /messages page and displays live n8n synchronization and seed threads', async () => {
     const wrapper = await mountSuspended(MessagesPage)
+    activeWrapper = wrapper
     await flushPromises()
 
     expect(wrapper.exists()).toBe(true)
@@ -128,6 +162,7 @@ describe('Recall Message Button & Omnichannel Messaging Integration', () => {
     const wrapper = await mountSuspended(RecallRow, {
       props: { recall: sampleRecall }
     })
+    activeWrapper = wrapper
     const buttons = wrapper.findAll('button, a')
     const messageBtn = buttons.find(b => {
       return b.attributes('title')?.includes('message') || b.attributes('title')?.includes('رسالة') || b.html().includes('message-square')
@@ -144,7 +179,8 @@ describe('Recall Message Button & Omnichannel Messaging Integration', () => {
       phone: '+213 555 12 34 56',
       name: 'Karim Benali',
       message: testPresetMsg,
-      platform: 'telegram'
+      platform: 'telegram',
+      recallId: 'recall-test-1'
     }
 
     // Authenticate so auth middleware doesn't redirect to /login
@@ -170,6 +206,7 @@ describe('Recall Message Button & Omnichannel Messaging Integration', () => {
         query: queryObj
       }
     })
+    activeWrapper = wrapper
     await flushPromises()
 
     const inputs = wrapper.findAll('input')
@@ -182,5 +219,159 @@ describe('Recall Message Button & Omnichannel Messaging Integration', () => {
     // Karim Benali's telegram conversation should be selected
     expect(wrapper.text()).toContain('Karim Benali')
     expect(wrapper.text()).toContain('+213 555 12 34 56')
+
+    // Doctor clicks send button
+    const composerSendBtn = wrapper.find('[data-test="send-reply-button"]')
+    expect(composerSendBtn.exists()).toBe(true)
+    await composerSendBtn.trigger('click')
+    await flushPromises()
+
+    // Composer text should be cleared
+    expect((composerInput!.element as HTMLInputElement).value).toBe('')
+
+    // recallId should be cleared from route query
+    expect(useRoute().query.recallId).toBeUndefined()
+  })
+
+  it('matches patient phone with Algerian local format vs international format', async () => {
+    const queryObj = {
+      phone: '0555 12 34 56', // local format without +213
+      name: 'Karim Benali',
+      message: 'مرحبا',
+      platform: 'telegram'
+    }
+
+    useCookie('access_token').value = 'mock-jwt-token'
+    const router = useRouter()
+    await router.push({
+      path: '/messages',
+      query: queryObj
+    })
+    await router.isReady()
+
+    const wrapper = await mountSuspended(MessagesPage, {
+      route: {
+        path: '/messages',
+        query: queryObj
+      }
+    })
+    activeWrapper = wrapper
+    await flushPromises()
+
+    // Must match existing Karim Benali thread (+213 555 12 34 56) without creating a duplicate
+    expect(wrapper.text()).toContain('Karim Benali')
+    expect(wrapper.text()).toContain('+213 555 12 34 56')
+  })
+
+  it('creates new thread for previously unseen patient with pre-filled message', async () => {
+    const newPatientMsg = 'السلام عليكم فاطمة، نود تذكيركم بموعد الفحص'
+    const queryObj = {
+      phone: '+213 550 99 88 77',
+      name: 'Fatima Zohra',
+      message: newPatientMsg,
+      platform: 'whatsapp',
+      patientId: 'patient-fatima-99'
+    }
+
+    useCookie('access_token').value = 'mock-jwt-token'
+    const router = useRouter()
+    await router.push({
+      path: '/messages',
+      query: queryObj
+    })
+    await router.isReady()
+
+    const wrapper = await mountSuspended(MessagesPage, {
+      route: {
+        path: '/messages',
+        query: queryObj
+      }
+    })
+    activeWrapper = wrapper
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Fatima Zohra')
+    expect(wrapper.text()).toContain('+213 550 99 88 77')
+
+    const composerInput = wrapper.findAll('input').find(i => i.attributes('placeholder')?.includes('Tapez') || i.attributes('placeholder')?.toLowerCase().includes('type'))
+    expect(composerInput).toBeDefined()
+    expect((composerInput!.element as HTMLInputElement).value).toBe(newPatientMsg)
+  })
+
+  it('matches patient phone formatted with international 00213 prefix without creating a duplicate', async () => {
+    const queryObj = {
+      phone: '00213 555 12 34 56',
+      name: 'Karim Benali',
+      message: 'مرحبا كريم',
+      platform: 'telegram'
+    }
+
+    useCookie('access_token').value = 'mock-jwt-token'
+    const router = useRouter()
+    await router.push({
+      path: '/messages',
+      query: queryObj
+    })
+    await router.isReady()
+
+    const wrapper = await mountSuspended(MessagesPage, {
+      route: {
+        path: '/messages',
+        query: queryObj
+      }
+    })
+    activeWrapper = wrapper
+    await flushPromises()
+
+    // Must match existing Karim Benali thread
+    expect(wrapper.text()).toContain('Karim Benali')
+    expect(wrapper.text()).toContain('+213 555 12 34 56')
+  })
+
+  it('unhides previously archived conversation when arriving via recall navigation', async () => {
+    // Simulate Karim Benali thread ('thread-1') was archived in localStorage
+    localStorage.setItem('dental_hidden_threads', JSON.stringify(['thread-1']))
+
+    const queryObj = {
+      phone: '+213 555 12 34 56',
+      name: 'Karim Benali',
+      message: 'السلام عليكم كريم',
+      platform: 'telegram',
+      recallId: 'recall-test-1'
+    }
+
+    useCookie('access_token').value = 'mock-jwt-token'
+    const router = useRouter()
+    await router.push({
+      path: '/messages',
+      query: queryObj
+    })
+    await router.isReady()
+
+    const wrapper = await mountSuspended(MessagesPage, {
+      route: {
+        path: '/messages',
+        query: queryObj
+      }
+    })
+    activeWrapper = wrapper
+    await flushPromises()
+
+    // Thread-1 should be unhidden and visible in active conversation view
+    expect(wrapper.text()).toContain('Karim Benali')
+    const storedHidden = JSON.parse(localStorage.getItem('dental_hidden_threads') || '[]')
+    expect(storedHidden).not.toContain('thread-1')
+  })
+
+  it('RecallRow message button has data-test attribute and recovers if navigation succeeds', async () => {
+    const wrapper = await mountSuspended(RecallRow, {
+      props: { recall: sampleRecall }
+    })
+    activeWrapper = wrapper
+
+    const msgBtn = wrapper.find('[data-test="recall-message-button"]')
+    expect(msgBtn.exists()).toBe(true)
+    expect(msgBtn.attributes('aria-label')).toBeDefined()
+    expect(msgBtn.text().trim()).toBe('')
   })
 })

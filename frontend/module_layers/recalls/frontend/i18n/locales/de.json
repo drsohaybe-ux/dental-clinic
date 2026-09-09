@@ -52,6 +52,7 @@
     },
     "actions": {
       "call": "Anrufen",
+      "sendMessage": "Nachricht senden",
       "logAttempt": "Versuch protokollieren",
       "noAnswer": "Nicht erreicht",
       "book": "Termin buchen",
@@ -95,6 +96,7 @@
     "channel": {
       "phone": "Telefon",
       "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
       "sms": "SMS",
       "email": "E-Mail"
     },

@@ -23,7 +23,7 @@ export type RecallStatus
 
 export type RecallPriority = 'low' | 'normal' | 'high'
 
-export type RecallChannel = 'phone' | 'whatsapp' | 'sms' | 'email'
+export type RecallChannel = 'phone' | 'whatsapp' | 'telegram' | 'sms' | 'email'
 
 export type RecallOutcome
   = | 'no_answer'
