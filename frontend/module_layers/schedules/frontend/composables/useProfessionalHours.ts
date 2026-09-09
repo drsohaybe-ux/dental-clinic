@@ -1,8 +1,6 @@
 import type { ApiResponse } from '~~/app/types'
 import type { Shift, WeekdayShifts } from './useClinicHours'
 
-export type { Shift, WeekdayShifts } from './useClinicHours'
-
 export interface ProfessionalHours {
   id: string
   clinic_id: string

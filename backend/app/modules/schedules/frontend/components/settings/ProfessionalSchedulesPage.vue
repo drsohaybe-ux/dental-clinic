@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { ProfessionalHours, ProfessionalOverride, ProfessionalOverridePayload, WeekdayShifts } from '../../composables/useProfessionalHours'
+import type { ProfessionalHours, ProfessionalOverride, ProfessionalOverridePayload } from '../../composables/useProfessionalHours'
+import type { WeekdayShifts } from '../../composables/useClinicHours'
 import { PERMISSIONS } from '~~/app/config/permissions'
 import { errorDetail } from '~~/app/utils/error'
 
