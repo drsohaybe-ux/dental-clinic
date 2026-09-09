@@ -2,9 +2,10 @@
 /**
  * PrescriptionsCard — smart-card for the patient Resumen grid.
  *
- * Registered into ``patient.summary.cards`` by the prescriptions module.
+ * Registered into `patient.summary.cards` by the prescriptions module.
  * Displays recent official prescriptions (ordonnances), medication summary,
- * and quick trigger to view/print or create a new Algerian medical prescription.
+ * and quick trigger to navigate directly to the dedicated Prescriptions workspace
+ * in the Clinical tab.
  */
 import type { PatientExtended, ApiResponse } from '~~/app/types'
 import type { Prescription } from '../composables/usePrescriptions'
@@ -17,10 +18,11 @@ const props = defineProps<{ ctx: Ctx }>()
 
 const { t, locale } = useI18n()
 const api = useApi()
+const router = useRouter()
 
 const patientId = computed(() => props.ctx.patient?.id)
 
-const { data, status, refresh } = await useAsyncData(
+const { data, status } = await useAsyncData(
   () => `prescriptions:summary-card:${patientId.value}`,
   async () => {
     if (!patientId.value) return []
@@ -40,18 +42,22 @@ const prescriptions = computed<Prescription[]>(() => data.value ?? [])
 const total = computed(() => prescriptions.value.length)
 const recentPrescriptions = computed(() => prescriptions.value.slice(0, 3))
 
-// Modal state
-const isModalOpen = ref(false)
-const selectedPrescription = ref<Prescription | null>(null)
-
 function openCreate() {
-  selectedPrescription.value = null
-  isModalOpen.value = true
+  if (patientId.value) {
+    router.push({
+      path: `/patients/${patientId.value}`,
+      query: { tab: 'clinical', clinicalMode: 'prescriptions', action: 'new' }
+    })
+  }
 }
 
 function openView(rx: Prescription) {
-  selectedPrescription.value = rx
-  isModalOpen.value = true
+  if (patientId.value) {
+    router.push({
+      path: `/patients/${patientId.value}`,
+      query: { tab: 'clinical', clinicalMode: 'prescriptions', rxId: rx.id }
+    })
+  }
 }
 
 function formatDate(isoOrDate: string): string {
@@ -80,10 +86,6 @@ function formatMedicationSummary(rx: Prescription): string {
 const severity = computed<'neutral' | 'info'>(() => {
   return total.value > 0 ? 'info' : 'neutral'
 })
-
-async function onPrescriptionSaved() {
-  await refresh()
-}
 </script>
 
 <template>
@@ -102,7 +104,7 @@ async function onPrescriptionSaved() {
           variant="soft"
           color="primary"
           icon="i-lucide-plus"
-          class="mt-2"
+          class="mt-2 cursor-pointer"
           @click.stop="openCreate"
         >
           {{ t('prescriptions.newPrescription', 'Créer une ordonnance') }}
@@ -123,6 +125,7 @@ async function onPrescriptionSaved() {
           variant="ghost"
           color="primary"
           icon="i-lucide-plus"
+          class="cursor-pointer"
           @click.stop="openCreate"
         >
           {{ t('prescriptions.new', 'Nouvelle') }}
@@ -142,7 +145,10 @@ async function onPrescriptionSaved() {
             </p>
             <p class="text-[11px] text-subtle flex items-center gap-1.5 mt-0.5">
               <span>{{ formatDate(rx.prescription_date || rx.created_at) }}</span>
-              <span v-if="rx.doctor_name_fr" class="text-muted truncate">· {{ rx.doctor_name_fr }}</span>
+              <span
+                v-if="rx.doctor_name_fr"
+                class="text-muted truncate"
+              >· {{ rx.doctor_name_fr }}</span>
             </p>
           </div>
           <UButton
@@ -150,7 +156,7 @@ async function onPrescriptionSaved() {
             variant="ghost"
             color="neutral"
             icon="i-lucide-printer"
-            class="opacity-70 group-hover:opacity-100 shrink-0"
+            class="opacity-70 group-hover:opacity-100 shrink-0 cursor-pointer"
             :title="t('prescriptions.print', 'Imprimer')"
             @click.stop="openView(rx)"
           />
@@ -164,18 +170,13 @@ async function onPrescriptionSaved() {
           class="text-primary hover:underline cursor-pointer flex items-center gap-1 font-medium"
           @click="openCreate"
         >
-          <UIcon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
+          <UIcon
+            name="i-lucide-file-plus"
+            class="w-3.5 h-3.5"
+          />
           {{ t('prescriptions.createOrdonnance', 'Rédiger une ordonnance') }}
         </span>
       </div>
     </template>
   </SummaryCard>
-
-  <OrdonnancePadModal
-    v-if="isModalOpen && ctx.patient"
-    v-model="isModalOpen"
-    :patient="ctx.patient"
-    :prescription="selectedPrescription"
-    @saved="onPrescriptionSaved"
-  />
 </template>

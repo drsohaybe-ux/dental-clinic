@@ -444,6 +444,7 @@ function collect() {
             <div class="mt-4">
               <ClinicalTab
                 :patient-id="patientId"
+                :patient="patient"
                 :readonly="!can(PERMISSIONS.odontogram.write)"
               />
             </div>

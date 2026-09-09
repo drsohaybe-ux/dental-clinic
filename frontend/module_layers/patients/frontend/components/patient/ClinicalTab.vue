@@ -1,19 +1,21 @@
 <script setup lang="ts">
 /**
- * ClinicalTab - Main clinical tab with four modes
+ * ClinicalTab - Main clinical tab with five modes
  *
  * Modes (chronological order):
  * - history: View past odontogram states (read-only)
  * - diagnosis: Record current conditions
  * - plans: Create and manage treatment plans
+ * - prescriptions: Create and manage medical prescriptions (ordonnances)
  * - appointments: View and manage patient appointments
  */
 
-import type { ClinicalMode, TreatmentPlan } from '~~/app/types'
+import type { ClinicalMode, TreatmentPlan, PatientExtended } from '~~/app/types'
 import { PERMISSIONS } from '~~/app/config/permissions'
 
 const props = defineProps<{
   patientId: string
+  patient?: PatientExtended
   readonly?: boolean
 }>()
 
@@ -35,6 +37,12 @@ const currentMode = ref<ClinicalMode>('diagnosis')
 // Plan to open directly (when transitioning from diagnosis)
 const targetPlanId = ref<string | null>(null)
 
+// Prescription to open directly (from query params)
+const targetRxId = ref<string | null>(null)
+
+// Action for prescriptions ('new', etc.)
+const prescriptionAction = ref<string | null>(null)
+
 // Create plan modal
 const showPlanModal = ref(false)
 
@@ -49,14 +57,16 @@ watch(currentMode, (mode) => {
       ...route.query,
       clinicalMode: mode,
       // Clear targetPlanId when switching modes
-      planId: mode === 'plans' && targetPlanId.value ? targetPlanId.value : undefined
+      planId: mode === 'plans' && targetPlanId.value ? targetPlanId.value : undefined,
+      rxId: mode === 'prescriptions' && targetRxId.value ? targetRxId.value : undefined,
+      action: mode === 'prescriptions' && prescriptionAction.value ? prescriptionAction.value : undefined
     }
   })
 })
 
 // Initialize from URL on mount
 onMounted(() => {
-  const modes: readonly ClinicalMode[] = ['history', 'diagnosis', 'plans', 'appointments']
+  const modes: readonly ClinicalMode[] = ['history', 'diagnosis', 'plans', 'prescriptions', 'appointments']
   const queryMode = modes.find(m => m === route.query.clinicalMode)
   if (queryMode) currentMode.value = queryMode
 
@@ -67,8 +77,18 @@ onMounted(() => {
     currentMode.value = 'plans'
   }
 
-  // Check for action=createPlan (from sidebar widget)
-  if (route.query.action === 'createPlan' && can(PERMISSIONS.treatmentPlans.write)) {
+  // Check for rxId in URL
+  const rxId = route.query.rxId as string
+  if (rxId) {
+    targetRxId.value = rxId
+    currentMode.value = 'prescriptions'
+  }
+
+  // Check for action in URL
+  if (route.query.action === 'new') {
+    prescriptionAction.value = 'new'
+    currentMode.value = 'prescriptions'
+  } else if (route.query.action === 'createPlan' && can(PERMISSIONS.treatmentPlans.write)) {
     handleCreatePlan()
     router.replace({ query: { ...route.query, action: undefined } })
   }
@@ -107,6 +127,10 @@ watch(currentMode, (newMode) => {
     targetPlanId.value = null
     emit('plan-view-change', 'list') // Reset sidebar visibility
   }
+  if (newMode !== 'prescriptions') {
+    targetRxId.value = null
+    prescriptionAction.value = null
+  }
 })
 </script>
 
@@ -137,6 +161,15 @@ watch(currentMode, (newMode) => {
       @plan-activated="handlePlanActivated"
       @budget-generated="handleBudgetGenerated"
       @view-change="emit('plan-view-change', $event)"
+    />
+
+    <PrescriptionsMode
+      v-else-if="currentMode === 'prescriptions'"
+      :patient-id="patientId"
+      :patient="patient"
+      :initial-rx-id="targetRxId"
+      :initial-action="prescriptionAction"
+      :readonly="readonly"
     />
 
     <AppointmentsMode

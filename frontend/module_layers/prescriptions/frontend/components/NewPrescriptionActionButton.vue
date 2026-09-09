@@ -2,8 +2,8 @@
 /**
  * NewPrescriptionActionButton — Quick Action button on patient hero.
  *
- * Registered into ``patient.summary.actions``. Opens the authentic Algerian
- * Ordonnance prescription pad modal for immediate drafting and printing.
+ * Registered into `patient.summary.actions`. Routes directly to the dedicated
+ * Prescriptions workspace in the Clinical tab with &action=new.
  */
 import type { PatientExtended } from '~~/app/types'
 
@@ -14,36 +14,32 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-const isOpen = ref(false)
+const router = useRouter()
 
-const patient = computed(() => props.ctx?.patient)
+const patientId = computed(() => props.ctx?.patient?.id)
 
-function onPrescriptionSaved() {
-  if (patient.value?.id) {
-    refreshNuxtData(`prescriptions:summary-card:${patient.value.id}`)
+function navigateToNewPrescription() {
+  if (patientId.value) {
+    router.push({
+      path: `/patients/${patientId.value}`,
+      query: { tab: 'clinical', clinicalMode: 'prescriptions', action: 'new' }
+    })
   }
 }
 </script>
 
 <template>
-  <div v-if="patient?.id">
+  <div v-if="patientId">
     <UButton
       variant="soft"
       color="neutral"
       size="sm"
       icon="i-lucide-receipt"
       block
-      class="w-full justify-start"
-      @click="isOpen = true"
+      class="w-full justify-start cursor-pointer"
+      @click="navigateToNewPrescription"
     >
       {{ t('prescriptions.actionButton', 'Ordonnance') }}
     </UButton>
-
-    <OrdonnancePadModal
-      v-if="isOpen && patient"
-      v-model="isOpen"
-      :patient="patient"
-      @saved="onPrescriptionSaved"
-    />
   </div>
 </template>

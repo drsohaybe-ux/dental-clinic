@@ -87,7 +87,7 @@ export function usePrescriptions() {
       console.error('Failed to create prescription:', e)
       toast.add({
         title: t('common.error', 'Erreur'),
-        description: t('prescriptions.createError', "Échec de l'enregistrement de l'ordonnance"),
+        description: t('prescriptions.createError', 'Échec de l\'enregistrement de l\'ordonnance'),
         color: 'error'
       })
       return null

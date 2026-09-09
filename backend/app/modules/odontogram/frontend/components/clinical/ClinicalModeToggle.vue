@@ -10,6 +10,7 @@ import type { ClinicalMode } from '~~/app/types'
 interface ModeBadges {
   diagnosis?: string | number
   plans?: string | number
+  prescriptions?: string | number
   appointments?: string | number
   history?: string | number
 }
@@ -37,6 +38,12 @@ const options = computed(() => [
     label: t('clinical.modes.plans'),
     icon: 'i-lucide-clipboard-list',
     badge: props.badges?.plans
+  },
+  {
+    value: 'prescriptions',
+    label: t('clinical.modes.prescriptions', 'Prescriptions'),
+    icon: 'i-lucide-receipt',
+    badge: props.badges?.prescriptions
   },
   {
     value: 'appointments',

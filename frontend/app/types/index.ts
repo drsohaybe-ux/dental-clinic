@@ -593,7 +593,7 @@ export interface ToothRecordWithTreatments extends ToothRecord {
 // the odontogram layer's <ClinicalModeToggle>.
 // ============================================================================
 
-export type ClinicalMode = 'history' | 'diagnosis' | 'plans' | 'appointments'
+export type ClinicalMode = 'history' | 'diagnosis' | 'plans' | 'prescriptions' | 'appointments'
 
 // ============================================================================
 // VAT Type Types

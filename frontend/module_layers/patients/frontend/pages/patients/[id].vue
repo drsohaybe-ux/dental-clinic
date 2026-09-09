@@ -47,11 +47,13 @@ const { data: patient, status, refresh } = await useAsyncData(
       const isPhoneLookup = /^\+?\d{6,15}$/.test(patientId)
       if (isPhoneLookup) {
         try {
-          const searchResp = await api.get<ApiResponse<any>>(`/api/v1/patients?search=${encodeURIComponent(patientId)}`)
-          if (searchResp.data?.items?.length > 0) {
-            resolvedId = searchResp.data.items[0].id
+          const searchResp = await api.get<ApiResponse<{ items?: Array<{ id: string }> }>>(`/api/v1/patients?search=${encodeURIComponent(patientId)}`)
+          if (searchResp.data?.items && searchResp.data.items.length > 0) {
+            resolvedId = searchResp.data.items[0]?.id ?? patientId
           }
-        } catch {}
+        } catch {
+          // Ignore phone lookup fallback error
+        }
       }
 
       const [identity, emergency, guardian, alertsResp] = await Promise.all([
@@ -462,6 +464,7 @@ function collect() {
             <div class="mt-4">
               <ClinicalTab
                 :patient-id="patientId"
+                :patient="patient"
                 :readonly="!can(PERMISSIONS.odontogram.write)"
               />
             </div>
