@@ -462,3 +462,21 @@ async def get_patient_flags(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
     flags = await MedicalReferenceService.get_patient_flags(db, ctx.clinic_id, patient_id)
     return ApiResponse(data=flags)
+
+
+# --- Seeding -----------------------------------------------------------------
+
+
+@router.post("/seed", response_model=ApiResponse[dict[str, int]])
+async def seed_references(
+    ctx: Annotated[ClinicContext, Depends(get_clinic_context)],
+    _: Annotated[None, Depends(require_permission("medical_reference.write"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ApiResponse[dict[str, int]]:
+    """Seed default medical reference lists (allergies, systemic diseases, surgeries)."""
+    from .seed import seed_medical_reference
+
+    inserted = await seed_medical_reference(db, ctx.clinic_id)
+    await db.commit()
+    return ApiResponse(data=inserted)
+

@@ -20,7 +20,7 @@ interface MedicalHistoryNameFieldCtx {
   value: string
   placeholder?: string
   disabled?: boolean
-  select: (name: string, referenceId: string | null) => void
+  select: (name: string, referenceId: string | null, meta?: { dosage?: string, form?: string }) => void
 }
 
 const props = defineProps<{ ctx: MedicalHistoryNameFieldCtx }>()
@@ -52,10 +52,10 @@ watch(
   }
 )
 
-function commit(nextName: string, nextReferenceId: string | null) {
+function commit(nextName: string, nextReferenceId: string | null, meta?: { dosage?: string, form?: string }) {
   name.value = nextName
   referenceId.value = nextReferenceId
-  props.ctx.select(nextName, nextReferenceId)
+  props.ctx.select(nextName, nextReferenceId, meta)
 }
 </script>
 
@@ -68,5 +68,6 @@ function commit(nextName: string, nextReferenceId: string | null) {
     :disabled="ctx.disabled"
     @update:model-value="(v: string) => commit(v, referenceId)"
     @update:reference-id="(v: string | null) => commit(name, v)"
+    @select-item="(item) => commit(item.name, item.id, { dosage: item.dosage, form: item.form })"
   />
 </template>

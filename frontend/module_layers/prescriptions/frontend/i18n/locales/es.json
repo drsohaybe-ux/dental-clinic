@@ -1,0 +1,21 @@
+{
+  "prescriptions": {
+    "title": "Receta Médica",
+    "cardTitle": "Recetas",
+    "actionButton": "Receta",
+    "newPrescription": "Nueva Receta",
+    "new": "Nueva",
+    "createOrdonnance": "Redactar receta",
+    "empty": "No hay recetas emitidas para este paciente",
+    "pluralCount": "recetas",
+    "singularCount": "receta",
+    "noItems": "Sin medicamentos",
+    "print": "Imprimer",
+    "createdSuccess": "Receta guardada con éxito",
+    "createError": "Error al guardar la receta",
+    "updatedSuccess": "Receta actualizada con éxito",
+    "updateError": "Error al actualizar la receta",
+    "deletedSuccess": "Receta eliminada",
+    "deleteError": "Error al eliminar la receta"
+  }
+}

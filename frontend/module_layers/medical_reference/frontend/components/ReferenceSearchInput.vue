@@ -56,6 +56,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   'update:referenceId': [value: string | null]
+  'selectItem': [item: ExtendedItem]
 }>()
 
 const api = useApi()
@@ -143,73 +144,107 @@ const selected = computed<ExtendedItem | undefined>({
 
     addedToCatalog.value = false
 
+    // Extract clean name and dosage
+    let extractedDosage = item.dosage || (item.dose && item.unit ? `${item.dose}${item.unit}` : item.dose) || ''
+    let cleanName = item.brand_name || item.name
+
+    if (!extractedDosage && item.name) {
+      const match = item.name.match(/\b(\d+(?:\.\d+)?\s*(?:mg|g|mcg|ml|iu|ui|%)(?:\/\d*(?:\.\d+)?\s*(?:mg|g|mcg|ml)?)?)\b/i)
+      if (match) {
+        extractedDosage = match[1]
+      }
+    }
+
+    if (item.brand_name) {
+      cleanName = item.brand_name.trim()
+    } else if (extractedDosage && cleanName.includes(extractedDosage)) {
+      const stripped = cleanName.replace(extractedDosage, '').trim()
+      if (stripped) cleanName = stripped
+    }
+
+    const payloadItem: ExtendedItem = {
+      ...item,
+      name: cleanName,
+      dosage: extractedDosage || undefined
+    }
+
     // If selected item is from nomenclature (not yet in medical_reference_medication),
     // ensure a clinic ReferenceMedication is created so reference_id is valid!
-    if (item.is_nomenclature || item.id.startsWith('nom-')) {
+    if (item.is_nomenclature || item.id.startsWith('nom-') || item.id.startsWith('med-allergy-')) {
+      const targetName = cleanName
       // 1. Check if already known in local items
       const existing = items.value.find(
-        i => !i.is_nomenclature && i.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+        i => !i.is_nomenclature && i.name.trim().toLowerCase() === targetName.trim().toLowerCase()
       )
-      if (existing && existing.id && !existing.id.startsWith('nom-')) {
+      if (existing && existing.id && !existing.id.startsWith('nom-') && !existing.id.startsWith('med-allergy-')) {
         item.id = existing.id
         item.is_nomenclature = false
         emit('update:modelValue', existing.name)
         emit('update:referenceId', existing.id)
+        emit('selectItem', { ...payloadItem, id: existing.id, name: existing.name })
         return
       }
 
       isCreating.value = true
       // 2. Check server first to prevent duplicate 409 error toasts
-      search(props.kind, item.name).then((matches) => {
-        const exact = matches.find(m => m.name.trim().toLowerCase() === item.name.trim().toLowerCase())
+      search(props.kind, targetName).then((matches) => {
+        const exact = matches.find(m => m.name.trim().toLowerCase() === targetName.trim().toLowerCase())
         if (exact) {
           item.id = exact.id
           item.is_nomenclature = false
           emit('update:modelValue', exact.name)
           emit('update:referenceId', exact.id)
+          emit('selectItem', { ...payloadItem, id: exact.id, name: exact.name })
           isCreating.value = false
           return
         }
 
-        create(props.kind, { name: item.name }).then((created) => {
+        create(props.kind, { name: targetName }).then((created) => {
           isCreating.value = false
           if (created) {
             item.id = created.id
             item.is_nomenclature = false
             emit('update:modelValue', created.name)
             emit('update:referenceId', created.id)
+            emit('selectItem', { ...payloadItem, id: created.id, name: created.name })
           } else {
-            emit('update:modelValue', item.name)
+            emit('update:modelValue', targetName)
             emit('update:referenceId', null)
+            emit('selectItem', payloadItem)
           }
         }).catch(() => {
           isCreating.value = false
-          emit('update:modelValue', item.name)
+          emit('update:modelValue', targetName)
           emit('update:referenceId', null)
+          emit('selectItem', payloadItem)
         })
       }).catch(() => {
-        create(props.kind, { name: item.name }).then((created) => {
+        create(props.kind, { name: targetName }).then((created) => {
           isCreating.value = false
           if (created) {
             item.id = created.id
             item.is_nomenclature = false
             emit('update:modelValue', created.name)
             emit('update:referenceId', created.id)
+            emit('selectItem', { ...payloadItem, id: created.id, name: created.name })
           } else {
-            emit('update:modelValue', item.name)
+            emit('update:modelValue', targetName)
             emit('update:referenceId', null)
+            emit('selectItem', payloadItem)
           }
         }).catch(() => {
           isCreating.value = false
-          emit('update:modelValue', item.name)
+          emit('update:modelValue', targetName)
           emit('update:referenceId', null)
+          emit('selectItem', payloadItem)
         })
       })
       return
     }
 
-    emit('update:modelValue', item.name)
+    emit('update:modelValue', cleanName)
     emit('update:referenceId', item.id || null)
+    emit('selectItem', payloadItem)
   }
 })
 
@@ -237,6 +272,7 @@ watch(searchQuery, (term) => {
             newBatch.push({
               id: fakeId,
               name: fullName,
+              brand_name: n.brand_name,
               is_active: true,
               dci: n.dci,
               dosage: n.dosage,
@@ -251,6 +287,36 @@ watch(searchQuery, (term) => {
         }
         if (newBatch.length > 0) {
           items.value = [...items.value, ...newBatch]
+        }
+      } else if (props.kind === 'allergies') {
+        // Allow searching medications to easily flag drug allergies
+        try {
+          const res = await api.get<ApiResponse<AlgerianNomenclatureItem[]>>(
+            `/api/v1/medication_catalog/nomenclature?q=${encodeURIComponent(trimmed)}&limit=15`
+          )
+          const existingNames = new Set(items.value.map(i => i.name.trim().toLowerCase()))
+          const allergyBatch: ExtendedItem[] = []
+          for (const n of res.data || []) {
+            const brand = n.brand_name.trim()
+            if (!existingNames.has(brand.toLowerCase())) {
+              allergyBatch.push({
+                id: `med-allergy-${n.id}`,
+                name: brand,
+                brand_name: brand,
+                is_active: true,
+                dci: n.dci,
+                form: n.standard_form,
+                is_dental: n.is_dental,
+                is_nomenclature: true
+              })
+              existingNames.add(brand.toLowerCase())
+            }
+          }
+          if (allergyBatch.length > 0) {
+            items.value = [...items.value, ...allergyBatch]
+          }
+        } catch {
+          // Ignore nomenclature failure
         }
       }
 
@@ -340,6 +406,14 @@ async function quickAddToClinicCatalog() {
               >
                 {{ t('medicalReference.dental') }}
               </UBadge>
+              <UBadge
+                v-else-if="item.id?.startsWith('med-allergy-')"
+                size="xs"
+                color="warning"
+                variant="subtle"
+              >
+                {{ t('patients.medicalHistory.allergyTypes.drug', 'Médicament') }}
+              </UBadge>
             </div>
             <div
               v-if="item.dci"
@@ -360,7 +434,7 @@ async function quickAddToClinicCatalog() {
     <!-- 1-click self-learning add to clinic catalog button when a medication is selected/entered -->
     <div
       v-if="kind === 'medications' && modelValue && !disabled"
-      class="flex items-center gap-1.5 pt-0.5 text-xs"
+      class="flex items-center gap-1.5 pt-1 text-xs"
     >
       <span
         v-if="addedToCatalog"

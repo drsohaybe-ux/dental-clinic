@@ -297,7 +297,10 @@
       "medications": "Medicamentos",
       "medicationName": "Nombre del medicamento",
       "dosage": "Dosis",
-      "frequency": "Frecuencia",
+      "dosagePlaceholder": "ej: 1g, 500mg, 100mg...",
+      "frequency": "Frecuencia y Posología",
+      "frequencyPlaceholder": "ej: 1 comp 2 veces al día...",
+      "presets": "Frecuencias predefinidas",
       "systemicDiseases": "Enfermedades sistémicas",
       "diseaseName": "Nombre de la enfermedad",
       "diseaseTypes": {
@@ -3100,5 +3103,25 @@
     "decision": {
       "approve_publish": "Aprobar y Publicar en todas las redes"
     }
+  },
+  "prescriptions": {
+    "title": "Receta Médica",
+    "cardTitle": "Recetas",
+    "actionButton": "Receta",
+    "newPrescription": "Nueva Receta",
+    "new": "Nueva",
+    "createOrdonnance": "Redactar receta",
+    "empty": "No hay recetas emitidas para este paciente",
+    "pluralCount": "recetas",
+    "singularCount": "receta",
+    "noItems": "Sin medicamentos",
+    "print": "Imprimir",
+    "createdSuccess": "Receta guardada con éxito",
+    "createError": "Error al guardar la receta",
+    "updatedSuccess": "Receta actualizada con éxito",
+    "updateError": "Error al actualizar la receta",
+    "deletedSuccess": "Receta eliminada",
+    "deleteError": "Error al eliminar la receta"
   }
 }
+

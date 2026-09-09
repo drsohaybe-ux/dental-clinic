@@ -72,6 +72,10 @@ from app.modules.periodontogram.models import (  # noqa: F401
     PeriodontogramSnapshot,
     PeriodontogramTooth,
 )
+from app.modules.prescriptions.models import (  # noqa: F401
+    Prescription,
+    PrescriptionItem,
+)
 from app.modules.recalls.models import (  # noqa: F401
     Recall,
     RecallContactAttempt,

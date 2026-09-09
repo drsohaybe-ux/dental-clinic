@@ -43,7 +43,7 @@ class MedicalReferenceModule(BaseModule):
         "category": "community",
         "depends": ["patients_clinical", "patients"],
         "installable": True,
-        "auto_install": False,
+        "auto_install": True,
         "removable": True,
         "role_permissions": {
             "admin": ["*"],
@@ -72,3 +72,10 @@ class MedicalReferenceModule(BaseModule):
 
     def get_permissions(self) -> list[str]:
         return ["read", "write"]
+
+    def get_event_handlers(self) -> dict:
+        from app.core.events.types import EventType
+
+        from .events import on_clinic_created
+
+        return {EventType.CLINIC_CREATED: on_clinic_created}

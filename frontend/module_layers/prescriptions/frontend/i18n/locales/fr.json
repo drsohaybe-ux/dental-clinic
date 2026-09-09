@@ -1,0 +1,21 @@
+{
+  "prescriptions": {
+    "title": "Ordonnance Médicale",
+    "cardTitle": "Ordonnances",
+    "actionButton": "Ordonnance",
+    "newPrescription": "Créer une ordonnance",
+    "new": "Nouvelle",
+    "createOrdonnance": "Rédiger une ordonnance",
+    "empty": "Aucune ordonnance émise pour ce patient",
+    "pluralCount": "ordonnances",
+    "singularCount": "ordonnance",
+    "noItems": "Sans médicaments",
+    "print": "Imprimer",
+    "createdSuccess": "Ordonnance enregistrée avec succès",
+    "createError": "Échec de l'enregistrement de l'ordonnance",
+    "updatedSuccess": "Ordonnance mise à jour avec succès",
+    "updateError": "Échec de la mise à jour de l'ordonnance",
+    "deletedSuccess": "Ordonnance supprimée",
+    "deleteError": "Échec de la suppression de l'ordonnance"
+  }
+}

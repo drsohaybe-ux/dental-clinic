@@ -31,9 +31,7 @@ class MedicationCatalogModule(BaseModule):
         "category": "community",
         "depends": [],
         "installable": True,
-        # Optional module: ships inactive, the admin activates it from the
-        # module admin UI (repo policy for new non-core modules).
-        "auto_install": False,
+        "auto_install": True,
         "removable": True,
         # Settings-managed clinical reference data: admins manage it;
         # dentists read it (prescriptions will consume this list).

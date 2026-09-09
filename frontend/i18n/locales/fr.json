@@ -359,7 +359,10 @@
       "medications": "Médicaments",
       "medicationName": "Nom du médicament",
       "dosage": "Dosage",
-      "frequency": "Fréquence",
+      "dosagePlaceholder": "ex: 1G, 500mg, 100mg...",
+      "frequency": "Fréquence & Posologie",
+      "frequencyPlaceholder": "ex: 1 comp 2x/jour (Matin/Soir)...",
+      "presets": "Fréquences types",
       "systemicDiseases": "Maladies systémiques",
       "diseaseName": "Nom de la maladie",
       "diseaseTypes": {
@@ -3388,6 +3391,25 @@
     "senderPatient": "Patient",
     "senderDoctor": "Dr. Mokhtar",
     "senderAi": "IA Assistant"
+  },
+  "prescriptions": {
+    "title": "Ordonnance Médicale",
+    "cardTitle": "Ordonnances",
+    "actionButton": "Ordonnance",
+    "newPrescription": "Créer une ordonnance",
+    "new": "Nouvelle",
+    "createOrdonnance": "Rédiger une ordonnance",
+    "empty": "Aucune ordonnance émise pour ce patient",
+    "pluralCount": "ordonnances",
+    "singularCount": "ordonnance",
+    "noItems": "Sans médicaments",
+    "print": "Imprimer",
+    "createdSuccess": "Ordonnance enregistrée avec succès",
+    "createError": "Échec de l'enregistrement de l'ordonnance",
+    "updatedSuccess": "Ordonnance mise à jour avec succès",
+    "updateError": "Échec de la mise à jour de l'ordonnance",
+    "deletedSuccess": "Ordonnance supprimée",
+    "deleteError": "Échec de la suppression de l'ordonnance"
   },
   "attachments": {
     "linkError": "Erreur lors de la liaison de la pièce jointe"

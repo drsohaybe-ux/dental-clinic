@@ -152,7 +152,7 @@ interface MedicalHistoryNameFieldCtx {
   value: string
   placeholder?: string
   disabled?: boolean
-  select: (name: string, referenceId: string | null) => void
+  select: (name: string, referenceId: string | null, meta?: { dosage?: string, form?: string }) => void
 }
 
 const { resolve } = useModuleSlots()
@@ -169,11 +169,14 @@ function useNameField(
     value: target.value.name ?? target.value.procedure ?? '',
     placeholder: t(placeholderKey),
     disabled: props.readonly,
-    select: (name, referenceId) => {
+    select: (name, referenceId, meta) => {
       if (kind === 'surgery') {
         target.value.procedure = name
       } else {
         target.value.name = name
+        if (kind === 'medication' && meta?.dosage) {
+          newMedication.value.dosage = meta.dosage
+        }
       }
       target.value.reference_id = referenceId ?? undefined
     }
@@ -193,6 +196,39 @@ const diseaseNameField = useNameField(
 const surgeryNameField = useNameField(
   'patients_clinical.medical_history.surgery_name', 'surgery', newSurgery, 'patients.medicalHistory.procedure'
 )
+
+// Auto-populate dosage when name has embedded dosage (e.g. "AMOCLAN 1G/200MG")
+watch(() => newMedication.value.name, (val) => {
+  if (!val || newMedication.value.dosage) return
+  const match = val.match(/^(.+?)\s+(\d+(?:\.\d+)?\s*(?:mg|g|mcg|ml|iu|ui|%)(?:\/\d*(?:\.\d+)?\s*(?:mg|g|mcg|ml)?)?)$/i)
+  if (match && match[1] && match[2]) {
+    newMedication.value.name = match[1].trim()
+    newMedication.value.dosage = match[2].trim()
+  }
+})
+
+// Clinical frequency presets
+const frequencyPresets = [
+  '1 comp 2x/jour (Matin / Soir)',
+  '1 comp 3x/jour (Toutes les 8h)',
+  '1 comp 1x/jour (Le matin)',
+  '1 comp 1x/jour (Le soir)',
+  '1 sachet en cas de douleur',
+  '1 comp si douleur (max 3/j)',
+  'Bain de bouche 3x/jour après les repas',
+  'Application locale 2x/jour',
+  '1 gélule 3x/jour avant les repas',
+  '2 comp en prise unique'
+]
+
+const frequencyDropdownItems = computed(() => [
+  frequencyPresets.map(preset => ({
+    label: preset,
+    onSelect: () => {
+      newMedication.value.frequency = preset
+    }
+  }))
+])
 
 function handleSave() {
   emit('save')
@@ -310,33 +346,76 @@ function handleSave() {
 
           <div
             v-if="!readonly"
-            class="grid grid-cols-1 md:grid-cols-4 gap-2"
+            class="rounded-lg border border-default/70 p-3.5 bg-surface-muted/30 space-y-3"
           >
-            <!-- Extension point: see allergy section -->
-            <ModuleSlot
-              v-if="medicationNameField.hasExtension.value"
-              name="patients_clinical.medical_history.medication_name"
-              :ctx="medicationNameField.ctx.value"
-            />
-            <UInput
-              v-else
-              v-model="newMedication.name"
-              :placeholder="t('patients.medicalHistory.medicationName')"
-            />
-            <UInput
-              v-model="newMedication.dosage"
-              :placeholder="t('patients.medicalHistory.dosage')"
-            />
-            <UInput
-              v-model="newMedication.frequency"
-              :placeholder="t('patients.medicalHistory.frequency')"
-            />
-            <UButton
-              icon="i-lucide-plus"
-              @click="addMedication"
-            >
-              {{ t('common.add') }}
-            </UButton>
+            <!-- Row 1: Medication Name (full-width combobox without horizontal collision) -->
+            <div class="space-y-1">
+              <label class="text-xs font-medium text-subtle block">
+                {{ t('patients.medicalHistory.medicationName') }}
+              </label>
+              <!-- Extension point: see allergy section -->
+              <ModuleSlot
+                v-if="medicationNameField.hasExtension.value"
+                name="patients_clinical.medical_history.medication_name"
+                :ctx="medicationNameField.ctx.value"
+              />
+              <UInput
+                v-else
+                v-model="newMedication.name"
+                :placeholder="t('patients.medicalHistory.medicationName')"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Row 2: Dosage, Clinical Frequency presets with custom input, and Add button -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+              <div class="sm:col-span-4 space-y-1">
+                <label class="text-xs font-medium text-subtle block">
+                  {{ t('patients.medicalHistory.dosage') }}
+                </label>
+                <UInput
+                  v-model="newMedication.dosage"
+                  :placeholder="t('patients.medicalHistory.dosagePlaceholder', 'ex: 1G, 500mg...')"
+                  class="w-full"
+                />
+              </div>
+
+              <div class="sm:col-span-6 space-y-1">
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-medium text-subtle block">
+                    {{ t('patients.medicalHistory.frequency') }}
+                  </label>
+                  <UDropdownMenu :items="frequencyDropdownItems">
+                    <UButton
+                      size="xs"
+                      variant="ghost"
+                      color="primary"
+                      trailing-icon="i-lucide-chevron-down"
+                      class="text-xs py-0 h-5"
+                    >
+                      {{ t('patients.medicalHistory.presets', 'Fréquences types') }}
+                    </UButton>
+                  </UDropdownMenu>
+                </div>
+                <UInput
+                  v-model="newMedication.frequency"
+                  :placeholder="t('patients.medicalHistory.frequencyPlaceholder', 'ex: 1 comp 2x/jour...')"
+                  class="w-full"
+                />
+              </div>
+
+              <div class="sm:col-span-2">
+                <UButton
+                  icon="i-lucide-plus"
+                  color="primary"
+                  block
+                  class="h-9 font-medium"
+                  @click="addMedication"
+                >
+                  {{ t('common.add') }}
+                </UButton>
+              </div>
+            </div>
           </div>
         </div>
       </template>

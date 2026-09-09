@@ -45,7 +45,21 @@ class MedicalReferenceService:
         if query:
             stmt = stmt.where(func.lower(model.name).contains(query.lower()))
         stmt = stmt.order_by(model.name).limit(limit)
-        return list((await db.execute(stmt)).scalars())
+        results = list((await db.execute(stmt)).scalars())
+
+        # If no results and query is empty, auto-seed starter reference data if clinic list is empty
+        if not results and not query:
+            from .models import ReferenceAllergy, ReferenceDisease, ReferenceSurgery
+            from .seed import seed_medical_reference
+
+            if model in (ReferenceAllergy, ReferenceDisease, ReferenceSurgery):
+                count_stmt = select(func.count(model.id)).where(model.clinic_id == clinic_id)
+                total_in_clinic = (await db.execute(count_stmt)).scalar() or 0
+                if total_in_clinic == 0:
+                    await seed_medical_reference(db, clinic_id)
+                    results = list((await db.execute(stmt)).scalars())
+
+        return results
 
     @staticmethod
     async def create(db: AsyncSession, model, clinic_id: UUID, data: dict) -> ReferenceModel:

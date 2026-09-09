@@ -1,0 +1,21 @@
+{
+  "prescriptions": {
+    "title": "Medical Prescription",
+    "cardTitle": "Prescriptions",
+    "actionButton": "Prescription",
+    "newPrescription": "New Prescription",
+    "new": "New",
+    "createOrdonnance": "Write Prescription",
+    "empty": "No prescriptions issued for this patient",
+    "pluralCount": "prescriptions",
+    "singularCount": "prescription",
+    "noItems": "No medications",
+    "print": "Print",
+    "createdSuccess": "Prescription saved successfully",
+    "createError": "Failed to save prescription",
+    "updatedSuccess": "Prescription updated successfully",
+    "updateError": "Failed to update prescription",
+    "deletedSuccess": "Prescription deleted",
+    "deleteError": "Failed to delete prescription"
+  }
+}

@@ -90,6 +90,7 @@ activity_journal = "app.modules.activity_journal:ActivityJournalModule"
 medication_catalog = "app.modules.medication_catalog:MedicationCatalogModule"
 social_automation = "app.modules.social_automation:SocialAutomationModule"
 omnichannel_bridge = "app.modules.omnichannel_bridge:OmnichannelBridgeModule"
+prescriptions = "app.modules.prescriptions:PrescriptionsModule"
 
 [tool.setuptools.packages.find]
 where = ["."]

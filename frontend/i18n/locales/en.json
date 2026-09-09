@@ -359,7 +359,10 @@
       "medications": "Medications",
       "medicationName": "Medication name",
       "dosage": "Dosage",
-      "frequency": "Frequency",
+      "dosagePlaceholder": "e.g.: 1g, 500mg, 100mg...",
+      "frequency": "Frequency & Posology",
+      "frequencyPlaceholder": "e.g.: 1 tab 2x/day (Morning/Evening)...",
+      "presets": "Clinical presets",
       "systemicDiseases": "Systemic diseases",
       "diseaseName": "Disease name",
       "diseaseTypes": {
@@ -3388,6 +3391,25 @@
     "senderPatient": "Patient",
     "senderDoctor": "Dr. Mokhtar",
     "senderAi": "AI Assistant"
+  },
+  "prescriptions": {
+    "title": "Medical Prescription",
+    "cardTitle": "Prescriptions",
+    "actionButton": "Prescription",
+    "newPrescription": "New Prescription",
+    "new": "New",
+    "createOrdonnance": "Write Prescription",
+    "empty": "No prescriptions issued for this patient",
+    "pluralCount": "prescriptions",
+    "singularCount": "prescription",
+    "noItems": "No medications",
+    "print": "Print",
+    "createdSuccess": "Prescription saved successfully",
+    "createError": "Failed to save prescription",
+    "updatedSuccess": "Prescription updated successfully",
+    "updateError": "Failed to update prescription",
+    "deletedSuccess": "Prescription deleted",
+    "deleteError": "Failed to delete prescription"
   },
   "attachments": {
     "linkError": "Error linking attachment"

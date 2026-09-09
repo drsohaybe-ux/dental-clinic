@@ -359,7 +359,10 @@
       "medications": "الأدوية",
       "medicationName": "اسم الدواء",
       "dosage": "الجرعة",
-      "frequency": "التكرار",
+      "dosagePlaceholder": "مثال: 1غ، 500مغ...",
+      "frequency": "طريقة وتكرار الاستعمال",
+      "frequencyPlaceholder": "مثال: قرص مرتين في اليوم...",
+      "presets": "نماذج الجرعات",
       "systemicDiseases": "الأمراض الجهازية",
       "diseaseName": "اسم المرض",
       "diseaseTypes": {
@@ -3388,6 +3391,25 @@
     "senderPatient": "المريض",
     "senderDoctor": "د. مختار",
     "senderAi": "مساعد الذكاء الاصطناعي"
+  },
+  "prescriptions": {
+    "title": "وصفة طبية",
+    "cardTitle": "الوصفات الطبية",
+    "actionButton": "وصفة طبية",
+    "newPrescription": "تحرير وصفة طبية",
+    "new": "جديدة",
+    "createOrdonnance": "كتابة وصفة طبية",
+    "empty": "لا توجد وصفات طبية محررة لهذا المريض",
+    "pluralCount": "وصفات",
+    "singularCount": "وصفة",
+    "noItems": "بدون أدوية",
+    "print": "طباعة",
+    "createdSuccess": "تم حفظ الوصفة الطبية بنجاح",
+    "createError": "فشل حفظ الوصفة الطبية",
+    "updatedSuccess": "تم تحديث الوصفة الطبية بنجاح",
+    "updateError": "فشل تحديث الوصفة الطبية",
+    "deletedSuccess": "تم حذف الوصفة الطبية",
+    "deleteError": "فشل حذف الوصفة الطبية"
   },
   "attachments": {
     "linkError": "خطأ في ربط المرفق"

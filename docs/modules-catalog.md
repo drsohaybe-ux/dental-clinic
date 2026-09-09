@@ -25,21 +25,24 @@ Maintained by `backend/scripts/generate_catalogs.py`. CI fails if a manifest cha
 | `inventory` | 0.1.0 | community | — | manual | yes | 2 | 1 | 0 | yes |
 | `lab_orders` | 0.1.0 | community | patients, contacts | manual | yes | 2 | 1 | 0 | yes |
 | `media` | 0.2.0 | official | patients | auto | no | 4 | 7 | 1 | yes |
-| `medical_reference` | 0.4.0 | community | patients_clinical, patients | manual | yes | 2 | 0 | 0 | yes |
-| `medication_catalog` | 0.1.0 | community | — | manual | yes | 2 | 0 | 1 | yes |
+| `medical_reference` | 0.4.0 | community | patients_clinical, patients | auto | yes | 2 | 0 | 1 | yes |
+| `medication_catalog` | 0.1.0 | community | — | auto | yes | 2 | 0 | 1 | yes |
 | `migration_import` | 0.1.0 | official | patients, patients_clinical, clinical_notes, agenda, schedules, recalls, catalog, budget, odontogram, treatment_plan, billing, payments, media | manual | yes | 4 | 5 | 0 | yes |
 | `notifications` | 0.1.0 | official | patients, agenda, budget, billing, catalog | auto | no | 8 | 7 | 6 | yes |
 | `odontogram` | 0.3.0 | official | patients, catalog | auto | no | 4 | 7 | 0 | yes |
+| `omnichannel_bridge` | 1.0.0 | official | patients | auto | no | 2 | 0 | 0 | no |
 | `patient_relationships` | 0.2.0 | community | patients | manual | yes | 2 | 0 | 0 | yes |
 | `patient_timeline` | 0.1.0 | official | patients | auto | no | 1 | 0 | 35 | yes |
 | `patients` | 0.1.0 | official | — | auto | no | 2 | 3 | 0 | yes |
 | `patients_clinical` | 0.1.0 | official | patients | auto | no | 4 | 1 | 0 | yes |
 | `payments` | 0.1.0 | official | patients, budget | auto | no | 4 | 3 | 2 | yes |
 | `periodontogram` | 0.1.0 | official | patients, odontogram | manual | yes | 2 | 1 | 2 | yes |
+| `prescriptions` | 0.1.0 | official | patients, medication_catalog | auto | yes | 2 | 0 | 0 | yes |
 | `recall_reminders` | 0.1.0 | community | recalls, notifications, patients | manual | yes | 0 | 0 | 1 | yes |
 | `recalls` | 0.1.0 | official | patients, agenda | auto | yes | 3 | 4 | 5 | yes |
 | `reports` | 0.1.0 | official | patients, agenda, catalog, budget, billing, payments | auto | no | 3 | 0 | 0 | yes |
 | `schedules` | 0.1.0 | official | agenda | auto | yes | 8 | 0 | 4 | yes |
+| `social_automation` | 1.1.0 | official | — | auto | no | 4 | 0 | 0 | no |
 | `staff_tasks` | 0.1.0 | community | — | manual | yes | 2 | 2 | 0 | yes |
 | `treatment_consumables` | 0.1.0 | community | catalog, inventory | manual | yes | 2 | 0 | 0 | yes |
 | `treatment_plan` | 0.1.0 | official | patients, agenda, odontogram, catalog, budget, media | auto | no | 5 | 13 | 7 | yes |
@@ -403,14 +406,15 @@ Managed allergy/medication/disease/surgery lists with searchable medical-history
 - **Author:** lamanji
 - **License:** BSL-1.1
 - **Category:** community
-- **Install policy:** installable=True · auto_install=False · removable=True
+- **Install policy:** installable=True · auto_install=True · removable=True
 - **Depends:** `patients_clinical`, `patients`
 - **Frontend layer:** `frontend`
 - **Permissions:**
   - `medical_reference.read`
   - `medical_reference.write`
 - **Events emitted:** —
-- **Events consumed:** —
+- **Events consumed:**
+  - `clinic.created`
 - **Module CLAUDE.md:** [`backend/app/modules/medical_reference/CLAUDE.md`](../backend/app/modules/medical_reference/CLAUDE.md)
 
 ### `medication_catalog` — v0.1.0
@@ -420,7 +424,7 @@ Clinic-wide medication list with dose/unit/form, seeded with a 56-item dental st
 - **Author:** DentalPin Core Team
 - **License:** BSL-1.1
 - **Category:** community
-- **Install policy:** installable=True · auto_install=False · removable=True
+- **Install policy:** installable=True · auto_install=True · removable=True
 - **Depends:** —
 - **Frontend layer:** `frontend`
 - **Permissions:**
@@ -516,6 +520,22 @@ Dental charting, tooth state, clinical treatments.
   - `odontogram.treatment.status_changed`
 - **Events consumed:** —
 - **Module CLAUDE.md:** [`backend/app/modules/odontogram/CLAUDE.md`](../backend/app/modules/odontogram/CLAUDE.md)
+
+### `omnichannel_bridge` — v1.0.0
+
+Omnichannel Patient Communication & AI Dossier Ingestion
+
+- **Author:** DentalPin Omnichannel Team
+- **License:** BSL-1.1
+- **Category:** official
+- **Install policy:** installable=True · auto_install=True · removable=False
+- **Depends:** `patients`
+- **Frontend layer:** —
+- **Permissions:**
+  - `omnichannel_bridge.read`
+  - `omnichannel_bridge.write`
+- **Events emitted:** —
+- **Events consumed:** —
 
 ### `patient_relationships` — v0.2.0
 
@@ -669,6 +689,23 @@ SEPA periodontal charting — snapshots, probing sites, BoP/PI/CAL indices.
   - `patient.archived`
 - **Module CLAUDE.md:** [`backend/app/modules/periodontogram/CLAUDE.md`](../backend/app/modules/periodontogram/CLAUDE.md)
 
+### `prescriptions` — v0.1.0
+
+Doctor prescription pad (Ordonnance) with authentic Algerian layout and printing.
+
+- **Author:** DentalPin Core Team
+- **License:** BSL-1.1
+- **Category:** official
+- **Install policy:** installable=True · auto_install=True · removable=True
+- **Depends:** `patients`, `medication_catalog`
+- **Frontend layer:** `frontend`
+- **Permissions:**
+  - `prescriptions.read`
+  - `prescriptions.write`
+- **Events emitted:** —
+- **Events consumed:** —
+- **Module CLAUDE.md:** [`backend/app/modules/prescriptions/CLAUDE.md`](../backend/app/modules/prescriptions/CLAUDE.md)
+
 ### `recall_reminders` — v0.1.0
 
 Connects recalls to the notifications gateway — auto-reminds patients when a recall is created.
@@ -756,6 +793,24 @@ Clinic + professional operating hours, overrides, availability, and occupancy an
   - `appointment.updated`
   - `clinic.created`
 - **Module CLAUDE.md:** [`backend/app/modules/schedules/CLAUDE.md`](../backend/app/modules/schedules/CLAUDE.md)
+
+### `social_automation` — v1.1.0
+
+n8n Social Media Content Validation & Performance Analytics Studio
+
+- **Author:** DentalPin Setup
+- **License:** BSL-1.1
+- **Category:** official
+- **Install policy:** installable=True · auto_install=True · removable=False
+- **Depends:** —
+- **Frontend layer:** —
+- **Permissions:**
+  - `social_automation.read`
+  - `social_automation.reports.read`
+  - `social_automation.reports.write`
+  - `social_automation.write`
+- **Events emitted:** —
+- **Events consumed:** —
 
 ### `staff_tasks` — v0.1.0
 
