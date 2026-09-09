@@ -18,6 +18,8 @@ interface UseApiOptions {
   // Optional AbortSignal so callers can cancel in-flight requests
   // (debounced lookups, component unmount, etc.).
   signal?: AbortSignal
+  // If true, suppress automatic error toasts (e.g. for background cards with own empty states)
+  silent?: boolean
 }
 
 function _withQuery(path: string, query?: UseApiOptions['query']): string {
@@ -120,7 +122,7 @@ export function useApi() {
         throw error
       }
 
-      if (fetchError.statusCode && fetchError.statusCode >= 500) {
+      if (!options.silent && fetchError.statusCode && fetchError.statusCode >= 500) {
         toast.add({
           title: t('common.error'),
           description: t('common.serverError'),
@@ -130,7 +132,7 @@ export function useApi() {
       }
 
       // Network error
-      if (!fetchError.statusCode) {
+      if (!options.silent && !fetchError.statusCode) {
         toast.add({
           title: t('common.error'),
           description: t('common.networkError'),

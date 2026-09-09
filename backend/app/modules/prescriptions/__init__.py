@@ -19,7 +19,7 @@ class PrescriptionsModule(BaseModule):
 
     manifest = {
         "name": "prescriptions",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "summary": "Doctor prescription pad (Ordonnance) with authentic Algerian layout and printing.",
         "author": "DentalPin Core Team",
         "license": "BSL-1.1",

@@ -28,7 +28,8 @@ const { data, status } = await useAsyncData(
     if (!patientId.value) return []
     try {
       const res = await api.get<ApiResponse<Prescription[]>>(
-        `/api/v1/prescriptions/patient/${patientId.value}`
+        `/api/v1/prescriptions/patient/${patientId.value}`,
+        { silent: true }
       )
       return res.data || []
     } catch {
