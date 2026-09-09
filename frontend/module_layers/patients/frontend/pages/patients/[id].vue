@@ -111,6 +111,17 @@ watch(
   { immediate: true }
 )
 
+watch(activeTab, (newTab) => {
+  if (route.query.tab !== newTab) {
+    router.replace({
+      query: {
+        ...route.query,
+        tab: newTab === 'summary' ? undefined : newTab
+      }
+    })
+  }
+})
+
 const tabs = computed(() => {
   const items: Array<{ value: string, label: string, icon: string, slot: string }> = [
     {
@@ -127,7 +138,7 @@ const tabs = computed(() => {
     }
   ]
 
-  if (can(PERMISSIONS.odontogram.read) || can(PERMISSIONS.treatmentPlans.read)) {
+  if (can(PERMISSIONS.odontogram.read) || can(PERMISSIONS.treatmentPlans.read) || can(PERMISSIONS.prescriptions.read)) {
     items.push({
       value: 'clinical',
       label: t('patientDetail.tabs.clinical'),
@@ -459,13 +470,13 @@ function collect() {
             </div>
           </template>
 
-          <!-- Clinical tab content (Odontogram + Treatment Plans) -->
+          <!-- Clinical tab content (Odontogram + Treatment Plans + Prescriptions) -->
           <template #clinical>
             <div class="mt-4">
               <ClinicalTab
                 :patient-id="patientId"
                 :patient="patient"
-                :readonly="!can(PERMISSIONS.odontogram.write)"
+                :readonly="!can(PERMISSIONS.odontogram.write) && !can(PERMISSIONS.treatmentPlans.write) && !can(PERMISSIONS.prescriptions.write)"
               />
             </div>
           </template>

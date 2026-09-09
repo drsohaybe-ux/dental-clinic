@@ -29,13 +29,13 @@ const { t } = useI18n()
 const options = computed(() => [
   {
     value: 'diagnosis',
-    label: t('clinical.modes.diagnosis'),
+    label: t('clinical.modes.diagnosis', 'Diagnostic'),
     icon: 'i-lucide-stethoscope',
     badge: props.badges?.diagnosis
   },
   {
     value: 'plans',
-    label: t('clinical.modes.plans'),
+    label: t('clinical.modes.plans', 'Plans de traitement'),
     icon: 'i-lucide-clipboard-list',
     badge: props.badges?.plans
   },
@@ -47,13 +47,13 @@ const options = computed(() => [
   },
   {
     value: 'appointments',
-    label: t('clinical.modes.appointments'),
+    label: t('clinical.modes.appointments', 'Rendez-vous'),
     icon: 'i-lucide-calendar',
     badge: props.badges?.appointments
   },
   {
     value: 'history',
-    label: t('clinical.modes.history'),
+    label: t('clinical.modes.history', 'Historique'),
     icon: 'i-lucide-history',
     badge: props.badges?.history
   }

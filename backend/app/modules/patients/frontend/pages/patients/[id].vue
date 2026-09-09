@@ -43,18 +43,31 @@ const { data: patient, status, refresh } = await useAsyncData(
   `patient:${patientId}`,
   async () => {
     try {
+      let resolvedId = patientId
+      const isPhoneLookup = /^\+?\d{6,15}$/.test(patientId)
+      if (isPhoneLookup) {
+        try {
+          const searchResp = await api.get<ApiResponse<{ items?: Array<{ id: string }> }>>(`/api/v1/patients?search=${encodeURIComponent(patientId)}`)
+          if (searchResp.data?.items && searchResp.data.items.length > 0) {
+            resolvedId = searchResp.data.items[0]?.id ?? patientId
+          }
+        } catch {
+          // Ignore phone lookup fallback error
+        }
+      }
+
       const [identity, emergency, guardian, alertsResp] = await Promise.all([
         api.get<ApiResponse<PatientExtended>>(
-          `/api/v1/patients/${patientId}/extended`
+          `/api/v1/patients/${resolvedId}/extended`
         ),
         api.get<ApiResponse<PatientExtended['emergency_contact']>>(
-          `/api/v1/patients_clinical/patients/${patientId}/emergency-contact`
+          `/api/v1/patients_clinical/patients/${resolvedId}/emergency-contact`
         ).catch(() => ({ data: null })),
         api.get<ApiResponse<PatientExtended['legal_guardian']>>(
-          `/api/v1/patients_clinical/patients/${patientId}/legal-guardian`
+          `/api/v1/patients_clinical/patients/${resolvedId}/legal-guardian`
         ).catch(() => ({ data: null })),
         api.get<ApiResponse<{ alerts: PatientExtended['active_alerts'] }>>(
-          `/api/v1/patients_clinical/patients/${patientId}/alerts`
+          `/api/v1/patients_clinical/patients/${resolvedId}/alerts`
         ).catch(() => ({ data: { alerts: [] } }))
       ])
 
@@ -98,6 +111,17 @@ watch(
   { immediate: true }
 )
 
+watch(activeTab, (newTab) => {
+  if (route.query.tab !== newTab) {
+    router.replace({
+      query: {
+        ...route.query,
+        tab: newTab === 'summary' ? undefined : newTab
+      }
+    })
+  }
+})
+
 const tabs = computed(() => {
   const items: Array<{ value: string, label: string, icon: string, slot: string }> = [
     {
@@ -114,7 +138,7 @@ const tabs = computed(() => {
     }
   ]
 
-  if (can(PERMISSIONS.odontogram.read) || can(PERMISSIONS.treatmentPlans.read)) {
+  if (can(PERMISSIONS.odontogram.read) || can(PERMISSIONS.treatmentPlans.read) || can(PERMISSIONS.prescriptions.read)) {
     items.push({
       value: 'clinical',
       label: t('patientDetail.tabs.clinical'),
@@ -140,6 +164,13 @@ const tabs = computed(() => {
       slot: 'gallery'
     })
   }
+
+  items.push({
+    value: 'ai_dossier',
+    label: 'Radios & IA Dossier',
+    icon: 'i-lucide-scan',
+    slot: 'ai_dossier'
+  })
 
   items.push({
     value: 'timeline',
@@ -439,13 +470,13 @@ function collect() {
             </div>
           </template>
 
-          <!-- Clinical tab content (Odontogram + Treatment Plans) -->
+          <!-- Clinical tab content (Odontogram + Treatment Plans + Prescriptions) -->
           <template #clinical>
             <div class="mt-4">
               <ClinicalTab
                 :patient-id="patientId"
                 :patient="patient"
-                :readonly="!can(PERMISSIONS.odontogram.write)"
+                :readonly="!can(PERMISSIONS.odontogram.write) && !can(PERMISSIONS.treatmentPlans.write) && !can(PERMISSIONS.prescriptions.write)"
               />
             </div>
           </template>
@@ -465,6 +496,16 @@ function collect() {
             <UCard class="mt-4">
               <PhotoGallery :patient-id="patientId" />
             </UCard>
+          </template>
+
+          <!-- Radios & AI Clinical Dossier Tab -->
+          <template #ai_dossier>
+            <div class="mt-4">
+              <PatientAiDossierTab
+                :patient-id="patientId"
+                :patient-phone="patient?.phone"
+              />
+            </div>
           </template>
 
           <!-- Timeline tab content -->

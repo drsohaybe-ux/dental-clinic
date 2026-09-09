@@ -64,35 +64,48 @@ watch(currentMode, (mode) => {
   })
 })
 
-// Initialize from URL on mount
-onMounted(() => {
+function syncFromRouteQuery(query: Record<string, unknown>) {
   const modes: readonly ClinicalMode[] = ['history', 'diagnosis', 'plans', 'prescriptions', 'appointments']
-  const queryMode = modes.find(m => m === route.query.clinicalMode)
+  const queryMode = modes.find(m => m === query.clinicalMode)
   if (queryMode) currentMode.value = queryMode
 
   // Check for planId in URL
-  const planId = route.query.planId as string
+  const planId = query.planId as string
   if (planId) {
     targetPlanId.value = planId
     currentMode.value = 'plans'
   }
 
   // Check for rxId in URL
-  const rxId = route.query.rxId as string
+  const rxId = query.rxId as string
   if (rxId) {
     targetRxId.value = rxId
     currentMode.value = 'prescriptions'
   }
 
   // Check for action in URL
-  if (route.query.action === 'new') {
+  if (query.action === 'new') {
     prescriptionAction.value = 'new'
     currentMode.value = 'prescriptions'
-  } else if (route.query.action === 'createPlan' && can(PERMISSIONS.treatmentPlans.write)) {
+  } else if (query.action === 'createPlan' && can(PERMISSIONS.treatmentPlans.write)) {
     handleCreatePlan()
     router.replace({ query: { ...route.query, action: undefined } })
   }
+}
+
+// Initialize from URL on mount
+onMounted(() => {
+  syncFromRouteQuery(route.query)
 })
+
+// Reactively watch for URL query changes (e.g. from hero Quick Actions or Resumen cards)
+watch(
+  () => route.query,
+  (newQuery) => {
+    syncFromRouteQuery(newQuery)
+  },
+  { deep: true }
+)
 
 // ============================================================================
 // Mode Transitions
@@ -169,7 +182,7 @@ watch(currentMode, (newMode) => {
       :patient="patient"
       :initial-rx-id="targetRxId"
       :initial-action="prescriptionAction"
-      :readonly="readonly"
+      :readonly="readonly || !can(PERMISSIONS.prescriptions.write)"
     />
 
     <AppointmentsMode

@@ -86,6 +86,23 @@ const rxToDelete = ref<Prescription | null>(null)
 // Storage key for persisting doctor header
 const STORAGE_KEY = 'dentalpin:ordonnance_header'
 
+// Dynamic page print styling via useHead
+useHead({
+  style: [
+    {
+      id: 'ordonnance-print-page-style',
+      innerHTML: computed(() => `
+        @media print {
+          @page {
+            size: ${paperSize.value === 'a5' ? 'A5 portrait' : 'A4 portrait'};
+            margin: ${paperSize.value === 'a5' ? '6mm' : '10mm'};
+          }
+        }
+      `)
+    }
+  ]
+})
+
 function getDefaultDoctorNameFr(): string {
   if (user.value?.first_name || user.value?.last_name) {
     return `Dr. ${user.value.first_name || ''} ${user.value.last_name || ''}`.trim()
@@ -232,6 +249,7 @@ const clinicAddress = computed(() => {
 
 const clinicPhone = computed(() => currentClinic.value?.phone || '024 79 50 12 / 0550 44 73 55')
 const clinicEmail = computed(() => currentClinic.value?.email || 'contact@ismile-clinic.dz')
+const clinicLogo = computed(() => currentClinic.value?.logo_url || '/logo.png?v=3')
 
 // ============================================================================
 // Storage & Population
@@ -481,10 +499,9 @@ function moveItem(idx: number, direction: 'up' | 'down') {
 
 function printOrdonnance() {
   saveDoctorHeaderToStorage()
-  const previousView = activeView.value
   activeView.value = 'preview'
 
-  nextTick(() => {
+  setTimeout(() => {
     if (typeof document !== 'undefined') {
       document.body.classList.add('printing-ordonnance')
       const cleanup = () => {
@@ -493,12 +510,12 @@ function printOrdonnance() {
       }
       window.addEventListener('afterprint', cleanup, { once: true })
       window.print()
+      // Fallback cleanup in case afterprint is not supported
       setTimeout(() => {
         document.body.classList.remove('printing-ordonnance')
-        activeView.value = previousView
-      }, 800)
+      }, 3000)
     }
-  })
+  }, 100)
 }
 
 async function handleSave() {
@@ -555,15 +572,24 @@ function requestDelete(rx: Prescription) {
 
 async function confirmDelete() {
   if (!rxToDelete.value) return
+  const deletedId = rxToDelete.value.id
   isDeleting.value = true
   try {
-    const success = await deletePrescription(rxToDelete.value.id)
+    const success = await deletePrescription(deletedId)
     if (success) {
-      emit('prescription-deleted', rxToDelete.value.id)
+      emit('prescription-deleted', deletedId)
       refreshNuxtData(`prescriptions:summary-card:${props.patientId}`)
       showDeleteConfirm.value = false
-      if (selectedRxId.value === rxToDelete.value.id) {
+      if (selectedRxId.value === deletedId) {
         selectedRxId.value = null
+      }
+      if (route.query.rxId === deletedId) {
+        router.replace({
+          query: {
+            ...route.query,
+            rxId: undefined
+          }
+        })
       }
       rxToDelete.value = null
       await loadPrescriptionsList()
@@ -597,7 +623,7 @@ function formatMedicationSummary(rx: Prescription): string {
 }
 
 // ============================================================================
-// Lifecycle
+// Lifecycle & Prop Watchers
 // ============================================================================
 
 onMounted(async () => {
@@ -605,6 +631,40 @@ onMounted(async () => {
     fetchPatientData(),
     loadPrescriptionsList()
   ])
+
+  if (typeof window !== 'undefined') {
+    const handleBeforePrint = () => {
+      document.body.classList.add('printing-ordonnance')
+    }
+    const handleAfterPrint = () => {
+      document.body.classList.remove('printing-ordonnance')
+    }
+    window.addEventListener('beforeprint', handleBeforePrint)
+    window.addEventListener('afterprint', handleAfterPrint)
+
+    onUnmounted(() => {
+      window.removeEventListener('beforeprint', handleBeforePrint)
+      window.removeEventListener('afterprint', handleAfterPrint)
+      if (typeof document !== 'undefined') {
+        document.body.classList.remove('printing-ordonnance')
+      }
+    })
+  }
+})
+
+watch(() => props.initialAction, (action) => {
+  if (action === 'new') {
+    handleNewPrescription()
+  }
+})
+
+watch(() => props.initialRxId, (newId) => {
+  if (newId && newId !== selectedRxId.value) {
+    const match = prescriptions.value.find(rx => rx.id === newId)
+    if (match) {
+      selectPrescription(match, 'preview')
+    }
+  }
 })
 
 watch(() => props.patientId, async () => {
@@ -623,16 +683,6 @@ watch(() => props.patient, (p) => {
 
 <template>
   <div class="prescriptions-workspace w-full space-y-6">
-    <!-- Dynamic print page styling according to selected paperSize -->
-    <component :is="'style'">
-      @media print {
-      @page {
-      size: {{ paperSize === 'a5' ? 'A5 portrait' : 'A4 portrait' }};
-      margin: {{ paperSize === 'a5' ? '6mm' : '10mm' }};
-      }
-      }
-    </component>
-
     <!-- Main Workspace Grid: Master column (left) + Detail/Composer column (right) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- ============================================================= -->
@@ -888,7 +938,7 @@ watch(() => props.patient, (p) => {
         <!-- ============================================================= -->
         <div
           v-show="activeView === 'preview'"
-          class="flex justify-center w-full"
+          class="ordonnance-preview-container flex justify-center w-full print:!flex"
         >
           <div
             id="ordonnance-printable-area"
@@ -898,8 +948,8 @@ watch(() => props.patient, (p) => {
             <!-- Faint Tooth Watermark in background -->
             <div class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
               <img
-                src="/logo.png?v=3"
-                alt="I SmilE Watermark"
+                :src="clinicLogo"
+                alt="Watermark"
                 class="w-72 h-72 object-contain opacity-[0.06] grayscale contrast-125"
               >
             </div>
@@ -911,20 +961,20 @@ watch(() => props.patient, (p) => {
                 <!-- Header: French doctor (Left), Cyan Logo (Center), Arabic doctor (Right) -->
                 <div class="flex items-start justify-between border-b border-cyan-100 pb-3 gap-2">
                   <!-- Left: Doctor & Specialty in French -->
-                  <div class="text-left space-y-0.5 flex-1 min-w-[140px]">
-                    <div class="text-base sm:text-lg font-bold text-cyan-700 uppercase tracking-tight">
+                  <div class="text-left space-y-0.5 flex-1 min-w-0 break-words">
+                    <div class="text-base sm:text-lg font-bold text-cyan-700 uppercase tracking-tight break-words">
                       {{ doctorNameFr }}
                     </div>
-                    <div class="text-xs sm:text-sm font-medium text-cyan-600">
+                    <div class="text-xs sm:text-sm font-medium text-cyan-600 break-words">
                       {{ doctorSpecialtyFr }}
                     </div>
                   </div>
 
                   <!-- Center: Clinic logo & tooth branding -->
-                  <div class="flex flex-col items-center px-3 shrink-0">
+                  <div class="flex flex-col items-center px-2 sm:px-3 shrink-0">
                     <img
-                      src="/logo.png?v=3"
-                      alt="I SmilE Logo"
+                      :src="clinicLogo"
+                      alt="Logo"
                       class="h-11 w-11 sm:h-12 sm:w-12 object-contain"
                     >
                     <span class="font-pacifico text-cyan-600 text-sm mt-0.5 tracking-tight">
@@ -937,13 +987,13 @@ watch(() => props.patient, (p) => {
 
                   <!-- Right: Doctor & Specialty in Arabic -->
                   <div
-                    class="text-right space-y-0.5 flex-1 min-w-[140px] font-['Cairo']"
+                    class="text-right space-y-0.5 flex-1 min-w-0 break-words font-['Cairo']"
                     dir="rtl"
                   >
-                    <div class="text-base sm:text-lg font-bold text-cyan-700">
+                    <div class="text-base sm:text-lg font-bold text-cyan-700 break-words">
                       {{ doctorNameAr }}
                     </div>
-                    <div class="text-xs sm:text-sm font-medium text-cyan-600 border-b border-cyan-500/50 pb-0.5 inline-block">
+                    <div class="text-xs sm:text-sm font-medium text-cyan-600 border-b border-cyan-500/50 pb-0.5 inline-block break-words">
                       {{ doctorSpecialtyAr }}
                     </div>
                   </div>
@@ -1054,6 +1104,15 @@ watch(() => props.patient, (p) => {
                     >
                       {{ t('prescriptions.editOrdonnance', 'Rédiger dans l\'éditeur') }}
                     </UButton>
+                  </div>
+
+                  <!-- Optional clinical notes/instructions at bottom of ordonnance -->
+                  <div
+                    v-if="notes"
+                    class="mt-4 pt-2 border-t border-dotted border-neutral-300 text-xs sm:text-sm text-neutral-700 italic"
+                  >
+                    <span class="font-bold not-italic text-neutral-900">Note : </span>
+                    <span>{{ notes }}</span>
                   </div>
                 </div>
               </div>
@@ -1228,6 +1287,7 @@ watch(() => props.patient, (p) => {
                   :loading="isSearchingDrugs"
                   placeholder="Tapez le nom d'un médicament (ex: Amoclan, Augmentin, Doliprane, Eludril, Flagyl...)"
                   class="w-full"
+                  @keydown.esc="drugSuggestions = []"
                 />
 
                 <!-- Autocomplete suggestions dropdown -->
@@ -1282,6 +1342,7 @@ watch(() => props.patient, (p) => {
                 <UInput
                   v-model="newItem.medication_name"
                   placeholder="ex: AMOCLAN"
+                  @keydown.enter.prevent="addItemToPrescription"
                 />
               </div>
 
@@ -1292,6 +1353,7 @@ watch(() => props.patient, (p) => {
                 <UInput
                   v-model="newItem.dosage"
                   placeholder="ex: 1G/200MG, 500mg"
+                  @keydown.enter.prevent="addItemToPrescription"
                 />
               </div>
 
@@ -1302,6 +1364,7 @@ watch(() => props.patient, (p) => {
                 <UInput
                   v-model="newItem.form"
                   placeholder="ex: Comprimé, Gélule"
+                  @keydown.enter.prevent="addItemToPrescription"
                 />
               </div>
 
@@ -1326,6 +1389,7 @@ watch(() => props.patient, (p) => {
                 <UInput
                   v-model="newItem.frequency"
                   placeholder="ex: 1 comp 2x/jour (Matin / Soir)"
+                  @keydown.enter.prevent="addItemToPrescription"
                 />
               </div>
 
@@ -1350,6 +1414,7 @@ watch(() => props.patient, (p) => {
                 <UInput
                   v-model="newItem.duration"
                   placeholder="ex: 7 jours"
+                  @keydown.enter.prevent="addItemToPrescription"
                 />
               </div>
 
@@ -1374,6 +1439,7 @@ watch(() => props.patient, (p) => {
                 <UInput
                   v-model="newItem.instructions"
                   placeholder="ex: Au milieu des repas"
+                  @keydown.enter.prevent="addItemToPrescription"
                 />
               </div>
             </div>
@@ -1584,9 +1650,17 @@ watch(() => props.patient, (p) => {
   :global(body.printing-ordonnance *) {
     visibility: hidden;
   }
+  :global(body.printing-ordonnance .ordonnance-preview-container),
   :global(body.printing-ordonnance #ordonnance-printable-area),
   :global(body.printing-ordonnance #ordonnance-printable-area *) {
     visibility: visible;
+  }
+  :global(body.printing-ordonnance .ordonnance-preview-container) {
+    display: flex !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   :global(body.printing-ordonnance #ordonnance-printable-area) {
     position: absolute !important;
