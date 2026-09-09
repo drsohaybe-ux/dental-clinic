@@ -17,6 +17,12 @@ const { t } = useI18n()
 const isOpen = ref(false)
 
 const patient = computed(() => props.ctx?.patient)
+
+function onPrescriptionSaved() {
+  if (patient.value?.id) {
+    refreshNuxtData(`prescriptions:summary-card:${patient.value.id}`)
+  }
+}
 </script>
 
 <template>
@@ -37,6 +43,7 @@ const patient = computed(() => props.ctx?.patient)
       v-if="isOpen && patient"
       v-model="isOpen"
       :patient="patient"
+      @saved="onPrescriptionSaved"
     />
   </div>
 </template>

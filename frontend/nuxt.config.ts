@@ -107,7 +107,8 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/copilot/**': { ssr: false },
-    '/settings/medications': { redirect: { to: '/settings/clinical/medications', statusCode: 301 } }
+    '/settings/medications': { redirect: { to: '/settings/clinical/medications', statusCode: 301 } },
+    '/settings/medications/**': { redirect: { to: '/settings/clinical/medications', statusCode: 301 } }
   },
 
   // Restart dev server when the backend rewrites `modules.json` on

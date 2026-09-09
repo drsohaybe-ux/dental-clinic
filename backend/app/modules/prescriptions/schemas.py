@@ -33,11 +33,11 @@ class PrescriptionItemResponse(PrescriptionItemBase):
 
 class PrescriptionBase(BaseModel):
     patient_id: UUID
-    doctor_name_fr: str = Field(default="Dr. LOKMANE R.", max_length=150)
+    doctor_name_fr: str = Field(default="Dr. Chirurgien Dentiste", max_length=150)
     doctor_specialty_fr: str = Field(default="Chirurgien Dentiste", max_length=150)
-    doctor_name_ar: str = Field(default="الدكتور لقمان ر.", max_length=150)
+    doctor_name_ar: str = Field(default="الدكتور جراح أسنان", max_length=150)
     doctor_specialty_ar: str = Field(default="جراح أسنان", max_length=150)
-    city: str = Field(default="Boumerdès", max_length=100)
+    city: str = Field(default="Alger", max_length=100)
     prescription_date: date = Field(default_factory=date.today)
     notes: str | None = None
 

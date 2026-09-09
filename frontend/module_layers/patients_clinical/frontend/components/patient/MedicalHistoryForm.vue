@@ -197,12 +197,13 @@ const surgeryNameField = useNameField(
   'patients_clinical.medical_history.surgery_name', 'surgery', newSurgery, 'patients.medicalHistory.procedure'
 )
 
-// Auto-populate dosage when name has embedded dosage (e.g. "AMOCLAN 1G/200MG")
+// Auto-populate dosage when name has embedded dosage (e.g. "AMOCLAN 1G/200MG", "DOLIPRANE 1000MG COMPRIMES")
 watch(() => newMedication.value.name, (val) => {
   if (!val || newMedication.value.dosage) return
-  const match = val.match(/^(.+?)\s+(\d+(?:\.\d+)?\s*(?:mg|g|mcg|ml|iu|ui|%)(?:\/\d*(?:\.\d+)?\s*(?:mg|g|mcg|ml)?)?)$/i)
+  const match = val.match(/^(.+?)\s+(\d+(?:\.\d+)?\s*(?:mg|g|mcg|ml|iu|ui|%)(?:\/\d*(?:\.\d+)?\s*(?:mg|g|mcg|ml)?)?)(?:\s+(.+))?$/i)
   if (match && match[1] && match[2]) {
-    newMedication.value.name = match[1].trim()
+    const suffix = match[3] ? ` ${match[3].trim()}` : ''
+    newMedication.value.name = `${match[1].trim()}${suffix}`
     newMedication.value.dosage = match[2].trim()
   }
 })

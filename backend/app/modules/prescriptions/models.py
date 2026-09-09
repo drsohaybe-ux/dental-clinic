@@ -37,15 +37,15 @@ class Prescription(Base, TimestampMixin):
     )
 
     # Doctor and specialty in French (top-left on Algerian prescription pad)
-    doctor_name_fr: Mapped[str] = mapped_column(String(150), default="Dr. LOKMANE R.")
+    doctor_name_fr: Mapped[str] = mapped_column(String(150), default="Dr. Chirurgien Dentiste")
     doctor_specialty_fr: Mapped[str] = mapped_column(String(150), default="Chirurgien Dentiste")
 
     # Doctor and specialty in Arabic (top-right on Algerian prescription pad)
-    doctor_name_ar: Mapped[str] = mapped_column(String(150), default="الدكتور لقمان ر.")
+    doctor_name_ar: Mapped[str] = mapped_column(String(150), default="الدكتور جراح أسنان")
     doctor_specialty_ar: Mapped[str] = mapped_column(String(150), default="جراح أسنان")
 
-    # Date and city line (e.g. "Boumerdès, le: 09/09/2026")
-    city: Mapped[str] = mapped_column(String(100), default="Boumerdès")
+    # Date and city line (e.g. "Alger, le: 09/09/2026")
+    city: Mapped[str] = mapped_column(String(100), default="Alger")
     prescription_date: Mapped[date] = mapped_column(Date, default=date.today)
 
     # Clinical notes, instructions, or internal remarks

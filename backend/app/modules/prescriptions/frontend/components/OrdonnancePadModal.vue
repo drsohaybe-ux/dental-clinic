@@ -45,6 +45,7 @@ const emit = defineEmits<{
 
 const api = useApi()
 const { t } = useI18n()
+const { user } = useAuth()
 const { currentClinic } = useClinic()
 const { createPrescription, updatePrescription } = usePrescriptions()
 
@@ -53,45 +54,74 @@ const activeView = ref<'preview' | 'edit'>('preview')
 const paperSize = ref<'a5' | 'a4'>('a5')
 const isSaving = ref(false)
 
-// Doctor info (defaults to authentic Algerian dental prescription pad)
-const doctorNameFr = ref('Dr. LOKMANE R.')
+const STORAGE_KEY = 'dentalpin:ordonnance_header'
+
+function getDefaultDoctorNameFr(): string {
+  if (user.value?.first_name || user.value?.last_name) {
+    return `Dr. ${user.value.first_name || ''} ${user.value.last_name || ''}`.trim()
+  }
+  return 'Dr. Chirurgien Dentiste'
+}
+
+function getDefaultCity(): string {
+  if (currentClinic.value?.address && typeof currentClinic.value.address === 'object') {
+    const c = currentClinic.value.address.city
+    if (c) return c
+  }
+  return 'Alger'
+}
+
+// Doctor info (defaults to practitioner / clinic info, persisted locally)
+const doctorNameFr = ref(getDefaultDoctorNameFr())
 const doctorSpecialtyFr = ref('Chirurgien Dentiste')
-const doctorNameAr = ref('الدكتور لقمان ر.')
+const doctorNameAr = ref('الدكتور جراح أسنان')
 const doctorSpecialtyAr = ref('جراح أسنان')
-const city = ref('Boumerdès')
+const city = ref(getDefaultCity())
 const prescriptionDate = ref(new Date().toISOString().split('T')[0] ?? '')
 const notes = ref('')
 
-// Prescribed items
-const items = ref<PrescriptionItem[]>([
-  {
-    medication_name: 'AMOCLAN',
-    dosage: '1G/200MG',
-    form: 'Comprimé',
-    frequency: '1 comp 2x/jour (Matin / Soir)',
-    duration: '7 jours',
-    instructions: 'Au milieu des repas',
-    order: 1
-  },
-  {
-    medication_name: 'ALGIDOL',
-    dosage: '1G',
-    form: 'Comprimé effervescent',
-    frequency: '1 comp si douleur (max 3/j)',
-    duration: '5 jours',
-    instructions: 'À dissoudre dans un verre d\'eau',
-    order: 2
-  },
-  {
-    medication_name: 'ELUDRIL',
-    dosage: '0.1%',
-    form: 'Bain de bouche',
-    frequency: '3x/jour après les repas',
-    duration: '10 jours',
-    instructions: 'Ne pas avaler. Recracher après 1 minute.',
-    order: 3
+function loadSavedDoctorHeader() {
+  if (import.meta.client) {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (parsed.doctorNameFr) doctorNameFr.value = parsed.doctorNameFr
+        if (parsed.doctorSpecialtyFr) doctorSpecialtyFr.value = parsed.doctorSpecialtyFr
+        if (parsed.doctorNameAr) doctorNameAr.value = parsed.doctorNameAr
+        if (parsed.doctorSpecialtyAr) doctorSpecialtyAr.value = parsed.doctorSpecialtyAr
+        if (parsed.city) city.value = parsed.city
+        return
+      }
+    } catch {
+      // Ignore localStorage error
+    }
   }
-])
+  doctorNameFr.value = getDefaultDoctorNameFr()
+  doctorSpecialtyFr.value = 'Chirurgien Dentiste'
+  doctorNameAr.value = 'الدكتور جراح أسنان'
+  doctorSpecialtyAr.value = 'جراح أسنان'
+  city.value = getDefaultCity()
+}
+
+function saveDoctorHeaderToStorage() {
+  if (import.meta.client) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        doctorNameFr: doctorNameFr.value,
+        doctorSpecialtyFr: doctorSpecialtyFr.value,
+        doctorNameAr: doctorNameAr.value,
+        doctorSpecialtyAr: doctorSpecialtyAr.value,
+        city: city.value
+      }))
+    } catch {
+      // Ignore localStorage error
+    }
+  }
+}
+
+// Prescribed items start empty for new prescription; populated if editing
+const items = ref<PrescriptionItem[]>([])
 
 // Builder state for adding new medication
 const newItem = ref<PrescriptionItem>({
@@ -178,21 +208,24 @@ const clinicAddress = computed(() => {
 const clinicPhone = computed(() => currentClinic.value?.phone || '024 79 50 12 / 0550 44 73 55')
 const clinicEmail = computed(() => currentClinic.value?.email || 'contact@ismile-clinic.dz')
 
-// Populate from existing prescription if provided
+// Populate from existing prescription if provided, or reset cleanly to user defaults
 watch(
   () => props.prescription,
   (rx) => {
     if (rx) {
-      doctorNameFr.value = rx.doctor_name_fr || 'Dr. LOKMANE R.'
+      doctorNameFr.value = rx.doctor_name_fr || getDefaultDoctorNameFr()
       doctorSpecialtyFr.value = rx.doctor_specialty_fr || 'Chirurgien Dentiste'
-      doctorNameAr.value = rx.doctor_name_ar || 'الدكتور لقمان ر.'
+      doctorNameAr.value = rx.doctor_name_ar || 'الدكتور جراح أسنان'
       doctorSpecialtyAr.value = rx.doctor_specialty_ar || 'جراح أسنان'
-      city.value = rx.city || 'Boumerdès'
+      city.value = rx.city || getDefaultCity()
       prescriptionDate.value = rx.prescription_date || new Date().toISOString().split('T')[0] ?? ''
       notes.value = rx.notes || ''
-      if (rx.items && rx.items.length > 0) {
-        items.value = rx.items.map((it, idx) => ({ ...it, order: idx + 1 }))
-      }
+      items.value = rx.items && rx.items.length > 0 ? rx.items.map((it, idx) => ({ ...it, order: idx + 1 })) : []
+    } else {
+      loadSavedDoctorHeader()
+      prescriptionDate.value = new Date().toISOString().split('T')[0] ?? ''
+      notes.value = ''
+      items.value = []
     }
   },
   { immediate: true }
@@ -241,15 +274,15 @@ function selectDrugSuggestion(sug: { name: string, dosage?: string, form?: strin
 function addItemToPrescription() {
   if (!newItem.value.medication_name.trim()) return
 
-  // Auto-extract dosage if present in name
+  // Auto-extract dosage if present in name (e.g. "AMOCLAN 1G/200MG", "DOLIPRANE 1000MG COMPRIMES")
   let name = newItem.value.medication_name.trim()
   let dosage = newItem.value.dosage?.trim() || ''
 
   if (!dosage) {
     const match = name.match(/\b(\d+(?:\.\d+)?\s*(?:mg|g|mcg|ml|iu|ui|%)(?:\/\d*(?:\.\d+)?\s*(?:mg|g|mcg|ml)?)?)\b/i)
     if (match) {
-      dosage = match[1]
-      name = name.replace(match[1], '').trim()
+      dosage = match[1].trim()
+      name = name.replace(match[1], '').replace(/\s{2,}/g, ' ').trim()
     }
   }
 
@@ -283,12 +316,31 @@ function removeItem(idx: number) {
 }
 
 function printOrdonnance() {
-  window.print()
+  saveDoctorHeaderToStorage()
+  const previousView = activeView.value
+  activeView.value = 'preview'
+
+  nextTick(() => {
+    if (typeof document !== 'undefined') {
+      document.body.classList.add('printing-ordonnance')
+      const cleanup = () => {
+        document.body.classList.remove('printing-ordonnance')
+        window.removeEventListener('afterprint', cleanup)
+      }
+      window.addEventListener('afterprint', cleanup, { once: true })
+      window.print()
+      setTimeout(() => {
+        document.body.classList.remove('printing-ordonnance')
+        activeView.value = previousView
+      }, 800)
+    }
+  })
 }
 
 async function handleSave() {
   if (items.value.length === 0) return
   isSaving.value = true
+  saveDoctorHeaderToStorage()
   try {
     const payload = {
       patient_id: props.patient.id,
@@ -329,6 +381,16 @@ function close() {
     :ui="{ content: 'max-w-4xl p-0 overflow-hidden print:shadow-none print:border-none' }"
     @update:model-value="emit('update:modelValue', $event)"
   >
+    <!-- Dynamic print page styling according to selected paperSize -->
+    <component :is="'style'">
+      @media print {
+        @page {
+          size: {{ paperSize === 'a5' ? 'A5 portrait' : 'A4 portrait' }};
+          margin: {{ paperSize === 'a5' ? '6mm' : '10mm' }};
+        }
+      }
+    </component>
+
     <div class="ordonnance-modal flex flex-col max-h-[92vh]">
       <!-- Header bar with controls (hidden when printing) -->
       <div class="no-print flex items-center justify-between px-5 py-3 border-b border-default bg-surface/90 backdrop-blur z-20">
@@ -525,7 +587,7 @@ function close() {
                   <div
                     v-for="(item, idx) in items"
                     :key="idx"
-                    class="space-y-0.5"
+                    class="ordonnance-med-item space-y-0.5"
                   >
                     <!-- Drug name, dosage and form -->
                     <div class="flex items-baseline gap-2">
@@ -554,10 +616,10 @@ function close() {
                     </div>
                   </div>
 
-                  <!-- Empty state if no drugs yet -->
+                  <!-- Empty state if no drugs yet (hidden on print so blank pad can be printed) -->
                   <div
                     v-if="items.length === 0"
-                    class="h-44 flex items-center justify-center text-subtle text-xs italic"
+                    class="no-print h-44 flex items-center justify-center text-subtle text-xs italic"
                   >
                     {{ t('prescriptions.noDrugsYet', 'Aucun médicament prescrit. Cliquez sur "Éditeur" pour en ajouter.') }}
                   </div>
@@ -565,7 +627,7 @@ function close() {
               </div>
 
               <!-- Bottom Footer -->
-              <div class="mt-8 pt-3 border-t border-cyan-100">
+              <div class="ordonnance-footer mt-8 pt-3 border-t border-cyan-100">
                 <div class="flex items-end justify-between text-[11px] sm:text-xs text-cyan-900">
                   <!-- Contact info -->
                   <div class="space-y-1 max-w-[65%]">
@@ -914,21 +976,20 @@ function close() {
 <style scoped>
 /* Print stylesheet for Algerian Doctor Prescription Pad */
 @media print {
-  /* Hide all app shells, navigation, modals, buttons */
-  :global(body *) {
+  /* Scoped strictly to when the ordonnance print trigger is active to prevent polluting global app printing */
+  :global(body.printing-ordonnance *) {
     visibility: hidden;
   }
-  :global(#ordonnance-printable-area),
-  :global(#ordonnance-printable-area *) {
+  :global(body.printing-ordonnance #ordonnance-printable-area),
+  :global(body.printing-ordonnance #ordonnance-printable-area *) {
     visibility: visible;
   }
-  :global(#ordonnance-printable-area) {
-    position: fixed !important;
+  :global(body.printing-ordonnance #ordonnance-printable-area) {
+    position: absolute !important;
     left: 0 !important;
     top: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 100vh !important;
+    width: 100% !important;
+    max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
@@ -936,11 +997,19 @@ function close() {
     background: white !important;
     color: #171717 !important;
     z-index: 999999 !important;
+    display: block !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
   }
 
-  @page {
-    size: A5 portrait;
-    margin: 8mm;
+  :global(.ordonnance-med-item) {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  :global(.ordonnance-footer) {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 }
 </style>

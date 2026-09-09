@@ -13,6 +13,13 @@ from .models import Prescription, PrescriptionItem
 from .schemas import PrescriptionCreate, PrescriptionUpdate
 
 
+def _clean_str(val: object | None) -> str | None:
+    if val is None:
+        return None
+    s = str(val).strip()
+    return s if s else None
+
+
 class PrescriptionService:
     @staticmethod
     async def list_by_patient(
@@ -65,13 +72,13 @@ class PrescriptionService:
         prescription = Prescription(
             clinic_id=clinic_id,
             patient_id=payload.patient_id,
-            doctor_name_fr=payload.doctor_name_fr,
-            doctor_specialty_fr=payload.doctor_specialty_fr,
-            doctor_name_ar=payload.doctor_name_ar,
-            doctor_specialty_ar=payload.doctor_specialty_ar,
-            city=payload.city,
+            doctor_name_fr=_clean_str(payload.doctor_name_fr) or "Dr. Chirurgien Dentiste",
+            doctor_specialty_fr=_clean_str(payload.doctor_specialty_fr) or "Chirurgien Dentiste",
+            doctor_name_ar=_clean_str(payload.doctor_name_ar) or "الدكتور جراح أسنان",
+            doctor_specialty_ar=_clean_str(payload.doctor_specialty_ar) or "جراح أسنان",
+            city=_clean_str(payload.city) or "Alger",
             prescription_date=payload.prescription_date,
-            notes=payload.notes,
+            notes=_clean_str(payload.notes),
             is_active=True,
         )
         db.add(prescription)
@@ -79,13 +86,13 @@ class PrescriptionService:
 
         for idx, item_data in enumerate(payload.items, start=1):
             item = PrescriptionItem(
-                prescription_id=prescription.id,
-                medication_name=item_data.medication_name.strip(),
-                dosage=item_data.dosage.strip() if item_data.dosage else None,
-                form=item_data.form.strip() if item_data.form else None,
-                frequency=item_data.frequency.strip() if item_data.frequency else None,
-                duration=item_data.duration.strip() if item_data.duration else None,
-                instructions=item_data.instructions.strip() if item_data.instructions else None,
+                prescription=prescription,
+                medication_name=_clean_str(item_data.medication_name) or "",
+                dosage=_clean_str(item_data.dosage),
+                form=_clean_str(item_data.form),
+                frequency=_clean_str(item_data.frequency),
+                duration=_clean_str(item_data.duration),
+                instructions=_clean_str(item_data.instructions),
                 order=item_data.order if item_data.order else idx,
             )
             db.add(item)
@@ -113,7 +120,10 @@ class PrescriptionService:
         items_data = update_data.pop("items", None)
 
         for key, value in update_data.items():
-            setattr(prescription, key, value)
+            if isinstance(value, str):
+                setattr(prescription, key, _clean_str(value))
+            else:
+                setattr(prescription, key, value)
 
         if items_data is not None:
             # Replace existing items with updated items
@@ -121,15 +131,32 @@ class PrescriptionService:
             await db.flush()
 
             for idx, item_data in enumerate(items_data, start=1):
+                if isinstance(item_data, dict):
+                    med_name = _clean_str(item_data.get("medication_name")) or ""
+                    dosage = _clean_str(item_data.get("dosage"))
+                    form = _clean_str(item_data.get("form"))
+                    frequency = _clean_str(item_data.get("frequency"))
+                    duration = _clean_str(item_data.get("duration"))
+                    instructions = _clean_str(item_data.get("instructions"))
+                    order_val = item_data.get("order")
+                else:
+                    med_name = _clean_str(getattr(item_data, "medication_name", "")) or ""
+                    dosage = _clean_str(getattr(item_data, "dosage", None))
+                    form = _clean_str(getattr(item_data, "form", None))
+                    frequency = _clean_str(getattr(item_data, "frequency", None))
+                    duration = _clean_str(getattr(item_data, "duration", None))
+                    instructions = _clean_str(getattr(item_data, "instructions", None))
+                    order_val = getattr(item_data, "order", None)
+
                 item = PrescriptionItem(
-                    prescription_id=prescription.id,
-                    medication_name=item_data["medication_name"].strip(),
-                    dosage=item_data.get("dosage", "").strip() or None,
-                    form=item_data.get("form", "").strip() or None,
-                    frequency=item_data.get("frequency", "").strip() or None,
-                    duration=item_data.get("duration", "").strip() or None,
-                    instructions=item_data.get("instructions", "").strip() or None,
-                    order=item_data.get("order", idx),
+                    prescription=prescription,
+                    medication_name=med_name,
+                    dosage=dosage,
+                    form=form,
+                    frequency=frequency,
+                    duration=duration,
+                    instructions=instructions,
+                    order=order_val if order_val else idx,
                 )
                 db.add(item)
 

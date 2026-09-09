@@ -232,6 +232,87 @@ async def test_prescription_service_update():
 
 
 @pytest.mark.asyncio
+async def test_prescription_service_update_with_none_fields():
+    """PrescriptionService.update handles items with None optional fields without crashing."""
+    clinic_id = uuid4()
+    rx_id = uuid4()
+    mock_db = AsyncMock()
+
+    dummy_rx = Prescription(
+        id=rx_id,
+        clinic_id=clinic_id,
+        patient_id=uuid4(),
+        doctor_name_fr="Dr. Dentist",
+    )
+    dummy_rx.items = []
+
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = dummy_rx
+    mock_db.execute.return_value = mock_result
+
+    # Item with explicit None values for all optional fields
+    update_payload = PrescriptionUpdate(
+        items=[
+            PrescriptionItemCreate(
+                medication_name="AMOXICILLINE",
+                dosage=None,
+                form=None,
+                frequency=None,
+                duration=None,
+                instructions=None,
+                order=1,
+            )
+        ]
+    )
+
+    updated = await PrescriptionService.update(
+        mock_db, clinic_id, rx_id, update_payload
+    )
+    assert len(updated.items) == 1
+    assert updated.items[0].medication_name == "AMOXICILLINE"
+    assert updated.items[0].dosage is None
+    assert updated.items[0].form is None
+
+
+@pytest.mark.asyncio
+async def test_prescription_service_create_with_none_fields():
+    """PrescriptionService.create handles items with None optional fields cleanly."""
+    clinic_id = uuid4()
+    mock_db = AsyncMock()
+
+    payload = PrescriptionCreate(
+        patient_id=uuid4(),
+        items=[
+            PrescriptionItemCreate(
+                medication_name="PARACETAMOL",
+                dosage=None,
+                form=None,
+                frequency=None,
+                duration=None,
+                instructions=None,
+            )
+        ],
+    )
+
+    created = await PrescriptionService.create(mock_db, clinic_id, payload)
+    assert created.doctor_name_fr == "Dr. Chirurgien Dentiste"
+    assert created.city == "Alger"
+    assert len(created.items) == 1
+    assert created.items[0].medication_name == "PARACETAMOL"
+    assert created.items[0].dosage is None
+
+
+def test_prescription_defaults_are_generic_dental():
+    """Ensure schemas and models do not hardcode sample doctor data."""
+    p = PrescriptionCreate(patient_id=uuid4())
+    assert p.doctor_name_fr == "Dr. Chirurgien Dentiste"
+    assert p.doctor_specialty_fr == "Chirurgien Dentiste"
+    assert p.doctor_name_ar == "الدكتور جراح أسنان"
+    assert p.city == "Alger"
+    assert p.items == []
+
+
+@pytest.mark.asyncio
 async def test_prescription_service_update_404():
     """PrescriptionService.update raises 404 if prescription not found."""
     clinic_id = uuid4()
