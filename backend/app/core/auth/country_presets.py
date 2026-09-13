@@ -91,6 +91,7 @@ _ROWS: list[tuple[str, str, str, str]] = [
     ("CA", "CAD", "America/Toronto", "en"),
     # Others
     ("MA", "MAD", "Africa/Casablanca", "fr"),
+    ("DZ", "DZD", "Africa/Algiers", "fr"),
     ("IN", "INR", "Asia/Kolkata", "en"),
     ("AU", "AUD", "Australia/Sydney", "en"),
 ]

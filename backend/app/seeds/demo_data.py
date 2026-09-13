@@ -141,7 +141,7 @@ def get_clinic_data() -> dict:
             }
         ),
         "email": "info@demo.clinic",
-        "currency": t({"es": "EUR", "en": "USD", "fr": "EUR", "ta": "INR"}),
+        "currency": t({"es": "DZD", "en": "DZD", "fr": "DZD", "ta": "INR" if is_india_demo() else "DZD"}),
         "timezone": t(
             {
                 "es": "Europe/Madrid",
@@ -2433,7 +2433,7 @@ PATIENT_JOURNEYS = [
             "gst": {"place_of_supply": "33"},
         },
     },
-    # Patient 6 — Javier / Daniel (diabetic; accepted+signed budget, paid invoice)
+    # Patient 6 — Javier / Daniel (diabetic; accepted+signed budget, partial invoice)
     {
         "patient_idx": 6,
         "plan": {
@@ -2452,7 +2452,6 @@ PATIENT_JOURNEYS = [
                 "ta": "நீரிழிவு நோயாளர். காயம் ஆறும் நிலையை சிறப்பாகக் கண்காணிக்க வேண்டும்.",
             },
             "items": [
-                {"catalog_code": "DX-VISIT", "is_global": True, "completed": True},
                 {"catalog_code": "ENDO-MULTI", "tooth": 36, "is_global": False, "completed": True},
                 {"catalog_code": "REST-CROWN-MC", "tooth": 36, "is_global": False},
             ],
@@ -2472,18 +2471,17 @@ PATIENT_JOURNEYS = [
         # Past appointments only — surfaces in bandeja tab "Sin próxima cita".
         "appointments": [
             {"week": "past", "covers": [0], "status": "completed"},
-            {"week": "past", "covers": [1], "status": "completed"},
         ],
         "invoice": {
             "id_idx": 3,
-            "status": "paid",
-            "payments": [{"method": "bank_transfer", "percent": 100}],
+            "status": "partial",
+            "payments": [{"method": "bank_transfer", "percent": 50}],
             "covers": [0, 1],
             "notes": {
-                "es": "Pagado por transferencia",
-                "en": "Paid by bank transfer",
-                "fr": "Payé par virement",
-                "ta": "வங்கி பரிமாற்றம் மூலம் செலுத்தப்பட்டது",
+                "es": "Pago parcial por transferencia",
+                "en": "Partial payment by bank transfer",
+                "fr": "Paiement partiel par virement",
+                "ta": "பகுதி பணப்பரிவர்த்தனை வங்கி மூலம் பெறப்பட்டது",
             },
             # India GST (Tamil, or English + --country in): intra-state (Tamil Nadu) → CGST + SGST.
             "gst": {"place_of_supply": "33"},
@@ -2570,7 +2568,7 @@ PATIENT_JOURNEYS = [
         "budget": {
             "id_idx": 6,
             "status": "accepted",
-            "global_discount": {"type": "absolute", "value": 50},
+            "global_discount": {"type": "absolute", "value": 1000},
             "signature": True,
             "notes": {
                 "es": "Alérgico a penicilina",
@@ -3689,7 +3687,7 @@ def generate_invoices_data(catalog_items_map: dict[str, dict], budgets_result: d
                     "clinic_id": CLINIC_ID,
                     "patient_id": patient["id"],
                     "amount": amount,
-                    "currency": "EUR",
+                    "currency": "INR" if is_india_demo() else "DZD",
                     "method": payment_data["method"],
                     "payment_date": pay_date,
                     "reference": f"REF-{payment_idx:04d}",
