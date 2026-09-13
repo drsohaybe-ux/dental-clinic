@@ -38,6 +38,9 @@ async def test_setup_presets_public(client: AsyncClient) -> None:
     es = next(c for c in data["countries"] if c["code"] == "ES")
     assert es["currency"] == "EUR" and es["vat_preset"] == "es"
     assert es["suggested_modules"] == ["verifactu"]
+    dz = next(c for c in data["countries"] if c["code"] == "DZ")
+    assert dz["currency"] == "DZD" and dz["vat_preset"] == "generic"
+    assert dz["timezone"] == "Africa/Algiers" and dz["language"] == "fr"
     assert data["fallback"]["vat_preset"] == "generic"
 
 
@@ -92,6 +95,28 @@ async def test_setup_es_applies_preset_and_seeds(client: AsyncClient, db_session
         .where(TreatmentCatalogItem.clinic_id == clinic.id, TreatmentCatalogItem.default_price > 0)
     )
     assert priced > 0
+
+
+@pytest.mark.asyncio
+async def test_setup_dz_applies_preset_and_seeds(client: AsyncClient, db_session: AsyncSession):
+    r = await client.post("/api/v1/auth/setup", json={**_BASE, "country": "dz", "clinic_tax_id": "000000000000000"})
+    assert r.status_code == 201, r.text
+
+    clinic = (await db_session.execute(select(Clinic))).scalar_one()
+    assert clinic.timezone == "Africa/Algiers"
+    assert clinic.currency == "DZD"
+    assert clinic.settings["country"] == "DZ"
+    assert clinic.settings["communication_language"] == "fr"
+    assert clinic.address == {"country": "DZ"}
+
+    # clinic.created → modules seeded their defaults
+    assert await _count(db_session, VatType, clinic.id) == 1  # generic vat preset
+    priced = await db_session.scalar(
+        select(func.count())
+        .select_from(TreatmentCatalogItem)
+        .where(TreatmentCatalogItem.clinic_id == clinic.id, TreatmentCatalogItem.default_price > 0)
+    )
+    assert priced > 100
 
 
 @pytest.mark.asyncio

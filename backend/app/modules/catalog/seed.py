@@ -747,7 +747,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Prise d'empreinte",
                         "ta": "பல் அளவெடுப்பு",
                     },
-                    "default_price": Decimal("12000.00"),
+                    "default_price": Decimal("10000.00"),
                 },
                 {
                     "labels": {
@@ -756,7 +756,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Pose",
                         "ta": "பொருத்துதல்",
                     },
-                    "default_price": Decimal("250.00"),
+                    "default_price": Decimal("8000.00"),
                 },
             ],
         },
@@ -784,7 +784,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Prise d'empreinte",
                         "ta": "பல் அளவெடுப்பு",
                     },
-                    "default_price": Decimal("20000.00"),
+                    "default_price": Decimal("18000.00"),
                 },
                 {
                     "labels": {
@@ -793,7 +793,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Pose",
                         "ta": "பொருத்துதல்",
                     },
-                    "default_price": Decimal("350.00"),
+                    "default_price": Decimal("14000.00"),
                 },
             ],
         },
@@ -830,7 +830,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Pose",
                         "ta": "பொருத்துதல்",
                     },
-                    "default_price": Decimal("400.00"),
+                    "default_price": Decimal("15000.00"),
                 },
             ],
         },
@@ -904,7 +904,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Pose",
                         "ta": "பொருத்துதல்",
                     },
-                    "default_price": Decimal("400.00"),
+                    "default_price": Decimal("15000.00"),
                 },
             ],
         },
@@ -941,7 +941,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Pose",
                         "ta": "பொருத்துதல்",
                     },
-                    "default_price": Decimal("500.00"),
+                    "default_price": Decimal("20000.00"),
                 },
             ],
         },
@@ -1224,7 +1224,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Nettoyage et mise en forme",
                         "ta": "சுத்தம் செய்தல் மற்றும் வடிவமைத்தல்",
                     },
-                    "default_price": Decimal("130.00"),
+                    "default_price": Decimal("4000.00"),
                 },
                 {
                     "labels": {
@@ -1233,7 +1233,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Obturation",
                         "ta": "வேர் கால்வாய் நிரப்புதல்",
                     },
-                    "default_price": Decimal("120.00"),
+                    "default_price": Decimal("4000.00"),
                 },
             ],
         },
@@ -1625,7 +1625,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Chirurgie implantaire",
                         "ta": "பல் உள்வைப்பு அறுவைச் சிகிச்சை",
                     },
-                    "default_price": Decimal("15000.00"),
+                    "default_price": Decimal("50000.00"),
                 },
                 {
                     "labels": {
@@ -1634,7 +1634,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Pilier de cicatrisation",
                         "ta": "குணமடைதல் அபட்மென்ட்",
                     },
-                    "default_price": Decimal("150.00"),
+                    "default_price": Decimal("10000.00"),
                 },
                 {
                     "labels": {
@@ -1643,7 +1643,7 @@ TREATMENTS: dict[str, list[dict[str, Any]]] = {
                         "fr": "Pose de couronne",
                         "ta": "பல் கிரீடம் பொருத்துதல்",
                     },
-                    "default_price": Decimal("250.00"),
+                    "default_price": Decimal("15000.00"),
                 },
             ],
         },
