@@ -1642,7 +1642,7 @@
       "labelPlaceholder": "مثال: طبعات الأسنان",
       "price": "المبلغ",
       "add": "إضافة جلسة",
-      "sumStatus": "المجموع {sum} € · الإجمالي {total} €"
+      "sumStatus": "المجموع {sum} · الإجمالي {total}"
     },
     "categoryCreated": "تم إنشاء الفئة",
     "categoryUpdated": "تم تحديث الفئة",

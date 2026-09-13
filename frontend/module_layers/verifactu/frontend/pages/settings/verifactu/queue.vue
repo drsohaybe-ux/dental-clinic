@@ -4,6 +4,7 @@ import { PERMISSIONS } from '~~/app/config/permissions'
 import { errorMessage } from '~~/app/utils/error'
 
 const { t } = useI18n()
+const { format: formatMoney } = useCurrency()
 const {
   listQueue,
   retryRecord,
@@ -204,7 +205,7 @@ onMounted(refresh)
       >
         <div class="text-sm min-w-0 flex-1">
           <div class="font-medium">
-            {{ item.serie_numero }} · {{ item.importe_total }}€
+            {{ item.serie_numero }} · {{ formatMoney(item.importe_total) }}
           </div>
           <div
             v-if="item.aeat_descripcion_error_es || item.aeat_descripcion_error"

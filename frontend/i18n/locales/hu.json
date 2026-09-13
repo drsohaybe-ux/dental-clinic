@@ -1555,7 +1555,7 @@
       "labelPlaceholder": "pl. Lenyomat",
       "price": "Összeg",
       "add": "Ülés hozzáadása",
-      "sumStatus": "Összeg {sum} € · Teljes {total} €"
+      "sumStatus": "Összeg {sum} · Teljes {total}"
     },
     "categoryCreated": "Kategória létrehozva",
     "categoryUpdated": "Kategória frissítve",

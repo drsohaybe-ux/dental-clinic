@@ -1555,7 +1555,7 @@
       "labelPlaceholder": "es. Impronte",
       "price": "Importo",
       "add": "Aggiungi seduta",
-      "sumStatus": "Somma {sum} € · Totale {total} €"
+      "sumStatus": "Somma {sum} · Totale {total}"
     },
     "categoryCreated": "Categoria creata",
     "categoryUpdated": "Categoria aggiornata",

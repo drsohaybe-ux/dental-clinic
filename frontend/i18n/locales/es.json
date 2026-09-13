@@ -1555,7 +1555,7 @@
       "labelPlaceholder": "Ej. Toma de medidas",
       "price": "Importe",
       "add": "Añadir sesión",
-      "sumStatus": "Suma {sum} € · Total {total} €"
+      "sumStatus": "Suma {sum} · Total {total}"
     },
     "categoryCreated": "Categoría creada",
     "categoryUpdated": "Categoría actualizada",

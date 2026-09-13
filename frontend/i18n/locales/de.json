@@ -1555,7 +1555,7 @@
       "labelPlaceholder": "z. B. Abformung",
       "price": "Betrag",
       "add": "Sitzung hinzufügen",
-      "sumStatus": "Summe {sum} € · Gesamt {total} €"
+      "sumStatus": "Summe {sum} · Gesamt {total}"
     },
     "categoryCreated": "Kategorie angelegt",
     "categoryUpdated": "Kategorie aktualisiert",

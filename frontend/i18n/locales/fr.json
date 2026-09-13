@@ -1642,7 +1642,7 @@
       "labelPlaceholder": "ex. Empreintes",
       "price": "Montant",
       "add": "Ajouter une séance",
-      "sumStatus": "Somme {sum} € · Total {total} €"
+      "sumStatus": "Somme {sum} · Total {total}"
     },
     "categoryCreated": "Catégorie créée",
     "categoryUpdated": "Catégorie mise à jour",

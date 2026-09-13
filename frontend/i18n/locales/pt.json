@@ -1555,7 +1555,7 @@
       "labelPlaceholder": "Ex.: Impressões",
       "price": "Montante",
       "add": "Adicionar sessão",
-      "sumStatus": "Soma {sum} € · Total {total} €"
+      "sumStatus": "Soma {sum} · Total {total}"
     },
     "categoryCreated": "Categoria criada",
     "categoryUpdated": "Categoria atualizada",

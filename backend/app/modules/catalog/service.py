@@ -520,6 +520,18 @@ class CatalogService:
         if sessions_data != "__not_provided__":
             validate_session_template(effective_total, sessions_data)
 
+        # Coerce Decimal values in JSONB dictionaries to float/int so PostgreSQL JSONB serialization succeeds
+        if "surface_prices" in data and isinstance(data["surface_prices"], dict):
+            data["surface_prices"] = {
+                str(k): float(v) if isinstance(v, (Decimal, int, float)) else v
+                for k, v in data["surface_prices"].items()
+            }
+        if "pricing_config" in data and isinstance(data["pricing_config"], dict):
+            data["pricing_config"] = {
+                str(k): float(v) if isinstance(v, (Decimal, int, float)) else v
+                for k, v in data["pricing_config"].items()
+            }
+
         for key, value in data.items():
             if value is not None:
                 setattr(item, key, value)
