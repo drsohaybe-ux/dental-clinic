@@ -308,7 +308,27 @@ class TreatmentPlanService:
                 selectinload(TreatmentPlan.items).selectinload(PlannedTreatmentItem.sessions),
             )
         )
-        return result.scalar_one_or_none()
+        plan = result.scalar_one_or_none()
+        if plan and plan.items:
+            for item in plan.items:
+                t = item.treatment
+                if t and t.catalog_item and t.catalog_item.default_price:
+                    if t.price_snapshot is None or (t.price_snapshot < Decimal("1000") and t.catalog_item.default_price >= Decimal("1000")):
+                        t.price_snapshot = t.catalog_item.default_price
+                    if item.sessions and t.catalog_item.default_price >= Decimal("1000"):
+                        s_sum = sum(s.amount for s in item.sessions if s.amount)
+                        if s_sum < Decimal("1000"):
+                            count = len(item.sessions)
+                            if count == 1:
+                                item.sessions[0].amount = t.catalog_item.default_price
+                            else:
+                                each = (t.catalog_item.default_price / Decimal(count)).quantize(Decimal("1.00"))
+                                for idx, s in enumerate(item.sessions):
+                                    if idx == count - 1:
+                                        s.amount = t.catalog_item.default_price - (each * Decimal(count - 1))
+                                    else:
+                                        s.amount = each
+        return plan
 
     @staticmethod
     async def create(

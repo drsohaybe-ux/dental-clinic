@@ -115,10 +115,17 @@ async def list_treatment_plans(
         items = p.items or []
         p.item_count = len(items)
         p.completed_count = sum(1 for i in items if i.status == "completed")
-        p.total = sum(
-            float(i.treatment.price_snapshot) if i.treatment and i.treatment.price_snapshot else 0
-            for i in items
-        )
+        total_val = 0.0
+        for i in items:
+            if i.treatment:
+                t = i.treatment
+                cat_price = float(t.catalog_item.default_price) if t.catalog_item and t.catalog_item.default_price else 0.0
+                snap = float(t.price_snapshot) if t.price_snapshot else 0.0
+                if cat_price >= 1000 and (snap == 0 or snap < 1000):
+                    total_val += cat_price
+                else:
+                    total_val += snap or cat_price
+        p.total = total_val
     return PaginatedApiResponse(
         data=[TreatmentPlanResponse.model_validate(p) for p in plans],
         total=total,
@@ -148,10 +155,17 @@ async def list_patient_plans(
         items = p.items or []
         p.item_count = len(items)
         p.completed_count = sum(1 for i in items if i.status == "completed")
-        p.total = sum(
-            float(i.treatment.price_snapshot) if i.treatment and i.treatment.price_snapshot else 0
-            for i in items
-        )
+        total_val = 0.0
+        for i in items:
+            if i.treatment:
+                t = i.treatment
+                cat_price = float(t.catalog_item.default_price) if t.catalog_item and t.catalog_item.default_price else 0.0
+                snap = float(t.price_snapshot) if t.price_snapshot else 0.0
+                if cat_price >= 1000 and (snap == 0 or snap < 1000):
+                    total_val += cat_price
+                else:
+                    total_val += snap or cat_price
+        p.total = total_val
     return PaginatedApiResponse(
         data=[TreatmentPlanResponse.model_validate(p) for p in plans],
         total=total,

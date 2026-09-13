@@ -2,6 +2,7 @@
 
 export function useCopilotFormat() {
   const { locale } = useI18n()
+  const { currency: clinicCurrency } = useCurrency()
 
   function dateTime(iso: string): string {
     const d = new Date(iso)
@@ -36,8 +37,9 @@ export function useCopilotFormat() {
     return new Intl.DateTimeFormat(locale.value, { hour: '2-digit', minute: '2-digit' }).format(d)
   }
 
-  function money(value: number, currency = 'EUR'): string {
-    return new Intl.NumberFormat(locale.value, { style: 'currency', currency }).format(value)
+  function money(value: number, currency?: string): string {
+    const cur = currency || clinicCurrency.value || 'DZD'
+    return new Intl.NumberFormat(locale.value, { style: 'currency', currency: cur }).format(value)
   }
 
   return { dateTime, timeRange, time, money }

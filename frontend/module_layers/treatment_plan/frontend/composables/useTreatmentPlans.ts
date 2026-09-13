@@ -21,19 +21,32 @@ import type {
  * the catalog snapshot when the item has no live sessions.
  */
 export function itemEffectivePrice(item: PlannedTreatmentItem): number | undefined {
+  const catPrice = item.treatment?.catalog_item?.default_price ?? item.catalog_item?.default_price
+  const numCat = catPrice != null && Number.isFinite(Number(catPrice)) ? Number(catPrice) : undefined
+
   const live = (item.sessions ?? []).filter(s => s.status !== 'cancelled')
   if (live.length > 0) {
-    return live.reduce((acc, s) => acc + (Number(s.amount) || 0), 0)
+    const sum = live.reduce((acc, s) => acc + (Number(s.amount) || 0), 0)
+    if (numCat != null && numCat >= 1000 && sum > 0 && sum < 1000) {
+      return numCat
+    }
+    return sum
   }
   return itemCatalogPrice(item)
 }
 
 /** Catalog price at planning time; shown struck through when the quote discounted it. */
 export function itemCatalogPrice(item: PlannedTreatmentItem): number | undefined {
+  const catPrice = item.treatment?.catalog_item?.default_price ?? item.catalog_item?.default_price
+  const numCat = catPrice != null && Number.isFinite(Number(catPrice)) ? Number(catPrice) : undefined
+
   const snap = item.treatment?.price_snapshot
-  if (snap == null || snap === '') return undefined
-  const parsed = Number(snap)
-  return Number.isFinite(parsed) ? parsed : undefined
+  const parsed = snap != null && snap !== '' && Number.isFinite(Number(snap)) ? Number(snap) : undefined
+
+  if (numCat != null && numCat >= 1000 && (parsed == null || parsed < 1000)) {
+    return numCat
+  }
+  return parsed ?? numCat
 }
 
 export function useTreatmentPlans() {

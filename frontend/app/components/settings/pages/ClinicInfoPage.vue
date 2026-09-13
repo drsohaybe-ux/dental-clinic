@@ -32,8 +32,8 @@ const form = ref({
   country: '',
   phone: '',
   email: '',
-  timezone: 'Europe/Madrid',
-  currency: 'EUR'
+  timezone: 'Africa/Algiers',
+  currency: 'DZD'
 })
 
 function loadForm() {
@@ -48,8 +48,8 @@ function loadForm() {
     country: c?.address?.country || '',
     phone: c?.phone || '',
     email: c?.email || '',
-    timezone: c?.timezone || 'Europe/Madrid',
-    currency: c?.currency || 'EUR'
+    timezone: c?.timezone || 'Africa/Algiers',
+    currency: c?.currency || 'DZD'
   }
 }
 

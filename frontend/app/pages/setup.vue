@@ -103,8 +103,8 @@ function applyCountry(code: string) {
   const browserTz = browserTimezone()
   // Prefer the browser zone when the user is in the guessed country
   // (multi-zone countries like US/MX/BR); otherwise the preset's main zone.
-  form.timezone = (code === guessBrowserCountry() && browserTz) || p?.timezone || browserTz || 'UTC'
-  form.currency = p?.currency || 'EUR'
+  form.timezone = (code === guessBrowserCountry() && browserTz) || p?.timezone || browserTz || 'Africa/Algiers'
+  form.currency = p?.currency || 'DZD'
   showAdvanced.value = !presets.value[code]
 }
 

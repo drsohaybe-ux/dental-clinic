@@ -17,14 +17,19 @@ from app.config import settings
 # generic "connection lost". ``pool_recycle=3600`` ages connections out
 # proactively so we don't accumulate idle ones a proxy might silently
 # close.
+_engine_kwargs: dict = {"echo": settings.ENVIRONMENT == "development"}
+if "sqlite" not in settings.DATABASE_URL:
+    _engine_kwargs.update(
+        pool_size=10,
+        max_overflow=20,
+        pool_timeout=30,
+        pool_recycle=3600,
+        pool_pre_ping=True,
+    )
+
 engine = create_async_engine(
     settings.DATABASE_URL,
-    pool_size=10,
-    max_overflow=20,
-    pool_timeout=30,
-    pool_recycle=3600,
-    pool_pre_ping=True,
-    echo=settings.ENVIRONMENT == "development",
+    **_engine_kwargs,
 )
 
 # ``expire_on_commit=False`` keeps ORM objects hydrated after a commit

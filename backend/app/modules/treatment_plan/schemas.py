@@ -4,7 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # ---------------------------------------------------------------------------
 # Nested brief schemas
@@ -19,6 +19,8 @@ class PatientBrief(BaseModel):
     id: UUID
     first_name: str
     last_name: str
+    phone: str | None = None
+    email: str | None = None
 
 
 class BudgetBrief(BaseModel):
@@ -33,24 +35,24 @@ class BudgetBrief(BaseModel):
 
 
 class TreatmentToothBrief(BaseModel):
-    """Per-tooth member of a Treatment, embedded in plan items."""
+    """Brief tooth entry for a Treatment."""
 
     model_config = ConfigDict(from_attributes=True)
 
     tooth_number: int
+    surfaces: list[str] = Field(default_factory=list)
     role: str | None = None
-    surfaces: list[str] | None = None
 
 
 class CatalogItemBrief(BaseModel):
-    """Brief catalog item info."""
+    """Brief catalog item info for treatment rendering."""
 
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
     internal_code: str
-    names: dict
-    default_price: float | None = None
+    names: dict[str, str] = Field(default_factory=dict)
+    default_price: Decimal | None = None
 
 
 class TreatmentBrief(BaseModel):
@@ -68,6 +70,17 @@ class TreatmentBrief(BaseModel):
     price_snapshot: Decimal | None = None
     notes: str | None = None
     teeth: list[TreatmentToothBrief] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def heal_price_snapshot(self) -> "TreatmentBrief":
+        if (
+            self.catalog_item
+            and self.catalog_item.default_price is not None
+            and self.catalog_item.default_price >= Decimal("1000")
+        ):
+            if self.price_snapshot is None or self.price_snapshot < Decimal("1000"):
+                self.price_snapshot = self.catalog_item.default_price
+        return self
 
 
 # ---------------------------------------------------------------------------
@@ -265,6 +278,25 @@ class PlannedTreatmentItemResponse(BaseModel):
     treatment: TreatmentBrief | None = None
     catalog_item: CatalogItemBrief | None = None
     sessions: list[PlannedItemSessionResponse] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def heal_sessions(self) -> "PlannedTreatmentItemResponse":
+        cat = self.catalog_item or (self.treatment.catalog_item if self.treatment else None)
+        if cat and cat.default_price is not None and cat.default_price >= Decimal("1000"):
+            if self.sessions:
+                total_sess = sum(s.amount for s in self.sessions if s.amount is not None)
+                if total_sess < Decimal("1000"):
+                    count = len(self.sessions)
+                    if count == 1:
+                        self.sessions[0].amount = cat.default_price
+                    else:
+                        each = (cat.default_price / Decimal(count)).quantize(Decimal("1.00"))
+                        for idx, s in enumerate(self.sessions):
+                            if idx == count - 1:
+                                s.amount = cat.default_price - (each * Decimal(count - 1))
+                            else:
+                                s.amount = each
+        return self
 
 
 class SessionInput(BaseModel):

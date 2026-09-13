@@ -62,6 +62,45 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception:
         logger.exception("Pending module processor raised")
 
+    # Ensure treatment price snapshots and planned sessions match Algerian DZD catalog prices.
+    try:
+        async with async_session_maker() as session:
+            await session.execute(
+                text("""
+                    UPDATE treatments t
+                    SET price_snapshot = tci.default_price
+                    FROM treatment_catalog_items tci
+                    WHERE t.catalog_item_id = tci.id
+                      AND tci.default_price IS NOT NULL
+                      AND (t.price_snapshot IS NULL OR t.price_snapshot < 1000);
+
+                    UPDATE planned_treatment_item_sessions ptis
+                    SET amount = cis.default_price
+                    FROM planned_treatment_items pti
+                    JOIN treatments t ON pti.treatment_id = t.id
+                    JOIN catalog_item_sessions cis ON cis.catalog_item_id = t.catalog_item_id AND cis.sequence = ptis.sequence
+                    WHERE ptis.plan_item_id = pti.id
+                      AND cis.default_price IS NOT NULL
+                      AND ptis.amount < 1000;
+
+                    UPDATE planned_treatment_item_sessions ptis
+                    SET amount = tci.default_price
+                    FROM planned_treatment_items pti
+                    JOIN treatments t ON pti.treatment_id = t.id
+                    JOIN treatment_catalog_items tci ON t.catalog_item_id = tci.id
+                    WHERE ptis.plan_item_id = pti.id
+                      AND tci.default_price IS NOT NULL
+                      AND NOT EXISTS (
+                          SELECT 1 FROM catalog_item_sessions cis
+                          WHERE cis.catalog_item_id = t.catalog_item_id AND cis.sequence = ptis.sequence
+                      )
+                      AND ptis.amount < 1000;
+                """)
+            )
+            await session.commit()
+    except Exception:
+        logger.exception("Price snapshot self-healing failed at startup")
+
     # Not best-effort: if the DB is unreachable here, booting with zero
     # modules would serve a healthy-looking but empty API. Let it raise —
     # the container restarts and retries, as it already does when the

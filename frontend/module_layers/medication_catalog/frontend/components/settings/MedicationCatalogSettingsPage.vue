@@ -660,7 +660,7 @@ const columns = computed(() => [
                 <div class="text-xs text-subtle">
                   <span class="font-medium">DCI :</span> {{ item.dci }}
                   <span v-if="item.laboratory"> • {{ item.laboratory }}</span>
-                  <span v-if="item.price"> • {{ item.price }}</span>
+                  <span v-if="item.price"> • {{ item.price.replace('€', 'DA') }}</span>
                 </div>
               </div>
 
