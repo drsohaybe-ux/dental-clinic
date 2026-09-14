@@ -3,6 +3,12 @@ import { registerSlot } from '~~/app/composables/useModuleSlots'
 
 export default defineNuxtPlugin(() => {
   registerSlot('dashboard.hero', {
+    id: 'reports.dashboard.algerianStats',
+    component: defineAsyncComponent(() => import('../components/home/AlgerianClinicStatsTile.vue')),
+    order: 25
+  })
+
+  registerSlot('dashboard.hero', {
     id: 'reports.dashboard.overdueHero',
     component: defineAsyncComponent(() => import('../components/home/OverdueHeroTile.vue')),
     order: 30,

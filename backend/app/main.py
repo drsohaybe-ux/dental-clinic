@@ -101,6 +101,110 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception:
         logger.exception("Price snapshot self-healing failed at startup")
 
+    # Ensure clinic branding, doctor identity, and demo patients match Algerian presentation data (Arselane Dental Clinic, Skikda)
+    try:
+        import json
+        async with async_session_maker() as session:
+            is_pg = session.bind and session.bind.dialect.name == "postgresql"
+            clinic_addr = json.dumps({
+                "street": "Boulevard Didouche Mourad",
+                "city": "Skikda",
+                "postal_code": "21000",
+                "country": "Algérie"
+            })
+            if is_pg:
+                await session.execute(
+                    text("""
+                        UPDATE clinics
+                        SET name = 'Arselane Dental Clinic',
+                            address = CAST(:addr AS jsonb),
+                            phone = '+213 38 72 15 20',
+                            email = 'contact@arselane-dental.dz',
+                            currency = 'DZD',
+                            timezone = 'Africa/Algiers'
+                        WHERE id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+                    """),
+                    {"addr": clinic_addr}
+                )
+            else:
+                await session.execute(
+                    text("""
+                        UPDATE clinics
+                        SET name = 'Arselane Dental Clinic',
+                            address = :addr,
+                            phone = '+213 38 72 15 20',
+                            email = 'contact@arselane-dental.dz',
+                            currency = 'DZD',
+                            timezone = 'Africa/Algiers'
+                        WHERE id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+                    """),
+                    {"addr": clinic_addr}
+                )
+
+            # Update users
+            await session.execute(
+                text("""
+                    UPDATE users
+                    SET first_name = 'Dr.', last_name = 'Arselane'
+                    WHERE email IN ('admin@demo.clinic', 'dentist@demo.clinic')
+                       OR id IN ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23');
+                """)
+            )
+
+            # Update 15 demo patients
+            algerian_patients = [
+                ("d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a40", "Mohamed", "Benali", "+213 550 12 34 01", "mohamed.benali@email.dz", "Patient pédiatrique. Première visite pour contrôle.", "Skikda", "Boulevard Didouche Mourad"),
+                ("d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a41", "Amira", "Mansouri", "+213 661 23 45 02", "amira.mansouri@email.dz", "Traitement d'orthodontie en cours.", "Skikda", "Cité 20 Août 1955"),
+                ("d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a42", "Karim", "Haddad", "+213 770 34 56 03", "karim.haddad@email.dz", "Sensibilité dentaire au froid secteur 2.", "Skikda", "Avenue Zighout Youcef"),
+                ("d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a43", "Fatima Zohra", "Bouzid", "+213 551 45 67 04", "fatima.bouzid@email.dz", "Contrôle semestriel. Bonne hygiène bucco-dentaire.", "Collo", "Route de Collo"),
+                ("d4eebc99-9c0b-4ef8-bb6d-6bb9bd380a44", "Yacine", "Merabet", "+213 662 56 78 05", "yacine.merabet@email.dz", "Prothèse amovible à réajuster.", "Skikda", "Cité Frères Saker"),
+                ("d5eebc99-9c0b-4ef8-bb6d-6bb9bd380a45", "Amina", "Belkacem", "+213 771 67 89 06", "amina.belkacem@email.dz", "Blanchiment dentaire souhaité.", "El Harrouch", "Boulevard des Martyrs"),
+                ("d6eebc99-9c0b-4ef8-bb6d-6bb9bd380a46", "Nabil", "Saidi", "+213 552 78 90 07", "nabil.saidi@email.dz", "Patient diabétique. Contrôle spécial de cicatrisation.", "Skikda", "Rue de l'ALN"),
+                ("d7eebc99-9c0b-4ef8-bb6d-6bb9bd380a47", "Rachid", "Khelifi", "+213 663 89 01 08", "rachid.khelifi@email.dz", "Pose d'implant dentaire secteur 4.", "Azzaba", "Avenue de l'Indépendance"),
+                ("d8eebc99-9c0b-4ef8-bb6d-6bb9bd380a48", "Samira", "Bencheikh", "+213 772 90 12 09", "samira.bencheikh@email.dz", "Détartrage et polissage annuel.", "Skikda", "Cité Zeramna"),
+                ("d9eebc99-9c0b-4ef8-bb6d-6bb9bd380a49", "Khaled", "Meziani", "+213 553 01 23 10", "khaled.meziani@email.dz", "Hypertendu. Vérifier la tension avant les soins.", "Constantine", "Rue Larbi Ben M'hidi"),
+                ("daeebc99-9c0b-4ef8-bb6d-6bb9bd380a4a", "Zineb", "Cherif", "+213 664 12 34 11", "zineb.cherif@email.dz", "Douleur dent de sagesse 38.", "Skikda", "Boulevard Houari Boumediene"),
+                ("dbeebc99-9c0b-4ef8-bb6d-6bb9bd380a4b", "Walid", "Dahmani", "+213 773 23 45 12", "walid.dahmani@email.dz", "Consultation prothèse fixe.", "Skikda", "Cité Hamrouche Hamoudi"),
+                ("dceebc99-9c0b-4ef8-bb6d-6bb9bd380a4c", "Soumia", "Taleb", "+213 554 34 56 13", "soumia.taleb@email.dz", "Gingivite de grossesse. Conseils d'hygiène.", "Annaba", "Avenue de l'ALN"),
+                ("ddeebc99-9c0b-4ef8-bb6d-6bb9bd380a4d", "Anis", "Larbi", "+213 665 45 67 14", "anis.larbi@email.dz", "Scellement de sillons (sealants).", "Skikda", "Cité Merdj Eddib"),
+                ("deeebc99-9c0b-4ef8-bb6d-6bb9bd380a4e", "Leila", "Zerrouki", "+213 774 56 78 15", "leila.zerrouki@email.dz", "Contrôle parodontal trimestriel.", "Skikda", "Rue Bachir Boukadoum"),
+            ]
+
+            for pid, fn, ln, ph, em, nt, city, street in algerian_patients:
+                paddr = json.dumps({"street": street, "city": city, "postal_code": "21000", "country": "Algérie"})
+                if is_pg:
+                    await session.execute(
+                        text("""
+                            UPDATE patients
+                            SET first_name = :fn,
+                                last_name = :ln,
+                                phone = :ph,
+                                email = :em,
+                                notes = :nt,
+                                address = CAST(:paddr AS jsonb)
+                            WHERE id = :pid;
+                        """),
+                        {"fn": fn, "ln": ln, "ph": ph, "em": em, "nt": nt, "paddr": paddr, "pid": pid}
+                    )
+                else:
+                    await session.execute(
+                        text("""
+                            UPDATE patients
+                            SET first_name = :fn,
+                                last_name = :ln,
+                                phone = :ph,
+                                email = :em,
+                                notes = :nt,
+                                address = :paddr
+                            WHERE id = :pid;
+                        """),
+                        {"fn": fn, "ln": ln, "ph": ph, "em": em, "nt": nt, "paddr": paddr, "pid": pid}
+                    )
+
+            await session.commit()
+    except Exception:
+        logger.exception("Arselane clinic and Algerian demo patient self-healing failed at startup")
+
     # Not best-effort: if the DB is unreachable here, booting with zero
     # modules would serve a healthy-looking but empty API. Let it raise —
     # the container restarts and retries, as it already does when the

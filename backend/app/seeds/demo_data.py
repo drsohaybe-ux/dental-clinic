@@ -105,51 +105,37 @@ def get_clinic_data() -> dict:
         "id": CLINIC_ID,
         "name": t(
             {
-                "es": "Clínica Dental Demo",
-                "en": "Demo Dental Clinic",
-                "fr": "Clinique Dentaire Démo",
-                "ta": "டெமோ பல் மருத்துவ கிளினிக்",
+                "es": "Arselane Dental Clinic",
+                "en": "Arselane Dental Clinic",
+                "fr": "Cabinet Dentaire Arselane",
+                "ta": "அர்ஸலான் பல் மருத்துவ கிளினிக்",
             }
         ),
         "tax_id": t(
             {
-                "es": "B12345678",
-                "en": "12-3456789",
-                "fr": "12-3456789",
-                "ta": "33-1234567",
+                "es": "002100012345678",
+                "en": "002100012345678",
+                "fr": "002100012345678",
+                "ta": "002100012345678",
             }
         ),
         "address": {
             "street": t(
                 {
-                    "es": "Calle Gran Vía 123",
-                    "en": "123 Main Street",
-                    "fr": "123 Rue Principale",
-                    "ta": "123 மெயின் தெரு",
+                    "es": "Boulevard Didouche Mourad",
+                    "en": "Boulevard Didouche Mourad",
+                    "fr": "Boulevard Didouche Mourad",
+                    "ta": "திடூச் மௌராட் பவுல்வர்டு",
                 }
             ),
-            "city": t({"es": "Madrid", "en": "New York", "fr": "Paris", "ta": "சென்னை"}),
-            "postal_code": t({"es": "28013", "en": "10001", "fr": "75001", "ta": "600001"}),
-            "country": t({"es": "España", "en": "USA", "fr": "France", "ta": "இந்தியா"}),
+            "city": t({"es": "Skikda", "en": "Skikda", "fr": "Skikda", "ta": "ஸ்கிக்டா"}),
+            "postal_code": "21000",
+            "country": t({"es": "Argelia", "en": "Algeria", "fr": "Algérie", "ta": "அல்ஜீரியா"}),
         },
-        "phone": t(
-            {
-                "es": "+34 912 345 678",
-                "en": "+1 (212) 555-0100",
-                "fr": "+33 1 23 45 67 89",
-                "ta": "+91 98401 23456",
-            }
-        ),
-        "email": "info@demo.clinic",
+        "phone": "+213 38 72 15 20",
+        "email": "contact@arselane-dental.dz",
         "currency": t({"es": "DZD", "en": "DZD", "fr": "DZD", "ta": "INR" if is_india_demo() else "DZD"}),
-        "timezone": t(
-            {
-                "es": "Europe/Madrid",
-                "en": "America/New_York",
-                "fr": "Europe/Paris",
-                "ta": "Asia/Kolkata",
-            }
-        ),
+        "timezone": "Africa/Algiers",
         "settings": {
             "slot_duration_min": 30,
             "working_hours": {
@@ -196,34 +182,34 @@ def get_clinic_data() -> dict:
 
 USERS_I18N = {
     "admin": {
-        "es": {"first_name": "Admin", "last_name": "Demo"},
-        "en": {"first_name": "Admin", "last_name": "Demo"},
-        "fr": {"first_name": "Admin", "last_name": "Démo"},
-        "ta": {"first_name": "நிர்வாகி", "last_name": "டெமோ"},
+        "es": {"first_name": "Dr.", "last_name": "Arselane"},
+        "en": {"first_name": "Dr.", "last_name": "Arselane"},
+        "fr": {"first_name": "Dr.", "last_name": "Arselane"},
+        "ta": {"first_name": "டாக்டர்", "last_name": "அர்ஸலான்"},
     },
     "dentist": {
-        "es": {"first_name": "María", "last_name": "García López"},
-        "en": {"first_name": "Sarah", "last_name": "Johnson"},
-        "fr": {"first_name": "Marie", "last_name": "Dubois Laurent"},
-        "ta": {"first_name": "மீனா", "last_name": "குமார்"},
+        "es": {"first_name": "Dr.", "last_name": "Arselane"},
+        "en": {"first_name": "Dr.", "last_name": "Arselane"},
+        "fr": {"first_name": "Dr.", "last_name": "Arselane"},
+        "ta": {"first_name": "டாக்டர்", "last_name": "அர்ஸலான்"},
     },
     "hygienist": {
-        "es": {"first_name": "Carlos", "last_name": "López Martínez"},
-        "en": {"first_name": "Michael", "last_name": "Williams"},
-        "fr": {"first_name": "Thomas", "last_name": "Moreau"},
-        "ta": {"first_name": "அருண்", "last_name": "ரவி"},
+        "es": {"first_name": "Nassim", "last_name": "Boukhalfa"},
+        "en": {"first_name": "Nassim", "last_name": "Boukhalfa"},
+        "fr": {"first_name": "Nassim", "last_name": "Boukhalfa"},
+        "ta": {"first_name": "நசீம்", "last_name": "புகல்பா"},
     },
     "assistant": {
-        "es": {"first_name": "Ana", "last_name": "Martínez Ruiz"},
-        "en": {"first_name": "Emily", "last_name": "Davis"},
-        "fr": {"first_name": "Camille", "last_name": "Petit"},
-        "ta": {"first_name": "அனிதா", "last_name": "முருகன்"},
+        "es": {"first_name": "Meriem", "last_name": "Belhadj"},
+        "en": {"first_name": "Meriem", "last_name": "Belhadj"},
+        "fr": {"first_name": "Meriem", "last_name": "Belhadj"},
+        "ta": {"first_name": "மரியம்", "last_name": "பெல்ஹட்ஜ்"},
     },
     "receptionist": {
-        "es": {"first_name": "Laura", "last_name": "Sánchez Pérez"},
-        "en": {"first_name": "Jessica", "last_name": "Brown"},
-        "fr": {"first_name": "Julie", "last_name": "Bernard"},
-        "ta": {"first_name": "லதா", "last_name": "செல்வி"},
+        "es": {"first_name": "Amel", "last_name": "Saadi"},
+        "en": {"first_name": "Amel", "last_name": "Saadi"},
+        "fr": {"first_name": "Amel", "last_name": "Saadi"},
+        "ta": {"first_name": "அமல்", "last_name": "சாதி"},
     },
 }
 
@@ -1501,26 +1487,147 @@ INDIA_PATIENT_NAMES: list[dict] = [
     {"first_name": "Charles", "last_name": "Raj", "emergency_contact_name": "Mary Josephine"},
 ]
 
+ALGERIAN_PATIENTS: list[dict] = [
+    {
+        "first_name": "Mohamed",
+        "last_name": "Benali",
+        "phone": "+213 550 12 34 01",
+        "email": "mohamed.benali@email.dz",
+        "address": {"street": "Boulevard Didouche Mourad", "city": "Skikda", "postal_code": "21000", "country": "Algérie"},
+        "emergency_contact": {"name": "Karim Benali", "relationship": "Père", "phone": "+213 550 12 34 99", "is_legal_guardian": True},
+    },
+    {
+        "first_name": "Amira",
+        "last_name": "Mansouri",
+        "phone": "+213 661 23 45 02",
+        "email": "amira.mansouri@email.dz",
+        "address": {"street": "Cité 20 Août 1955", "city": "Skikda", "postal_code": "21000", "country": "Algérie"},
+        "emergency_contact": {"name": "Samia Mansouri", "relationship": "Mère", "phone": "+213 661 23 45 98", "is_legal_guardian": True},
+    },
+    {
+        "first_name": "Karim",
+        "last_name": "Haddad",
+        "phone": "+213 770 34 56 03",
+        "email": "karim.haddad@email.dz",
+        "address": {"street": "Avenue Zighout Youcef", "city": "Skikda", "postal_code": "21000", "country": "Algérie"},
+        "emergency_contact": {"name": "Nadia Haddad", "relationship": "Épouse", "phone": "+213 770 34 56 97", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Fatima Zohra",
+        "last_name": "Bouzid",
+        "phone": "+213 551 45 67 04",
+        "email": "fatima.bouzid@email.dz",
+        "address": {"street": "Route de Collo", "city": "Collo", "postal_code": "21005", "country": "Algérie"},
+        "emergency_contact": {"name": "Omar Bouzid", "relationship": "Époux", "phone": "+213 551 45 67 96", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Yacine",
+        "last_name": "Merabet",
+        "phone": "+213 662 56 78 05",
+        "email": "yacine.merabet@email.dz",
+        "address": {"street": "Cité Frères Saker", "city": "Skikda", "postal_code": "21000", "country": "Algérie"},
+        "emergency_contact": {"name": "Farida Merabet", "relationship": "Épouse", "phone": "+213 662 56 78 95", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Amina",
+        "last_name": "Belkacem",
+        "phone": "+213 771 67 89 06",
+        "email": "amina.belkacem@email.dz",
+        "address": {"street": "Boulevard des Martyrs", "city": "El Harrouch", "postal_code": "21008", "country": "Algérie"},
+        "emergency_contact": {"name": "Rachid Belkacem", "relationship": "Père", "phone": "+213 771 67 89 94", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Nabil",
+        "last_name": "Saidi",
+        "phone": "+213 552 78 90 07",
+        "email": "nabil.saidi@email.dz",
+        "address": {"street": "Rue de l'ALN", "city": "Skikda", "postal_code": "21000", "country": "Algérie"},
+        "emergency_contact": {"name": "Malika Saidi", "relationship": "Épouse", "phone": "+213 552 78 90 93", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Rachid",
+        "last_name": "Khelifi",
+        "phone": "+213 663 89 01 08",
+        "email": "rachid.khelifi@email.dz",
+        "address": {"street": "Avenue de l'Indépendance", "city": "Azzaba", "postal_code": "21003", "country": "Algérie"},
+        "emergency_contact": {"name": "Salima Khelifi", "relationship": "Épouse", "phone": "+213 663 89 01 92", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Samira",
+        "last_name": "Bencheikh",
+        "phone": "+213 772 90 12 09",
+        "email": "samira.bencheikh@email.dz",
+        "address": {"street": "Cité Zeramna", "city": "Skikda", "postal_code": "21000", "country": "Algérie"},
+        "emergency_contact": {"name": "Mustapha Bencheikh", "relationship": "Époux", "phone": "+213 772 90 12 91", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Khaled",
+        "last_name": "Meziani",
+        "phone": "+213 553 01 23 10",
+        "email": "khaled.meziani@email.dz",
+        "address": {"street": "Rue Larbi Ben M'hidi", "city": "Constantine", "postal_code": "25000", "country": "Algérie"},
+        "emergency_contact": {"name": "Houria Meziani", "relationship": "Épouse", "phone": "+213 553 01 23 90", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Zineb",
+        "last_name": "Cherif",
+        "phone": "+213 664 12 34 11",
+        "email": "zineb.cherif@email.dz",
+        "address": {"street": "Boulevard Houari Boumediene", "city": "Skikda", "postal_code": "21000", "country": "Algérie"},
+        "emergency_contact": {"name": "Ahmed Cherif", "relationship": "Père", "phone": "+213 664 12 34 89", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Walid",
+        "last_name": "Dahmani",
+        "phone": "+213 773 23 45 12",
+        "email": "walid.dahmani@email.dz",
+        "address": {"street": "Cité Hamrouche Hamoudi", "city": "Skikda", "postal_code": "21000", "country": "Algérie"},
+        "emergency_contact": {"name": "Nassima Dahmani", "relationship": "Épouse", "phone": "+213 773 23 45 88", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Soumia",
+        "last_name": "Taleb",
+        "phone": "+213 554 34 56 13",
+        "email": "soumia.taleb@email.dz",
+        "address": {"street": "Avenue de l'ALN", "city": "Annaba", "postal_code": "23000", "country": "Algérie"},
+        "emergency_contact": {"name": "Tarek Taleb", "relationship": "Époux", "phone": "+213 554 34 56 87", "is_legal_guardian": False},
+    },
+    {
+        "first_name": "Anis",
+        "last_name": "Larbi",
+        "phone": "+213 665 45 67 14",
+        "email": "anis.larbi@email.dz",
+        "address": {"street": "Cité Merdj Eddib", "city": "Skikda", "postal_code": "21000", "country": "Algérie"},
+        "emergency_contact": {"name": "Mourad Larbi", "relationship": "Père", "phone": "+213 665 45 67 86", "is_legal_guardian": True},
+    },
+    {
+        "first_name": "Leila",
+        "last_name": "Zerrouki",
+        "phone": "+213 774 56 78 15",
+        "email": "leila.zerrouki@email.dz",
+        "address": {"street": "Rue Bachir Boukadoum", "city": "Skikda", "postal_code": "21000", "country": "Algérie"},
+        "emergency_contact": {"name": "Kamel Zerrouki", "relationship": "Époux", "phone": "+213 774 56 78 85", "is_legal_guardian": False},
+    },
+]
+
 
 def get_patients_data() -> list[dict]:
     """Get patients data in current language."""
-    # English + India GST demo (--lang en --country in): names swap to
-    # INDIA_PATIENT_NAMES; phone/email reuse the Tamil demo's values
-    # verbatim since those are already plain digits / Romanized strings,
-    # not script-dependent.
     india_english = is_india_demo() and LANG != "ta"
 
     patients = []
     for idx, p in enumerate(PATIENTS_I18N):
+        alg = ALGERIAN_PATIENTS[idx] if idx < len(ALGERIAN_PATIENTS) else None
+
         # Handle phone: dict with translations or None
         phone = p["phone"]
         if isinstance(phone, dict):
-            phone = phone["ta"] if india_english else t(phone)
+            phone = phone["ta"] if india_english else (alg["phone"] if (alg and not is_india_demo()) else t(phone))
 
         # Handle email: dict with translations, string, or None
         email = p["email"]
         if isinstance(email, dict):
-            email = email["ta"] if india_english else t(email)
+            email = email["ta"] if india_english else (alg["email"] if (alg and not is_india_demo()) else t(email))
 
         # Handle emergency_contact: dict with language keys or None
         raw_emergency_contact = p.get("emergency_contact")
@@ -1535,6 +1642,8 @@ def get_patients_data() -> list[dict]:
                 "phone": ta_contact["phone"],
                 "email": ta_contact["email"],
             }
+        elif alg and not is_india_demo():
+            emergency_contact = alg["emergency_contact"]
 
         # Handle medical_history: translate nested fields
         medical_history = _translate_medical_history(p.get("medical_history"))
@@ -1544,6 +1653,9 @@ def get_patients_data() -> list[dict]:
         if india_english:
             first_name = INDIA_PATIENT_NAMES[idx]["first_name"]
             last_name = INDIA_PATIENT_NAMES[idx]["last_name"]
+        elif alg and not is_india_demo():
+            first_name = alg["first_name"]
+            last_name = alg["last_name"]
 
         patient = {
             "id": p["id"],
@@ -1551,6 +1663,7 @@ def get_patients_data() -> list[dict]:
             "last_name": last_name,
             "phone": phone,
             "email": email,
+            "address": alg["address"] if alg else None,
             "date_of_birth": p["date_of_birth"],
             "notes": p[LANG]["notes"],
             # Consumed downstream by seed_demo._seed_patient_clinical to

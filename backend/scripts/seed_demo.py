@@ -244,6 +244,8 @@ async def seed_patients(db: AsyncSession) -> list[Patient]:
             email=patient_data["email"],
             date_of_birth=patient_data["date_of_birth"],
             notes=patient_data["notes"],
+            address=patient_data.get("address"),
+            preferred_language="fr",
             status="active",
         )
         db.add(patient)
