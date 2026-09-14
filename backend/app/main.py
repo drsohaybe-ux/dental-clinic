@@ -148,6 +148,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     SET first_name = 'Dr.', last_name = 'Arselane'
                     WHERE email IN ('admin@demo.clinic', 'dentist@demo.clinic')
                        OR id IN ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23');
+
+                    UPDATE users
+                    SET first_name = 'Nassim', last_name = 'Boukhalfa'
+                    WHERE email = 'hygienist@demo.clinic' OR id = 'b2eebc99-9c0b-4ef8-bb6d-6bb9bd380a24';
+
+                    UPDATE users
+                    SET first_name = 'Meriem', last_name = 'Belhadj'
+                    WHERE email = 'assistant@demo.clinic' OR id = 'b3eebc99-9c0b-4ef8-bb6d-6bb9bd380a25';
+
+                    UPDATE users
+                    SET first_name = 'Amel', last_name = 'Saadi'
+                    WHERE email = 'receptionist@demo.clinic' OR id = 'b4eebc99-9c0b-4ef8-bb6d-6bb9bd380a26';
                 """)
             )
 
