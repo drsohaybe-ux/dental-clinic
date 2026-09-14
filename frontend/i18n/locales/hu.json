@@ -3190,7 +3190,12 @@
     "chipDoctorTip": "👨‍⚕️ Add Dr. Mokhtar tip",
     "chipWhatsapp": "📲 Add WhatsApp button",
     "chipPainless": "🦷 Highlight painless care",
-    "chipBeforeAfter": "🌟 Before / After style"
+    "chipBeforeAfter": "🌟 Before / After style",
+    "modalCreateSubtitleAuto": "Intelligens generálás a klinikai szabványok szerint",
+    "modalCreateSubtitleCustom": "MI által támogatott testreszabás",
+    "platformLabel": "Platform",
+    "placeholderSubject": "Héjak, Fogfehérítés...",
+    "placeholderInstructions": "Konkrét utasítások, kezelési részletek, DZD árak..."
   },
   "emergencyAlert": {
     "title": "DENTAL EMERGENCY ALERT (DR. MOKHTAR)",

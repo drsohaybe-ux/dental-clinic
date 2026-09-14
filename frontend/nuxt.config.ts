@@ -107,6 +107,8 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/copilot/**': { ssr: false },
+    '/agenda': { redirect: { to: '/appointments', statusCode: 301 } },
+    '/agenda/**': { redirect: { to: '/appointments', statusCode: 301 } },
     '/settings/medications': { redirect: { to: '/settings/clinical/medications', statusCode: 301 } },
     '/settings/medications/**': { redirect: { to: '/settings/clinical/medications', statusCode: 301 } }
   },

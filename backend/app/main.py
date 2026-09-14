@@ -201,6 +201,20 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                         {"fn": fn, "ln": ln, "ph": ph, "em": em, "nt": nt, "paddr": paddr, "pid": pid}
                     )
 
+            # Update cabinets from Spanish Gabinete to French Cabinet
+            await session.execute(
+                text("""
+                    UPDATE cabinets
+                    SET name = 'Cabinet 1'
+                    WHERE (name = 'Gabinete 1' OR id = '6d427005-26ac-453f-9a5e-204525388a23')
+                      AND clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+                    UPDATE cabinets
+                    SET name = 'Cabinet 2'
+                    WHERE (name = 'Gabinete 2' OR id = '3459a235-7715-4e3d-9d97-3bf3660f9dc1')
+                      AND clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+                """)
+            )
+
             await session.commit()
     except Exception:
         logger.exception("Arselane clinic and Algerian demo patient self-healing failed at startup")

@@ -48,11 +48,10 @@
         <!-- Créer une Publication Button -->
         <button
           type="button"
-          class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-sm transition-colors"
+          class="inline-flex items-center px-4 py-2 text-xs font-medium text-white bg-gray-900 hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 rounded-full shadow-xs transition-all"
           @click="isCreateModalOpen = true"
         >
-          <UIcon name="i-lucide-zap" class="w-4 h-4 text-white" />
-          <span>{{ t('social.btnCreatePost', 'Créer une Publication (IA / Manuel)') }}</span>
+          <span>{{ t('social.btnCreatePost', 'Nouvelle publication') }}</span>
         </button>
       </div>
     </div>
@@ -317,15 +316,14 @@
         {{ t('social.emptyCategory', 'Aucune publication dans cette catégorie') }}
       </h3>
       <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-        {{ t('social.emptyCategoryDesc', 'Créez ou générez une nouvelle publication avec Dr. Mokhtar AI.') }}
+        {{ t('social.emptyCategoryDesc', "Créez ou générez une nouvelle publication avec l'Assistant IA.") }}
       </p>
       <button
         type="button"
-        class="mt-5 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-[#0084ff] bg-[#e0f2fe] hover:bg-[#bae6fd] dark:bg-sky-950 dark:text-sky-400 rounded-lg transition-colors shadow-2xs"
+        class="mt-5 inline-flex items-center px-4 py-2 text-xs font-medium text-white bg-gray-900 hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 rounded-full shadow-xs transition-all"
         @click="isCreateModalOpen = true"
       >
-        <UIcon name="i-lucide-sparkles" class="w-3.5 h-3.5" />
-        <span>{{ t('social.btnCreatePost', 'Créer une publication') }}</span>
+        <span>{{ t('social.btnCreatePost', 'Nouvelle publication') }}</span>
       </button>
     </div>
 
@@ -365,7 +363,7 @@
             <!-- Instruction input -->
             <div>
               <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                {{ t('social.instructionsLabel', 'Instructions pour Dr. Mokhtar AI :') }}
+                {{ t('social.instructionsLabel', "Consignes pour l'Assistant IA :") }}
               </label>
               <input
                 v-model="editForm.feedback"
@@ -410,174 +408,179 @@
       </template>
     </UModal>
 
-    <!-- MODAL 2: Créer une Publication (Auto ou Custom) -->
-    <UModal v-model:open="isCreateModalOpen">
+    <!-- MODAL 2: Créer une Publication (Apple Minimalist) -->
+    <UModal v-model:open="isCreateModalOpen" :ui="{ content: 'sm:max-w-lg rounded-2xl overflow-hidden' }">
       <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex items-center justify-between">
-              <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
-                <UIcon name="i-lucide-zap" class="text-[#0084ff] w-5 h-5" />
-                {{ t('social.modalCreateTitle', 'Créer une Publication (IA / Manuel)') }}
+        <div class="p-6 space-y-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+          <!-- Header: Minimalist typography, subtle close -->
+          <div class="flex items-center justify-between pb-1">
+            <div>
+              <h3 class="font-semibold text-lg tracking-tight text-gray-900 dark:text-white">
+                {{ t('social.modalCreateTitle', 'Nouvelle publication') }}
               </h3>
-              <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="xs" @click="isCreateModalOpen = false" />
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 font-normal">
+                {{ createMode === 'auto' ? t('social.modalCreateSubtitleAuto', 'Génération intelligente basée sur les protocoles du cabinet') : t('social.modalCreateSubtitleCustom', 'Personnalisation assistée par l\'IA') }}
+              </p>
             </div>
-          </template>
+            <button
+              type="button"
+              class="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 bg-gray-100/80 hover:bg-gray-200/80 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+              @click="isCreateModalOpen = false"
+            >
+              <UIcon name="i-lucide-x" class="w-4 h-4" />
+            </button>
+          </div>
 
-          <div class="space-y-4">
-            <!-- Mode Toggle -->
-            <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
-              <button
-                type="button"
-                :class="[
-                  'flex-1 py-1.5 text-xs font-bold rounded-md transition-all',
-                  createMode === 'auto' ? 'bg-white dark:bg-gray-900 text-[#0084ff] shadow-xs' : 'text-gray-500'
-                ]"
-                @click="createMode = 'auto'"
+          <!-- Apple-Style Pill Segmented Control -->
+          <div class="p-1 bg-gray-100 dark:bg-gray-800/80 rounded-full flex border border-gray-200/40 dark:border-gray-700/40">
+            <button
+              type="button"
+              :class="[
+                'flex-1 py-1.5 text-xs font-medium rounded-full text-center transition-all duration-150',
+                createMode === 'auto'
+                  ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-xs'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              ]"
+              @click="createMode = 'auto'"
+            >
+              {{ t('social.modeAuto', 'Automatique') }}
+            </button>
+            <button
+              type="button"
+              :class="[
+                'flex-1 py-1.5 text-xs font-medium rounded-full text-center transition-all duration-150',
+                createMode === 'custom'
+                  ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-xs'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              ]"
+              @click="createMode = 'custom'"
+            >
+              {{ t('social.modeCustom', 'Personnalisé') }}
+            </button>
+          </div>
+
+          <!-- Auto Mode Fields -->
+          <div v-if="createMode === 'auto'" class="space-y-4 pt-1">
+            <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                {{ t('social.pillarLabel', 'Thématique') }}
+              </label>
+              <select
+                v-model="newPostForm.pillar"
+                class="w-full text-xs bg-gray-50/70 dark:bg-gray-800/60 border border-gray-200/80 dark:border-gray-700/80 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-white transition"
               >
-                {{ t('social.modeAuto', '⚡ Mode 100% Automatique (IA)') }}
-              </button>
-              <button
-                type="button"
-                :class="[
-                  'flex-1 py-1.5 text-xs font-bold rounded-md transition-all',
-                  createMode === 'custom' ? 'bg-white dark:bg-gray-900 text-[#0084ff] shadow-xs' : 'text-gray-500'
-                ]"
-                @click="createMode = 'custom'"
+                <option value="Esthétique Dentaire & Blanchiment">{{ t('social.pillarAesthetics', 'Esthétique dentaire & Blanchiment') }}</option>
+                <option value="Orthodontie Invisible & Aligners">{{ t('social.pillarOrtho', 'Orthodontie invisible & Aligneurs') }}</option>
+                <option value="Implants & Chirurgie Guidée">{{ t('social.pillarImplants', 'Implantologie & Chirurgie guidée') }}</option>
+                <option value="Soins Préventifs & Pédodontie">{{ t('social.pillarPrevention', 'Soins préventifs & Pédodontie') }}</option>
+                <option value="Vie du Cabinet (Nouveaux horaires, Local, Équipe)">{{ t('social.pillarClinicLife', 'Vie du cabinet') }}</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                {{ t('social.platformLabel', 'Plateforme') }}
+              </label>
+              <select
+                v-model="newPostForm.platform"
+                class="w-full text-xs bg-gray-50/70 dark:bg-gray-800/60 border border-gray-200/80 dark:border-gray-700/80 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-white transition"
               >
-                {{ t('social.modeCustom', '✍️ Mode Personnalisé') }}
-              </button>
+                <option value="both">{{ t('social.targetBothSizes', 'Facebook & Instagram') }}</option>
+                <option value="instagram">{{ t('social.targetInstaSize', 'Instagram') }}</option>
+                <option value="facebook">{{ t('social.targetFbSize', 'Facebook') }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Custom Mode Fields -->
+          <div v-else class="space-y-4 pt-1">
+            <p class="text-xs text-gray-400 dark:text-gray-500 leading-relaxed font-normal">
+              {{ t('social.copilotModeDesc', "Les champs non renseignés sont automatiquement complétés par l'IA selon les protocoles du cabinet.") }}
+            </p>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                {{ t('social.platformLabel', 'Plateforme') }}
+              </label>
+              <select
+                v-model="newPostForm.platform"
+                class="w-full text-xs bg-gray-50/70 dark:bg-gray-800/60 border border-gray-200/80 dark:border-gray-700/80 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-white transition"
+              >
+                <option value="both">{{ t('social.targetBoth', 'Facebook & Instagram') }}</option>
+                <option value="instagram">{{ t('social.targetInsta', 'Instagram') }}</option>
+                <option value="facebook">{{ t('social.targetFb', 'Facebook') }}</option>
+              </select>
             </div>
 
-            <!-- Auto Mode Fields -->
-            <div v-if="createMode === 'auto'" class="space-y-4">
-              <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                  {{ t('social.pillarLabel', 'Pilier / Thématique Clinique :') }}
-                </label>
-                <select
-                  v-model="newPostForm.pillar"
-                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
-                >
-                  <option value="Esthétique Dentaire & Blanchiment">{{ t('social.pillarAesthetics', '✨ Esthétique Dentaire & Blanchiment') }}</option>
-                  <option value="Orthodontie Invisible & Aligners">{{ t('social.pillarOrtho', '🦷 Orthodontie Invisible & Aligners') }}</option>
-                  <option value="Implants & Chirurgie Guidée">{{ t('social.pillarImplants', '🔩 Implants & Chirurgie Guidée') }}</option>
-                  <option value="Soins Préventifs & Pédodontie">{{ t('social.pillarPrevention', '🛡️ Soins Préventifs & Pédodontie') }}</option>
-                  <option value="Vie du Cabinet (Nouveaux horaires, Local, Équipe)">{{ t('social.pillarClinicLife', '🏥 Vie du Cabinet (Nouveaux horaires, Local, Équipe)') }}</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                  Plateforme Cible :
-                </label>
-                <select
-                  v-model="newPostForm.platform"
-                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
-                >
-                  <option value="both">{{ t('social.targetBothSizes', '🌐 Facebook & Instagram (Simultané - 1200x630 & 1080x1080)') }}</option>
-                  <option value="instagram">{{ t('social.targetInstaSize', '📸 Instagram uniquement (1080x1080)') }}</option>
-                  <option value="facebook">{{ t('social.targetFbSize', '📘 Facebook uniquement (1200x630)') }}</option>
-                </select>
-              </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                {{ t('social.labelTitleSubject', 'Sujet') }}
+              </label>
+              <input
+                v-model="newPostForm.title"
+                type="text"
+                :placeholder="t('social.placeholderSubject', 'Facettes dentaires, Blanchiment...')"
+                class="w-full text-xs bg-gray-50/70 dark:bg-gray-800/60 border border-gray-200/80 dark:border-gray-700/80 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-white transition"
+              />
             </div>
 
-            <!-- Custom Mode Fields (Doctor Copilot & Gap-filling) -->
-            <div v-else class="space-y-4">
-              <!-- Informational Banner for Optional Fields -->
-              <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2">
-                <UIcon name="i-lucide-sparkles" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <div>
-                  <span class="font-bold">{{ t('social.copilotModeTitle', 'Mode Copilot & Gap-Filling :') }}</span>
-                  {{ t('social.copilotModeDesc', "Tous les champs ci-dessous sont 100% optionnels. Tout champ que vous laissez vide sera automatiquement conçu, rédigé et comblé par l'IA selon les protocoles cliniques de votre cabinet.") }}
-                </div>
-              </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                {{ t('social.labelInstructionsOrText', 'Consignes du praticien') }}
+              </label>
+              <textarea
+                v-model="newPostForm.caption"
+                rows="3"
+                :placeholder="t('social.placeholderInstructions', 'Consignes particulières, détails des soins, tarifs en DZD...')"
+                class="w-full text-xs bg-gray-50/70 dark:bg-gray-800/60 border border-gray-200/80 dark:border-gray-700/80 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-white transition"
+              ></textarea>
+            </div>
 
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                  Plateforme Cible :
-                </label>
-                <select
-                  v-model="newPostForm.platform"
-                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0084ff]"
-                >
-                  <option value="both">{{ t('social.targetBoth', '🌐 Facebook & Instagram (Simultané)') }}</option>
-                  <option value="instagram">{{ t('social.targetInsta', '📸 Instagram uniquement') }}</option>
-                  <option value="facebook">{{ t('social.targetFb', '📘 Facebook uniquement') }}</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                  {{ t('social.labelTitleSubject', 'Titre / Sujet Clinique') }} <span class="text-gray-400 font-normal">({{ t('common.optional', 'optionnel') }})</span> :
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                  {{ t('social.labelCta', 'Appel à l\'action') }}
                 </label>
                 <input
-                  v-model="newPostForm.title"
+                  v-model="newPostForm.cta"
                   type="text"
-                  placeholder="e.g. Facettes Dentaires, Blanchiment... (laissé vide = choisi par l'IA)"
-                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
+                  placeholder="Prendre rendez-vous"
+                  class="w-full text-xs bg-gray-50/70 dark:bg-gray-800/60 border border-gray-200/80 dark:border-gray-700/80 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-white transition"
                 />
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                  {{ t('social.labelInstructionsOrText', 'Consignes spécifiques ou Texte du Dr. Mokhtar') }} <span class="text-gray-400 font-normal">({{ t('common.optional', 'optionnel') }})</span> :
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                  {{ t('social.labelImageUrl', 'URL de l\'image') }}
                 </label>
-                <textarea
-                  v-model="newPostForm.caption"
-                  rows="3"
-                  placeholder="Consignes particulières, tarifs en DZD, matériel à mentionner... ou laissez vide pour génération 100% autonome"
-                  class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
-                ></textarea>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                    {{ t('social.labelCta', 'Call to Action') }} <span class="text-gray-400 font-normal">({{ t('common.optional', 'optionnel') }})</span> :
-                  </label>
-                  <input
-                    v-model="newPostForm.cta"
-                    type="text"
-                    placeholder="e.g. Contactez-nous sur WhatsApp !"
-                    class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                    {{ t('social.labelImageUrl', "URL de l'image") }} <span class="text-gray-400 font-normal">({{ t('common.optional', 'optionnel') }})</span> :
-                  </label>
-                  <input
-                    v-model="newPostForm.imageUrl"
-                    type="text"
-                    placeholder="https://... (laissé vide = généré par IA)"
-                    class="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-gray-900 dark:text-white"
-                  />
-                </div>
+                <input
+                  v-model="newPostForm.imageUrl"
+                  type="text"
+                  placeholder="https://..."
+                  class="w-full text-xs bg-gray-50/70 dark:bg-gray-800/60 border border-gray-200/80 dark:border-gray-700/80 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-white transition"
+                />
               </div>
             </div>
           </div>
 
-          <template #footer>
-            <div class="flex justify-end gap-3">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                @click="isCreateModalOpen = false"
-              >
-                Annuler
-              </UButton>
-              <button
-                type="button"
-                class="px-4 py-2 text-xs font-semibold text-white bg-[#0084ff] hover:bg-[#0073e6] rounded-lg shadow-xs"
-                @click="submitNewPost"
-              >
-                {{ t('social.btnGenerateOrSave', 'Générer / Enregistrer') }}
-              </button>
-            </div>
-          </template>
-        </UCard>
+          <!-- Footer Actions: Apple minimalist buttons -->
+          <div class="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+            <button
+              type="button"
+              class="px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+              @click="isCreateModalOpen = false"
+            >
+              {{ t('common.cancel', 'Annuler') }}
+            </button>
+            <button
+              type="button"
+              class="px-5 py-2 text-xs font-medium text-white bg-gray-900 hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 rounded-full shadow-xs transition-all"
+              @click="submitNewPost"
+            >
+              {{ t('social.btnGenerateOrSave', 'Continuer') }}
+            </button>
+          </div>
+        </div>
       </template>
     </UModal>
 
@@ -719,12 +722,12 @@ const isEditModalOpen = ref(false)
 const editForm = ref({ id: '', caption: '', feedback: '' })
 
 const quickChips = computed(() => [
-  t('social.chipShorter', '⚡ Plus court & percutant'),
-  t('social.chipDzd', '💰 Insister sur les tarifs en DZD'),
-  t('social.chipDoctorTip', '👨‍⚕️ Ajouter le conseil du Dr. Mokhtar'),
-  t('social.chipWhatsapp', '📲 Ajouter le bouton WhatsApp'),
-  t('social.chipPainless', '🦷 Mettre en avant le soin sans douleur'),
-  t('social.chipBeforeAfter', '🌟 Style Avant / Après')
+  t('social.chipShorter', 'Plus court & percutant'),
+  t('social.chipDzd', 'Tarifs en DZD'),
+  t('social.chipDoctorTip', 'Conseil du Dr. Arselane'),
+  t('social.chipWhatsapp', 'Bouton WhatsApp'),
+  t('social.chipPainless', 'Soin sans douleur'),
+  t('social.chipBeforeAfter', 'Style Avant / Après')
 ])
 
 function openEditModal(post: SocialPost) {
@@ -739,13 +742,13 @@ function openEditModal(post: SocialPost) {
 function applyQuickChip(chip: string) {
   editForm.value.feedback = chip
   if (chip.includes('court')) {
-    editForm.value.caption = `🦷 ${editForm.value.caption.slice(0, 110)}...\n\n✨ Prenez rendez-vous en message privé WhatsApp !`
+    editForm.value.caption = `${editForm.value.caption.slice(0, 110)}...\n\nPrenez rendez-vous en message privé WhatsApp !`
   } else if (chip.includes('DZD') || chip.includes('tarifs')) {
-    editForm.value.caption = `${editForm.value.caption}\n\n💰 Tarifs transparents en DZD et facilités de paiement. Contactez-nous pour votre devis !`
-  } else if (chip.includes('Dr.')) {
-    editForm.value.caption = `👨‍⚕️ Conseil du Dr. Mokhtar :\n\n${editForm.value.caption}\n\nProtocole clinique certifié, anesthésie douce et stérilisation de pointe.`
+    editForm.value.caption = `${editForm.value.caption}\n\nTarifs transparents en DZD et facilités de paiement. Contactez-nous pour votre devis !`
+  } else if (chip.includes('Dr.') || chip.includes('Arselane') || chip.includes('praticien')) {
+    editForm.value.caption = `Conseil du Dr. Arselane :\n\n${editForm.value.caption}\n\nProtocole clinique certifié, anesthésie douce et stérilisation de pointe.`
   } else if (chip.includes('WhatsApp')) {
-    editForm.value.caption = `${editForm.value.caption}\n\n📲 Consultation bilan rapide : Contactez-nous directement sur WhatsApp au cabinet.`
+    editForm.value.caption = `${editForm.value.caption}\n\nConsultation bilan : contactez-nous directement sur WhatsApp au cabinet.`
   }
 }
 
@@ -769,8 +772,8 @@ const newPostForm = ref({
 function submitNewPost() {
   if (createMode.value === 'auto') {
     socialStore.createNewDraft({
-      title: `${newPostForm.value.pillar} au Cabinet Dr. Mokhtar`,
-      caption: `🦷 Nouveau traitement personnalisé au cabinet :\n\nPrenez soin de votre sourire grâce à nos protocoles modernes et indolores.\n\n💰 Tarifs transparents en DZD. Contactez-nous sur WhatsApp !`,
+      title: `${newPostForm.value.pillar} - Cabinet Dr. Arselane`,
+      caption: `Nouveau traitement personnalisé au cabinet.\n\nPrenez soin de votre sourire grâce à nos protocoles modernes et indolores.\n\nTarifs en DZD. Contactez-nous pour un bilan personnalisé !`,
       platform: newPostForm.value.platform,
       pillar: newPostForm.value.pillar
     })

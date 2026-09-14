@@ -22,37 +22,37 @@ export const EXACT_SEED_POSTS: SocialPost[] = [
     id: 'post-seed-1',
     platform: 'instagram',
     title: "5 Signes Précurseurs d'une Carie Dentaire",
-    caption: "🦷 Saviez-vous qu'une carie commence souvent sans aucune douleur sous la surface de l'émail ?\n\nVoici 5 signes d'alerte à ne jamais ignorer :...\n\n👉 Prenez rendez-vous dès aujourd'hui pour votre bilan préventif.",
-    hashtags: ['#SanteDentaire', '#SourireParfait', '#DentisteAlger', '#SoinsDentaires', '#HygieneBuccoDentaire'],
+    caption: "Saviez-vous qu'une carie commence souvent sans aucune douleur sous la surface de l'émail ?\n\nVoici 5 signes d'alerte à ne jamais ignorer :...\n\nPrenez rendez-vous dès aujourd'hui pour votre bilan préventif.",
+    hashtags: ['#SanteDentaire', '#SourireParfait', '#DentisteSkikda', '#SoinsDentaires', '#HygieneBuccoDentaire'],
     image_url: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?auto=format&fit=crop&w=1000&q=80',
     status: 'waiting_approval',
     scheduled_for: 'Demain à 10h00',
-    ai_notes: 'Dr. Mokhtar AI : Cible : Soins préventifs et détartrage. Généré par Dr. Mokhtar AI.',
+    ai_notes: 'Assistant IA : Cible : Soins préventifs et détartrage.',
     created_at: new Date().toISOString()
   },
   {
     id: 'post-seed-2',
     platform: 'facebook',
     title: 'Avant / Après : Blanchiment Dentaire Laser au Fauteuil',
-    caption: '✨ Transformation spectaculaire pour notre patient après une seule séance de blanchiment laser de 45 minutes en cabinet !\n\n...\n\n💰 Tarifs transparents en DZD et facilités de paiement. Contactez-nous sur WhatsApp pour votre devis !',
-    hashtags: ['#BlanchimentDentaire', '#EsthetiqueDentaire', '#DentisteDZ', '#SourireEclatant'],
+    caption: 'Transformation spectaculaire pour notre patient après une seule séance de blanchiment laser de 45 minutes au cabinet !\n\n...\n\nTarifs transparents en DZD et facilités de paiement. Contactez-nous sur WhatsApp pour votre devis !',
+    hashtags: ['#BlanchimentDentaire', '#EsthetiqueDentaire', '#DentisteSkikda', '#SourireEclatant'],
     image_url: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=1000&q=80',
     status: 'waiting_approval',
     scheduled_for: 'Jeudi à 14h30',
-    ai_notes: 'Dr. Mokhtar AI : Focus : Esthétique du sourire et conversion WhatsApp.',
+    ai_notes: 'Assistant IA : Focus : Esthétique du sourire et prise de rendez-vous.',
     created_at: new Date().toISOString()
   },
   {
     id: 'post-seed-3',
     platform: 'instagram',
     title: 'Tout Savoir sur les Implants Dentaires en Zircone',
-    caption: "🦷 Remplacer une dent manquante n'a jamais été aussi durable et naturel.\n\nPourquoi choisir l'implant en zircone ?...\n\n✨ Protocole chirurgical guidé et anesthésie douce au cabinet du Dr. Mokhtar.",
+    caption: "Remplacer une dent manquante n'a jamais été aussi durable et naturel.\n\nPourquoi choisir l'implant en zircone ?...\n\nProtocole chirurgical guidé et anesthésie douce au cabinet du Dr. Arselane.",
     hashtags: ['#ImplantDentaire', '#ChirurgieDentaire', '#Zircone', '#CabinetDentaire'],
     image_url: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=80',
     status: 'published',
     scheduled_for: 'Publié hier',
     metrics: { reach: 4820, likes: 312 },
-    ai_notes: 'Publication validée par le Dr. Mokhtar.',
+    ai_notes: 'Publication validée par le Dr. Arselane.',
     created_at: new Date().toISOString()
   }
 ]
@@ -247,7 +247,7 @@ export function useSocialAutomation() {
           method: 'POST',
           body: {
             topic: post.title,
-            instructions: `Modification demandée par Dr. Mokhtar: ${feedback}. Texte: ${newCaption}`
+            instructions: `Modification demandée par Dr. Arselane: ${feedback}. Texte: ${newCaption}`
           }
         }).catch(() => {})
       } catch {}

@@ -3190,7 +3190,12 @@
     "chipDoctorTip": "👨‍⚕️ Add Dr. Mokhtar tip",
     "chipWhatsapp": "📲 Add WhatsApp button",
     "chipPainless": "🦷 Highlight painless care",
-    "chipBeforeAfter": "🌟 Before / After style"
+    "chipBeforeAfter": "🌟 Before / After style",
+    "modalCreateSubtitleAuto": "Generazione intelligente basata sugli standard della clinica",
+    "modalCreateSubtitleCustom": "Personalizzazione assistita da IA",
+    "platformLabel": "Piattaforma",
+    "placeholderSubject": "Faccette dentali, Sbiancamento...",
+    "placeholderInstructions": "Istruzioni specifiche, dettagli del trattamento, prezzi in DZD..."
   },
   "emergencyAlert": {
     "title": "DENTAL EMERGENCY ALERT (DR. MOKHTAR)",

@@ -3190,7 +3190,12 @@
     "chipDoctorTip": "👨‍⚕️ Add Dr. Mokhtar tip",
     "chipWhatsapp": "📲 Add WhatsApp button",
     "chipPainless": "🦷 Highlight painless care",
-    "chipBeforeAfter": "🌟 Before / After style"
+    "chipBeforeAfter": "🌟 Before / After style",
+    "modalCreateSubtitleAuto": "Geração inteligente adaptada aos padrões da clínica",
+    "modalCreateSubtitleCustom": "Personalização assistida por IA",
+    "platformLabel": "Plataforma",
+    "placeholderSubject": "Facetas dentárias, Clareamento...",
+    "placeholderInstructions": "Instruções específicas, detalhes do tratamento, preços em DZD..."
   },
   "emergencyAlert": {
     "title": "DENTAL EMERGENCY ALERT (DR. MOKHTAR)",
