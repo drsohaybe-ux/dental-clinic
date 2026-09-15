@@ -45,8 +45,9 @@ def upgrade() -> None:
         SET amount = cis.default_price
         FROM planned_treatment_items pti
         JOIN treatments t ON pti.treatment_id = t.id
-        JOIN catalog_item_sessions cis ON cis.catalog_item_id = t.catalog_item_id AND cis.sequence = ptis.sequence
+        JOIN catalog_item_sessions cis ON cis.catalog_item_id = t.catalog_item_id
         WHERE ptis.plan_item_id = pti.id
+          AND cis.sequence = ptis.sequence
           AND cis.default_price IS NOT NULL
           AND pti.clinic_id IN (
               SELECT id FROM clinics WHERE currency IN ('DZD', 'EUR') OR id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'

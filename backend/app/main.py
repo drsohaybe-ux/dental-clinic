@@ -78,8 +78,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     SET amount = cis.default_price
                     FROM planned_treatment_items pti
                     JOIN treatments t ON pti.treatment_id = t.id
-                    JOIN catalog_item_sessions cis ON cis.catalog_item_id = t.catalog_item_id AND cis.sequence = ptis.sequence
+                    JOIN catalog_item_sessions cis ON cis.catalog_item_id = t.catalog_item_id
                     WHERE ptis.plan_item_id = pti.id
+                      AND cis.sequence = ptis.sequence
                       AND cis.default_price IS NOT NULL
                       AND ptis.amount < 1000;
 

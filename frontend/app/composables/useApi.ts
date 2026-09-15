@@ -33,6 +33,10 @@ function _withQuery(path: string, query?: UseApiOptions['query']): string {
   return path.includes('?') ? `${path}&${s}` : `${path}?${s}`
 }
 
+// Module-level flag: only show one network-error toast at a time.
+// Resets when a request succeeds, so the banner will reappear on a future disconnect.
+let _networkErrorShown = false
+
 export function useApi() {
   const config = useRuntimeConfig()
   const auth = useAuth()
@@ -62,7 +66,7 @@ export function useApi() {
     const url = _withQuery(path, query)
 
     try {
-      return await $fetch<T>(url, {
+      const result = await $fetch<T>(url, {
         baseURL: apiBaseUrl.value,
         timeout: 10000, // 10 seconds
         method,
@@ -70,6 +74,9 @@ export function useApi() {
         headers,
         signal
       })
+      // Successful response: allow the offline banner to appear again next time
+      _networkErrorShown = false
+      return result
     } catch (error: unknown) {
       const fetchError = error as { name?: string, statusCode?: number, data?: { message?: string } }
 
@@ -123,21 +130,27 @@ export function useApi() {
       }
 
       if (!options.silent && fetchError.statusCode && fetchError.statusCode >= 500) {
-        toast.add({
-          title: t('common.error'),
-          description: t('common.serverError'),
-          color: 'error'
-        })
+        if (!_networkErrorShown) {
+          _networkErrorShown = true
+          toast.add({
+            title: t('common.error'),
+            description: t('common.serverError'),
+            color: 'error'
+          })
+        }
         throw error
       }
 
-      // Network error
+      // Network error (no statusCode = server unreachable / CORS / timeout)
       if (!options.silent && !fetchError.statusCode) {
-        toast.add({
-          title: t('common.error'),
-          description: t('common.networkError'),
-          color: 'error'
-        })
+        if (!_networkErrorShown) {
+          _networkErrorShown = true
+          toast.add({
+            title: t('common.error'),
+            description: t('common.networkError'),
+            color: 'error'
+          })
+        }
       }
 
       throw error

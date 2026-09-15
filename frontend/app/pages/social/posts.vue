@@ -671,14 +671,27 @@ const socialStore = useSocialAutomation()
 let pollTimer: any = null
 
 onMounted(() => {
-  socialStore.fetchPosts()
-  pollTimer = setInterval(() => {
-    socialStore.fetchPosts()
-  }, 4000)
-})
+  let paused = false
+  let retryTimeout: any = null
 
-onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer)
+  async function poll() {
+    if (paused) return
+    try {
+      await socialStore.fetchPosts()
+    } catch {
+      // Stop polling for 30s on any error — useApi already shows one toast
+      paused = true
+      retryTimeout = setTimeout(() => { paused = false }, 30_000)
+    }
+  }
+
+  poll()
+  pollTimer = setInterval(poll, 4000)
+
+  onUnmounted(() => {
+    if (pollTimer) clearInterval(pollTimer)
+    if (retryTimeout) clearTimeout(retryTimeout)
+  })
 })
 
 // Tab & Platform state
