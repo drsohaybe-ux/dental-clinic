@@ -24,16 +24,20 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const isPublishedEvent = rawBody.event === 'SOCIAL_CAMPAIGN_PUBLISHED' || rawBody.status === 'published'
+
   const resolvedImage = rawBody.igMediaUrl || rawBody.mediaUrl || rawBody.fbMediaUrl || rawBody.imageUrl || ''
-  const resolvedTitle = rawBody.title || rawBody.topic || 'Publication Cabinet Dentaire'
+  const resolvedTitle = rawBody.title || rawBody.topic || (isPublishedEvent ? '' : 'Publication Cabinet Dentaire')
   const resolvedPlatform = rawBody.platform || (rawBody.igMediaUrl ? 'instagram' : 'facebook')
   const resolvedPostId = String(rawBody.postId || rawBody.id || `post-${Date.now()}`)
+  const resolvedBasePostId = rawBody.basePostId ? String(rawBody.basePostId) : null
 
   const payloadToSend = {
-    event: rawBody.event || 'POST_DRAFT_READY',
+    event: rawBody.event || (isPublishedEvent ? 'SOCIAL_CAMPAIGN_PUBLISHED' : 'POST_DRAFT_READY'),
     postId: resolvedPostId,
+    basePostId: resolvedBasePostId,
     title: resolvedTitle,
-    description: rawBody.description || resolvedCaption,
+    description: rawBody.description || resolvedCaption || '',
     caption: resolvedCaption,
     mediaUrl: resolvedImage,
     imageUrl: resolvedImage,
@@ -42,9 +46,9 @@ export default defineEventHandler(async (event) => {
     hashtags: rawBody.hashtags || instagramData.hashtags || facebookData.hashtags || [],
     platform: resolvedPlatform,
     platform_posts: platformPosts,
-    status: rawBody.status || 'waiting_approval',
-    scheduledFor: rawBody.scheduled_for || rawBody.scheduledFor || 'Demain à 10h00',
-    aiNotes: rawBody.angleStrategyNote || (rawBody.aiScores ? `Score Accroche: ${rawBody.aiScores.hook_strength || 7}/10 | Clarté: ${rawBody.aiScores.clarity || 7}/10` : 'Généré par Dr. Mokhtar AI (n8n)')
+    status: isPublishedEvent ? 'published' : (rawBody.status || 'waiting_approval'),
+    scheduledFor: rawBody.scheduled_for || rawBody.scheduledFor || (isPublishedEvent ? 'Publié' : 'Demain à 10h00'),
+    aiNotes: rawBody.angleStrategyNote || (rawBody.aiScores ? `Score Accroche: ${rawBody.aiScores.hook_strength || 7}/10 | Clarté: ${rawBody.aiScores.clarity || 7}/10` : 'Généré par Dr. Arselane AI (n8n)')
   }
 
   try {

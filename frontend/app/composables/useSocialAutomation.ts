@@ -191,6 +191,7 @@ export function useSocialAutomation() {
     // If NOT pinned, mark as published. If pinned, preserve it as reusable template!
     if (!post.is_pinned) {
       post.status = 'published'
+      post.scheduled_for = 'Publié'
       try {
         await api.patch(`/api/v1/social_automation/posts/${postId}`, {
           status: 'published'
@@ -310,19 +311,19 @@ export function useSocialAutomation() {
       selectedPlatform === 'both' ? ['facebook', 'instagram'] : [selectedPlatform]
     )
 
-    const resolvedTitle = payload.title?.trim() || (payload.pillar ? `${payload.pillar} au Cabinet Dr. Mokhtar` : 'Publication IA Cabinet Dentaire')
-    const resolvedCaption = payload.caption?.trim() || (payload.instructions?.trim() ? `Instructions Dr. Mokhtar : ${payload.instructions}` : '🦷 Publication générée par l\'IA n8n selon les protocoles cliniques du cabinet.')
+    const resolvedTitle = payload.title?.trim() || (payload.pillar ? `${payload.pillar} au Cabinet Dr. Arselane` : 'Publication IA Cabinet Dentaire')
+    const resolvedCaption = payload.caption?.trim() || (payload.instructions?.trim() ? `Instructions Dr. Arselane : ${payload.instructions}` : '🦷 Publication générée par l\'IA n8n selon les protocoles cliniques du cabinet.')
 
     const newPost: SocialPost = {
       id: `post-${Date.now()}`,
       platform: (selectedPlatform === 'both' ? 'instagram' : selectedPlatform) as any,
       title: resolvedTitle,
       caption: resolvedCaption,
-      hashtags: ['#DentisteAlger', '#DrMokhtar', '#SanteDentaire', '#CabinetDentaire'],
+      hashtags: ['#DentisteSkikda', '#DrArselane', '#SanteDentaire', '#CabinetDentaire'],
       image_url: payload.imageUrl || 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=80',
       status: 'waiting_approval',
       scheduled_for: 'Demain à 10h00',
-      ai_notes: `Généré automatiquement par Dr. Mokhtar AI — Pilier: ${payload.pillar || 'Soins Généraux'}. Réseaux cibles: ${targetPlatforms.join(', ')}.`,
+      ai_notes: `Généré automatiquement par Dr. Arselane AI — Pilier: ${payload.pillar || 'Soins Généraux'}. Réseaux cibles: ${targetPlatforms.join(', ')}.`,
       created_at: new Date().toISOString()
     }
 

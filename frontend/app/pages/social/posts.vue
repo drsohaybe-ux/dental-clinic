@@ -141,9 +141,10 @@
         <div>
           <div class="relative w-full h-56 bg-gray-100 dark:bg-gray-800 overflow-hidden">
             <img
-              :src="post.image_url"
+              :src="post.image_url || 'https://images.unsplash.com/photo-1629909615184-74f495363b67?auto=format&fit=crop&w=1000&q=80'"
               :alt="post.title"
               class="w-full h-full object-cover"
+              @error="(e: any) => { if (e?.target) e.target.src = 'https://images.unsplash.com/photo-1629909615184-74f495363b67?auto=format&fit=crop&w=1000&q=80' }"
             />
             
             <!-- Platform & Status Badges (Top Left) -->
@@ -222,7 +223,7 @@
               </span>
             </div>
 
-            <!-- Dr. Mokhtar AI Note Box -->
+            <!-- Dr. Arselane AI Note Box -->
             <div
               v-if="post.ai_notes"
               class="bg-gray-50 dark:bg-gray-800/70 border border-gray-100 dark:border-gray-700/60 rounded-xl p-3 text-xs text-gray-600 dark:text-gray-300 flex items-start gap-2 mt-3"
@@ -272,12 +273,16 @@
 
           <!-- Published Actions & Metrics (When not pinned) -->
           <div v-else class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800 pt-3 font-medium">
-            <div class="flex items-center gap-3">
-              <span>{{ post.metrics?.reach || 4820 }} {{ t('socialReports.metricReach', 'vues') }}</span>
-              <span class="flex items-center gap-1 text-gray-700 dark:text-gray-200 font-semibold">
-                <span class="text-red-500">❤️</span> {{ post.metrics?.likes || 312 }}
-              </span>
-            </div>
+            <!-- Minimalist Insights Link with Arrow -->
+            <NuxtLink
+              to="/social/reports"
+              class="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-[#0084ff] dark:text-[#38bdf8] bg-blue-50/70 hover:bg-blue-100/70 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 transition-all cursor-pointer"
+              :title="t('social.viewInsightsTooltip', 'Consulter les statistiques et analyses')"
+            >
+              <UIcon name="i-lucide-bar-chart-2" class="w-3.5 h-3.5 text-[#0084ff] dark:text-[#38bdf8]" />
+              <span>{{ t('social.btnViewInsights', 'Voir statistiques') }}</span>
+              <UIcon name="i-lucide-arrow-up-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </NuxtLink>
 
             <div class="flex items-center gap-1.5">
               <button
@@ -600,7 +605,7 @@
 
           <div class="space-y-4">
             <p class="text-xs text-gray-600 dark:text-gray-400">
-              {{ t('social.modalConfigDesc', "Vos webhooks n8n permettent d'envoyer les publications directement sur Instagram, Facebook et TikTok une fois approuvées par le Dr. Mokhtar.") }}
+              {{ t('social.modalConfigDesc', "Vos webhooks n8n permettent d'envoyer les publications directement sur Instagram, Facebook et TikTok une fois approuvées par le Dr. Arselane.") }}
             </p>
 
             <div>

@@ -35,6 +35,7 @@ class SocialPostResponse(SocialPostBase):
 class N8nIncomingDraft(BaseModel):
     event: Optional[str] = None
     postId: Optional[str] = None
+    basePostId: Optional[str] = None
     title: Optional[str] = None
     description: Optional[str] = None
     caption: Optional[str] = None

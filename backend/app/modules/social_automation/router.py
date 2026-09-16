@@ -30,8 +30,62 @@ async def receive_n8n_draft(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Receives an incoming draft from n8n.
+    Receives an incoming draft or publish confirmation event from n8n.
     """
+    is_publish_event = (
+        payload.event in ["SOCIAL_CAMPAIGN_PUBLISHED", "post_published", "published"]
+        or (payload.status and payload.status.lower() in ["published", "partially_published"])
+    )
+
+    raw_post_id = str(payload.postId or "").strip()
+    raw_base_id = str(payload.basePostId or "").strip()
+
+    # Collect possible candidate IDs to find existing post (including stripped platform suffixes)
+    candidate_ids = []
+    if raw_post_id:
+        candidate_ids.append(raw_post_id)
+        for suffix in ["-fb", "-ig", "_fb", "_ig", "-facebook", "-instagram"]:
+            if raw_post_id.lower().endswith(suffix):
+                candidate_ids.append(raw_post_id[:-len(suffix)])
+    if raw_base_id and raw_base_id not in candidate_ids:
+        candidate_ids.append(raw_base_id)
+
+    existing_post = None
+    for cid in candidate_ids:
+        stmt = select(SocialPost).where(SocialPost.id == cid)
+        res = await db.execute(stmt)
+        existing_post = res.scalar_one_or_none()
+        if existing_post:
+            break
+
+    # If this is a publish event from n8n, mark post published and preserve existing contents!
+    if is_publish_event:
+        if existing_post:
+            existing_post.status = PostStatus.PUBLISHED
+            existing_post.scheduled_for = "Publié"
+            if payload.title and payload.title != "Publication Cabinet Dentaire":
+                existing_post.title = payload.title
+            if payload.caption and payload.caption != "Nouvelle publication préparée par l'IA.":
+                existing_post.caption = payload.caption.strip()
+            if payload.imageUrl or payload.mediaUrl:
+                existing_post.image_url = payload.imageUrl or payload.mediaUrl
+            if payload.hashtags:
+                existing_post.hashtags = payload.hashtags
+            await db.commit()
+            await db.refresh(existing_post)
+            return existing_post
+        elif not payload.title or payload.title == "Publication Cabinet Dentaire":
+            # If the post ID didn't match directly, find the most recent matching/waiting post
+            stmt = select(SocialPost).where(SocialPost.status == PostStatus.WAITING_APPROVAL).order_by(SocialPost.created_at.desc())
+            res = await db.execute(stmt)
+            candidate = res.scalars().first()
+            if candidate:
+                candidate.status = PostStatus.PUBLISHED
+                candidate.scheduled_for = "Publié"
+                await db.commit()
+                await db.refresh(candidate)
+                return candidate
+
     # Normalize the incoming payload
     instagram_data = payload.platform_posts.get("Instagram", {}) if isinstance(payload.platform_posts, dict) else {}
     facebook_data = payload.platform_posts.get("Facebook", {}) if isinstance(payload.platform_posts, dict) else {}
@@ -59,22 +113,27 @@ async def receive_n8n_draft(
     image_url = payload.imageUrl or payload.mediaUrl or ""
     title = payload.title or "Publication Cabinet Dentaire"
     platform = payload.platform or ("instagram" if instagram_data else "facebook")
-    post_id = str(payload.postId or f"post-{int(datetime.utcnow().timestamp())}")
-
-    # Check if post already exists
-    stmt = select(SocialPost).where(SocialPost.id == post_id)
-    res = await db.execute(stmt)
-    existing_post = res.scalar_one_or_none()
+    post_id = raw_post_id or f"post-{int(datetime.utcnow().timestamp())}"
 
     if existing_post:
-        existing_post.title = title
-        existing_post.caption = caption.strip()
-        existing_post.hashtags = hashtags
-        existing_post.image_url = image_url
-        existing_post.status = PostStatus.WAITING_APPROVAL
-        existing_post.platform = platform
-        existing_post.scheduled_for = payload.scheduledFor or existing_post.scheduled_for or "Demain à 10h00"
-        existing_post.ai_notes = payload.aiNotes or existing_post.ai_notes
+        # Protect existing content: do not overwrite real values with generic fallback strings
+        if title and title != "Publication Cabinet Dentaire":
+            existing_post.title = title
+        if caption and caption != "Nouvelle publication préparée par l'IA.":
+            existing_post.caption = caption.strip()
+        if hashtags:
+            existing_post.hashtags = hashtags
+        if image_url:
+            existing_post.image_url = image_url
+        if payload.status:
+            try:
+                existing_post.status = PostStatus(payload.status.lower())
+            except ValueError:
+                pass
+        if payload.scheduledFor:
+            existing_post.scheduled_for = payload.scheduledFor
+        if payload.aiNotes:
+            existing_post.ai_notes = payload.aiNotes
         await db.commit()
         await db.refresh(existing_post)
         return existing_post
@@ -86,9 +145,9 @@ async def receive_n8n_draft(
         caption=caption.strip(),
         hashtags=hashtags,
         image_url=image_url,
-        status=PostStatus.WAITING_APPROVAL,
-        scheduled_for=payload.scheduledFor or "Demain à 10h00",
-        ai_notes=payload.aiNotes or "Généré automatiquement par Dr. Mokhtar AI (n8n).",
+        status=PostStatus.PUBLISHED if is_publish_event else PostStatus.WAITING_APPROVAL,
+        scheduled_for=payload.scheduledFor or ("Publié" if is_publish_event else "Demain à 10h00"),
+        ai_notes=payload.aiNotes or "Généré automatiquement par Dr. Arselane AI (n8n).",
         approval_webhook_url=payload.approvalWebhookUrl,
     )
     
