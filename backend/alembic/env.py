@@ -130,8 +130,9 @@ MODULES_ROOT = BACKEND_ROOT / "app" / "modules"
 
 config = context.config
 
-# Set the database URL from settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Set the database URL from settings.
+# Escape % as %% so configparser does not treat percent-encoded password characters (%3F, %40) as interpolation syntax.
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 # Register main linear + discovered branches so Alembic can resolve heads
 # across all of them. ``version_path_separator = os`` in alembic.ini, so
@@ -179,10 +180,12 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_async_migrations() -> None:
     """Run migrations in 'online' mode with async engine."""
+    connect_args = {"statement_cache_size": 0} if "sqlite" not in settings.DATABASE_URL else {}
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=connect_args,
     )
 
     async with connectable.connect() as connection:

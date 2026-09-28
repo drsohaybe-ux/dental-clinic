@@ -25,6 +25,7 @@ if "sqlite" not in settings.DATABASE_URL:
         pool_timeout=30,
         pool_recycle=3600,
         pool_pre_ping=True,
+        connect_args={"statement_cache_size": 0},
     )
 
 engine = create_async_engine(
