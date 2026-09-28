@@ -177,124 +177,140 @@ def upgrade() -> None:
     op.execute("""UPDATE catalog_item_sessions SET default_price = 10000.0 WHERE sequence = 2 AND catalog_item_id IN (SELECT id FROM treatment_catalog_items WHERE internal_code = 'SURG-IMP-TI' AND clinic_id IN (SELECT id FROM clinics WHERE currency IN ('DZD', 'EUR') OR id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'));""")
     op.execute("""UPDATE catalog_item_sessions SET default_price = 15000.0 WHERE sequence = 3 AND catalog_item_id IN (SELECT id FROM treatment_catalog_items WHERE internal_code = 'SURG-IMP-TI' AND clinic_id IN (SELECT id FROM clinics WHERE currency IN ('DZD', 'EUR') OR id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'));""")
 
-    # 4. Update demo invoice items with new catalog prices
+    # 4. Update demo invoice items with new catalog prices (if billing tables exist)
     op.execute("""
-        UPDATE invoice_items ii
-        SET unit_price = tci.default_price,
-            line_subtotal = tci.default_price * ii.quantity,
-            line_total = tci.default_price * ii.quantity
-        FROM treatment_catalog_items tci
-        WHERE ii.catalog_item_id = tci.id
-          AND ii.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-          AND tci.default_price IS NOT NULL;
+        DO $$
+        BEGIN
+            IF to_regclass('invoice_items') IS NOT NULL AND to_regclass('treatment_catalog_items') IS NOT NULL THEN
+                UPDATE invoice_items ii
+                SET unit_price = tci.default_price,
+                    line_subtotal = tci.default_price * ii.quantity,
+                    line_total = tci.default_price * ii.quantity
+                FROM treatment_catalog_items tci
+                WHERE ii.catalog_item_id = tci.id
+                  AND ii.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+                  AND tci.default_price IS NOT NULL;
+            END IF;
+        END $$;
     """)
 
     # 5. Update demo invoices total/subtotal from invoice items
     op.execute("""
-        UPDATE invoices inv
-        SET total = sub.new_total,
-            subtotal = sub.new_total
-        FROM (
-            SELECT invoice_id, SUM(line_total) as new_total
-            FROM invoice_items
-            GROUP BY invoice_id
-        ) sub
-        WHERE inv.id = sub.invoice_id
-          AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+        DO $$
+        BEGIN
+            IF to_regclass('invoices') IS NOT NULL AND to_regclass('invoice_items') IS NOT NULL THEN
+                UPDATE invoices inv
+                SET total = sub.new_total,
+                    subtotal = sub.new_total
+                FROM (
+                    SELECT invoice_id, SUM(line_total) as new_total
+                    FROM invoice_items
+                    GROUP BY invoice_id
+                ) sub
+                WHERE inv.id = sub.invoice_id
+                  AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+            END IF;
+        END $$;
     """)
 
     # 6. Update demo payments and invoice payments for paid/partial invoices
     op.execute("""
-        UPDATE invoice_payments ip
-        SET amount = inv.total
-        FROM invoices inv
-        WHERE ip.invoice_id = inv.id
-          AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-          AND inv.status = 'paid';
-    """)
+        DO $$
+        BEGIN
+            IF to_regclass('invoice_payments') IS NOT NULL AND to_regclass('invoices') IS NOT NULL THEN
+                UPDATE invoice_payments ip
+                SET amount = inv.total
+                FROM invoices inv
+                WHERE ip.invoice_id = inv.id
+                  AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+                  AND inv.status = 'paid';
 
-    op.execute("""
-        UPDATE payments p
-        SET amount = ip.amount,
-            currency = 'DZD'
-        FROM invoice_payments ip
-        JOIN invoices inv ON ip.invoice_id = inv.id
-        WHERE ip.payment_id = p.id
-          AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-          AND inv.status = 'paid';
-    """)
+                UPDATE invoice_payments ip
+                SET amount = 4250.00
+                FROM invoices inv
+                WHERE ip.invoice_id = inv.id
+                  AND inv.invoice_number = 'FAC-2026-0002'
+                  AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 
-    op.execute("""
-        UPDATE payment_allocations pa
-        SET amount = p.amount
-        FROM payments p
-        WHERE pa.payment_id = p.id
-          AND p.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
-    """)
+                UPDATE invoice_payments ip
+                SET amount = 15000.00
+                FROM invoices inv
+                WHERE ip.invoice_id = inv.id
+                  AND inv.invoice_number = 'FAC-2026-0003'
+                  AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+            END IF;
 
-    # Specific partial invoices updates:
-    # FAC-2026-0002 (total 8500, paid 4250)
-    op.execute("""
-        UPDATE invoice_payments ip
-        SET amount = 4250.00
-        FROM invoices inv
-        WHERE ip.invoice_id = inv.id
-          AND inv.invoice_number = 'FAC-2026-0002'
-          AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
-    """)
-    op.execute("""
-        UPDATE payments p
-        SET amount = 4250.00,
-            currency = 'DZD'
-        FROM invoice_payments ip
-        JOIN invoices inv ON ip.invoice_id = inv.id
-        WHERE ip.payment_id = p.id
-          AND inv.invoice_number = 'FAC-2026-0002'
-          AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
-    """)
+            IF to_regclass('payments') IS NOT NULL AND to_regclass('invoice_payments') IS NOT NULL AND to_regclass('invoices') IS NOT NULL THEN
+                UPDATE payments p
+                SET amount = ip.amount,
+                    currency = 'DZD'
+                FROM invoice_payments ip
+                JOIN invoices inv ON ip.invoice_id = inv.id
+                WHERE ip.payment_id = p.id
+                  AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+                  AND inv.status = 'paid';
 
-    # FAC-2026-0003 (total 30000, paid 15000)
-    op.execute("""
-        UPDATE invoice_payments ip
-        SET amount = 15000.00
-        FROM invoices inv
-        WHERE ip.invoice_id = inv.id
-          AND inv.invoice_number = 'FAC-2026-0003'
-          AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
-    """)
-    op.execute("""
-        UPDATE payments p
-        SET amount = 15000.00,
-            currency = 'DZD'
-        FROM invoice_payments ip
-        JOIN invoices inv ON ip.invoice_id = inv.id
-        WHERE ip.payment_id = p.id
-          AND inv.invoice_number = 'FAC-2026-0003'
-          AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+                UPDATE payments p
+                SET amount = 4250.00,
+                    currency = 'DZD'
+                FROM invoice_payments ip
+                JOIN invoices inv ON ip.invoice_id = inv.id
+                WHERE ip.payment_id = p.id
+                  AND inv.invoice_number = 'FAC-2026-0002'
+                  AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+
+                UPDATE payments p
+                SET amount = 15000.00,
+                    currency = 'DZD'
+                FROM invoice_payments ip
+                JOIN invoices inv ON ip.invoice_id = inv.id
+                WHERE ip.payment_id = p.id
+                  AND inv.invoice_number = 'FAC-2026-0003'
+                  AND inv.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+            END IF;
+
+            IF to_regclass('payment_allocations') IS NOT NULL AND to_regclass('payments') IS NOT NULL THEN
+                UPDATE payment_allocations pa
+                SET amount = p.amount
+                FROM payments p
+                WHERE pa.payment_id = p.id
+                  AND p.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+            END IF;
+        END $$;
     """)
 
     # 7. Update demo budget items with new catalog prices
     op.execute("""
-        UPDATE budget_items bi
-        SET unit_price = tci.default_price
-        FROM treatment_catalog_items tci
-        WHERE bi.catalog_item_id = tci.id
-          AND bi.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-          AND tci.default_price IS NOT NULL;
+        DO $$
+        BEGIN
+            IF to_regclass('budget_items') IS NOT NULL AND to_regclass('treatment_catalog_items') IS NOT NULL THEN
+                UPDATE budget_items bi
+                SET unit_price = tci.default_price
+                FROM treatment_catalog_items tci
+                WHERE bi.catalog_item_id = tci.id
+                  AND bi.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+                  AND tci.default_price IS NOT NULL;
+            END IF;
+        END $$;
     """)
 
     # 8. Update demo budgets total/subtotal from budget items
     op.execute("""
-        UPDATE budgets b
-        SET total = sub.new_total,
-            subtotal = sub.new_total
-        FROM (
-            SELECT budget_id, SUM(unit_price * quantity) as new_total
-            FROM budget_items
-            GROUP BY budget_id
-        ) sub
-        WHERE b.id = sub.budget_id
-          AND b.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+        DO $$
+        BEGIN
+            IF to_regclass('budgets') IS NOT NULL AND to_regclass('budget_items') IS NOT NULL THEN
+                UPDATE budgets b
+                SET total = sub.new_total,
+                    subtotal = sub.new_total
+                FROM (
+                    SELECT budget_id, SUM(unit_price * quantity) as new_total
+                    FROM budget_items
+                    GROUP BY budget_id
+                ) sub
+                WHERE b.id = sub.budget_id
+                  AND b.clinic_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+            END IF;
+        END $$;
     """)
 
 
