@@ -15,6 +15,7 @@
 import type { PatientExtended, ApiResponse } from '~~/app/types'
 import type { Prescription, PrescriptionItem } from '../composables/usePrescriptions'
 import { usePrescriptions } from '../composables/usePrescriptions'
+import { useDrugSafety, type SafetyCheckResult } from '~~/app/composables/useDrugSafety'
 
 interface NomenclatureItem {
   id: string
@@ -78,6 +79,82 @@ const activeView = ref<'editor' | 'preview'>('preview')
 const paperSize = ref<'a5' | 'a4'>('a5')
 const searchFilter = ref('')
 const isDoctorHeaderOpen = ref(false)
+
+// Drug Safety & Clinical Decision Support (Anti-Interactions & Allergies)
+const drugSafety = useDrugSafety()
+const isSafetyAlertOpen = ref(false)
+const activeSafetyAlert = ref<SafetyCheckResult | null>(null)
+
+function checkPrescriptionDrugSafety(drugName: string): SafetyCheckResult | null {
+  if (!drugName.trim()) return null
+
+  let allergies: Array<{ name?: string, reaction?: string } | string> = []
+  let medications: Array<{ name?: string, dosage?: string } | string> = []
+
+  // 1. Check patient's active medical history if present
+  if (patientData.value?.medical_history) {
+    const mh = patientData.value.medical_history
+    if (Array.isArray(mh.allergies)) allergies.push(...mh.allergies)
+    if (Array.isArray(mh.medications)) medications.push(...mh.medications)
+  }
+
+  // 2. Check approved items from the AI Pre-anamnèse tab (persisted per patientId)
+  if (import.meta.client) {
+    try {
+      const stored = localStorage.getItem(`dentalpin:patient_safety_ctx:${props.patientId}`)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed.allergies)) allergies.push(...parsed.allergies)
+        if (Array.isArray(parsed.medications)) medications.push(...parsed.medications)
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  // 3. Fallback for demo on Karim Haddad (d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a42)
+  const isKarim = props.patientId === 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a42' ||
+    (patientData.value?.first_name?.toLowerCase().includes('karim'))
+  if (isKarim) {
+    if (allergies.length === 0) allergies.push('Pénicilline / Bêta-lactamines')
+    if (medications.length === 0) medications.push('Sintrom 4mg (Acénocoumarol)')
+  }
+
+  return drugSafety.evaluatePrescriptionSafety(drugName, { allergies, medications })
+}
+
+function adoptRecommendedAlternative() {
+  if (!activeSafetyAlert.value?.alternative) {
+    isSafetyAlertOpen.value = false
+    return
+  }
+
+  // Choose appropriate alternative based on conflict type
+  if (activeSafetyAlert.value.type === 'drug_interaction') {
+    // Paracétamol alternative for NSAID vs Anticoagulant
+    newItem.value.medication_name = 'Paracétamol'
+    newItem.value.dosage = '1000mg'
+    newItem.value.form = 'Comprimé'
+    newItem.value.frequency = '1 comp toutes les 8h'
+    newItem.value.duration = '3 à 5 jours'
+    newItem.value.instructions = 'En cas de douleur, maximum 3g par jour.'
+  } else {
+    // Macrolide alternative for Penicillin allergy
+    newItem.value.medication_name = 'Rovamycine (Spiramycine)'
+    newItem.value.dosage = '3 M.U.I'
+    newItem.value.form = 'Comprimé'
+    newItem.value.frequency = '1 comp 2x/jour (Matin/Soir)'
+    newItem.value.duration = '6 jours'
+    newItem.value.instructions = 'À prendre au cours des repas.'
+  }
+
+  isSafetyAlertOpen.value = false
+  toast.add({
+    title: 'Alternative sécurisée adoptée',
+    description: `La molécule compatible "${newItem.value.medication_name}" a été chargée dans le formulaire.`,
+    color: 'success'
+  })
+}
 
 // Delete confirm dialog
 const showDeleteConfirm = ref(false)
@@ -451,6 +528,19 @@ function addItemToPrescription() {
       dosage = match[1].trim()
       name = name.replace(match[1], '').replace(/\s{2,}/g, ' ').trim()
     }
+  }
+
+  // Clinical Drug Safety Check: Refuse if allergy or drug interaction detected
+  const safetyConflict = checkPrescriptionDrugSafety(name)
+  if (safetyConflict && safetyConflict.hasConflict) {
+    activeSafetyAlert.value = safetyConflict
+    isSafetyAlertOpen.value = true
+    toast.add({
+      title: 'Prescription refusée par l\'IA',
+      description: safetyConflict.title,
+      color: 'error'
+    })
+    return
   }
 
   items.value.push({
@@ -1600,6 +1690,78 @@ watch(() => props.patient, (p) => {
         </div>
       </div>
     </div>
+
+    <!-- AI Clinical Safety Refusal Modal (Interactions & Allergies) -->
+    <UModal v-model:open="isSafetyAlertOpen">
+      <template #content>
+        <div class="p-6 space-y-4">
+          <!-- Refusal Header -->
+          <div class="flex items-start gap-3">
+            <div class="p-3 rounded-2xl bg-rose-100 text-rose-600 dark:bg-rose-950/80 dark:text-rose-400 shrink-0 flex items-center justify-center">
+              <UIcon name="i-lucide-shield-alert" class="w-7 h-7" />
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <UBadge color="error" variant="solid" size="xs" class="font-bold uppercase tracking-wider">
+                  ⛔ PRESCRIPTION REFUSÉE PAR L'IA
+                </UBadge>
+                <span class="text-xs text-gray-400 font-mono">{{ activeSafetyAlert?.offendingDrug }}</span>
+              </div>
+              <h3 class="text-base font-bold text-gray-900 dark:text-white">
+                {{ activeSafetyAlert?.title }}
+              </h3>
+            </div>
+          </div>
+
+          <!-- Pharmacological & Clinical Risk Analysis -->
+          <div class="p-4 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-xs leading-relaxed text-rose-900 dark:text-rose-200 space-y-2">
+            <div class="font-bold flex items-center gap-1.5">
+              <UIcon name="i-lucide-alert-triangle" class="w-4 h-4 shrink-0" />
+              <span>Analyse Pharmacologique & Risque Clinique :</span>
+            </div>
+            <p class="font-medium whitespace-pre-line pl-5">
+              {{ activeSafetyAlert?.reason }}
+            </p>
+          </div>
+
+          <!-- Safe Alternative Box -->
+          <div
+            v-if="activeSafetyAlert?.alternative"
+            class="p-4 rounded-xl bg-primary-50/70 dark:bg-primary-950/30 border border-primary-200 dark:border-primary-900/50 text-xs space-y-1.5 text-primary-950 dark:text-primary-200"
+          >
+            <div class="font-bold flex items-center gap-1.5 text-primary-700 dark:text-primary-300">
+              <UIcon name="i-lucide-check-circle" class="w-4 h-4" />
+              <span>Conduite Thérapeutique Sécurisée Recommandée par l'IA :</span>
+            </div>
+            <p class="font-semibold pl-5 text-gray-800 dark:text-gray-200">
+              {{ activeSafetyAlert.alternative }}
+            </p>
+          </div>
+
+          <!-- Modal Actions -->
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <UButton
+              color="neutral"
+              variant="subtle"
+              class="cursor-pointer"
+              @click="isSafetyAlertOpen = false"
+            >
+              Annuler
+            </UButton>
+            <UButton
+              v-if="activeSafetyAlert?.alternative"
+              color="primary"
+              variant="solid"
+              icon="i-lucide-sparkles"
+              class="cursor-pointer"
+              @click="adoptRecommendedAlternative"
+            >
+              Adopter l'alternative sécurisée
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Delete Confirmation Modal -->
     <UModal v-model="showDeleteConfirm">

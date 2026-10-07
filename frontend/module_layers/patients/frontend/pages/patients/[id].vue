@@ -167,7 +167,7 @@ const tabs = computed(() => {
 
   items.push({
     value: 'ai_dossier',
-    label: 'Radios & IA Dossier',
+    label: 'Radiographies & Diagnostic IA',
     icon: 'i-lucide-scan',
     slot: 'ai_dossier'
   })
@@ -504,6 +504,7 @@ function collect() {
               <PatientAiDossierTab
                 :patient-id="patientId"
                 :patient-phone="patient?.phone"
+                :patient="patient"
               />
             </div>
           </template>

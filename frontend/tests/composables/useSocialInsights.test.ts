@@ -144,6 +144,7 @@ describe('useSocialInsights composable', () => {
       }
     ]
     state.activePlatform.value = 'instagram'
+    state.activeDateRange.value = 'all'
 
     expect(state.summaryMetrics.value.followerGrowth).toBe(-50)
   })
